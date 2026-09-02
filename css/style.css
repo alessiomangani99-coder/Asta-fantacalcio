@@ -1,0 +1,476 @@
+/* ==========================================================================
+   Design System & Stile Principale - Asta Fantacalcio 2026/2027
+   Tema: Dark Sportivo Neon High-Contrast
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Palette Colori Sfondo e Superfici */
+  --bg-app: #090d16;
+  --bg-surface: #111827;
+  --bg-surface-elevated: #1a2234;
+  --bg-surface-hover: #222d42;
+  --bg-input: #0e1422;
+
+  /* Bordi e Riflessi */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-focus: #3b82f6;
+
+  /* Testo e Tipografia */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #090d16;
+
+  /* Colori Ruoli Fantacalcio */
+  --role-p-bg: rgba(245, 158, 11, 0.18);
+  --role-p-border: #f59e0b;
+  --role-p-text: #fbbf24;
+
+  --role-d-bg: rgba(16, 185, 129, 0.18);
+  --role-d-border: #10b981;
+  --role-d-text: #34d399;
+
+  --role-c-bg: rgba(59, 130, 246, 0.18);
+  --role-c-border: #3b82f6;
+  --role-c-text: #60a5fa;
+
+  --role-a-bg: rgba(239, 68, 68, 0.18);
+  --role-a-border: #ef4444;
+  --role-a-text: #f87171;
+
+  /* Indicatori di Stato / Accenti */
+  --accent-cyan: #06b6d4;
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-danger: #ef4444;
+
+  /* Ombre & Bagliori */
+  --glow-blue: 0 0 20px rgba(59, 130, 246, 0.35);
+  --glow-cyan: 0 0 15px rgba(6, 182, 212, 0.35);
+  --glow-accent: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+
+  /* Font */
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Reset Globale */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Scrollbar personalizzata */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-app);
+}
+::-webkit-scrollbar-thumb {
+  background: #28334a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b4b6b;
+}
+
+/* Struttura Layout Principale */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header Principale */
+.app-header {
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.95) 0%, rgba(15, 23, 42, 0.85) 100%);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 0.75rem 1.5rem;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-logo {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #60a5fa 0%, #38bdf8 50%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.5rem;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+  border-radius: 9999px;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
+/* Statistiche Rapide Header */
+.header-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: rgba(10, 14, 23, 0.6);
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.825rem;
+}
+
+.stat-pill .label {
+  color: var(--text-muted);
+}
+
+.stat-pill .value {
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text-primary);
+}
+
+.stat-pill .value.highlight {
+  color: var(--accent-cyan);
+}
+
+/* Azioni Rapide Header */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+}
+
+.btn-header:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.btn-header-undo {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.btn-header-undo:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Barra Navigazione Tab */
+.header-nav-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 0.6rem;
+  overflow-x: auto;
+}
+
+.nav-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.925rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.nav-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-tab-btn.active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%);
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
+}
+
+.tab-badge {
+  font-size: 0.725rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+}
+
+/* Contenuto Principale */
+.app-main {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 1700px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.tab-view.hidden {
+  display: none !important;
+}
+
+/* Utility Generali */
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.text-muted { color: var(--text-muted); }
+.text-success { color: var(--accent-success); }
+.text-danger { color: var(--accent-danger); }
+.text-accent { color: var(--accent-cyan); }
+.text-primary { color: #60a5fa; }
+
+/* Badge Ruolo */
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.role-P {
+  background: var(--role-p-bg);
+  border: 1.5px solid var(--role-p-border);
+  color: var(--role-p-text);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.25);
+}
+
+.role-D {
+  background: var(--role-d-bg);
+  border: 1.5px solid var(--role-d-border);
+  color: var(--role-d-text);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
+}
+
+.role-C {
+  background: var(--role-c-bg);
+  border: 1.5px solid var(--role-c-border);
+  color: var(--role-c-text);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.25);
+}
+
+.role-A {
+  background: var(--role-a-bg);
+  border: 1.5px solid var(--role-a-border);
+  color: var(--role-a-text);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.25);
+}
+
+.role-mini-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 0.725rem;
+  font-weight: 800;
+  border-radius: 4px;
+}
+
+/* Badge Statistiche (Titolarità / Integrità) */
+.stat-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  text-align: center;
+}
+
+.badge-stat-green {
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.badge-stat-orange {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.badge-stat-red {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+/* Squadra Badge */
+.team-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Toast Container per Notifiche */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast-item {
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 420px;
+  padding: 0.85rem 1.15rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  animation: slideUp 0.25s ease-out;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast-item.fade-out {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.toast-success {
+  background: rgba(16, 185, 129, 0.92);
+  border: 1px solid #10b981;
+}
+
+.toast-error {
+  background: rgba(239, 68, 68, 0.92);
+  border: 1px solid #ef4444;
+}
+
+.toast-info {
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+}
+
+.toast-warning {
+  background: rgba(245, 158, 11, 0.92);
+  border: 1px solid #f59e0b;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .header-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .header-stats-bar {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.5rem 1rem;
+  }
+  .app-main {
+    padding: 1rem 0.5rem;
+  }
+  .header-stats-bar {
+    display: none;
+  }
+}

@@ -1,0 +1,381 @@
+Date,Matchday,Home Team,Away Team
+2026-08-22,1,Udinese,como
+2026-08-22,1,Inter,Monza
+2026-08-22,1,Genoa,Napoli
+2026-08-22,1,Parma,Cagliari
+2026-08-23,1,Frosinone,Juventus
+2026-08-23,1,Venezia,Lecce
+2026-08-23,1,Atalanta,Sassuolo
+2026-08-23,1,Torino,AC Milan
+2026-08-24,1,Bologna,Lazio
+2026-08-24,1,AS Roma,Fiorentina
+2026-08-28,2,AC Milan,Venezia
+2026-08-29,2,Sassuolo,Torino
+2026-08-29,2,Fiorentina,Frosinone
+2026-08-29,2,Monza,Udinese
+2026-08-29,2,Juventus,Parma
+2026-08-30,2,Napoli,como
+2026-08-30,2,Lazio,Genoa
+2026-08-30,2,Cagliari,Inter
+2026-08-31,2,Lecce,AS Roma
+2026-08-31,2,Atalanta,Bologna
+2026-09-04,3,Genoa,como
+2026-09-05,3,Fiorentina,Torino
+2026-09-05,3,Inter,Napoli
+2026-09-05,3,AS Roma,Atalanta
+2026-09-06,3,Frosinone,Venezia
+2026-09-06,3,Parma,Monza
+2026-09-06,3,Bologna,Sassuolo
+2026-09-06,3,Juventus,AC Milan
+2026-09-07,3,Cagliari,Lecce
+2026-09-07,3,Udinese,Lazio
+2026-09-11,4,Venezia,Fiorentina
+2026-09-12,4,Genoa,Frosinone
+2026-09-12,4,Sassuolo,Juventus
+2026-09-12,4,Atalanta,Cagliari
+2026-09-13,4,Torino,AS Roma
+2026-09-13,4,Lecce,Monza
+2026-09-13,4,como,Parma
+2026-09-13,4,Napoli,Bologna
+2026-09-13,4,Lazio,AC Milan
+2026-09-14,4,Inter,Udinese
+2026-09-18,5,Monza,Sassuolo
+2026-09-19,5,Udinese,Cagliari
+2026-09-19,5,Bologna,Torino
+2026-09-19,5,AS Roma,Inter
+2026-09-19,5,Venezia,Lazio
+2026-09-20,5,Fiorentina,Napoli
+2026-09-20,5,Frosinone,como
+2026-09-20,5,Parma,Genoa
+2026-09-20,5,Juventus,Atalanta
+2026-09-20,5,AC Milan,Lecce
+2026-10-11,6,Lazio,Monza
+2026-10-11,6,Sassuolo,AC Milan
+2026-10-11,6,Cagliari,Juventus
+2026-10-11,6,Napoli,Frosinone
+2026-10-11,6,Genoa,Fiorentina
+2026-10-11,6,Atalanta,Venezia
+2026-10-11,6,Torino,Udinese
+2026-10-11,6,Inter,Parma
+2026-10-11,6,Lecce,Bologna
+2026-10-11,6,como,AS Roma
+2026-10-18,7,AC Milan,Atalanta
+2026-10-18,7,Udinese,Lecce
+2026-10-18,7,Juventus,Lazio
+2026-10-18,7,AS Roma,Genoa
+2026-10-18,7,Bologna,Inter
+2026-10-18,7,Fiorentina,como
+2026-10-18,7,Frosinone,Sassuolo
+2026-10-18,7,Venezia,Napoli
+2026-10-18,7,Parma,Torino
+2026-10-18,7,Monza,Cagliari
+2026-10-25,8,Lazio,Parma
+2026-10-25,8,Cagliari,Bologna
+2026-10-25,8,Napoli,AS Roma
+2026-10-25,8,Udinese,AC Milan
+2026-10-25,8,Genoa,Venezia
+2026-10-25,8,Atalanta,Frosinone
+2026-10-25,8,Torino,Monza
+2026-10-25,8,Inter,Fiorentina
+2026-10-25,8,Lecce,Juventus
+2026-10-25,8,como,Sassuolo
+2026-10-28,9,Sassuolo,Lazio
+2026-10-28,9,AC Milan,Bologna
+2026-10-28,9,Genoa,Juventus
+2026-10-28,9,AS Roma,Cagliari
+2026-10-28,9,Fiorentina,Atalanta
+2026-10-28,9,Torino,como
+2026-10-28,9,Frosinone,Lecce
+2026-10-28,9,Venezia,Inter
+2026-10-28,9,Parma,Udinese
+2026-10-28,9,Monza,Napoli
+2026-11-01,10,Lazio,Cagliari
+2026-11-01,10,Sassuolo,Fiorentina
+2026-11-01,10,AC Milan,Inter
+2026-11-01,10,Udinese,AS Roma
+2026-11-01,10,Juventus,Napoli
+2026-11-01,10,Atalanta,Parma
+2026-11-01,10,Bologna,Monza
+2026-11-01,10,Frosinone,Torino
+2026-11-01,10,Lecce,Genoa
+2026-11-01,10,como,Venezia
+2026-11-08,11,Cagliari,Frosinone
+2026-11-08,11,Napoli,Lazio
+2026-11-08,11,Genoa,AC Milan
+2026-11-08,11,AS Roma,Sassuolo
+2026-11-08,11,Fiorentina,Juventus
+2026-11-08,11,Torino,Lecce
+2026-11-08,11,Inter,como
+2026-11-08,11,Venezia,Udinese
+2026-11-08,11,Parma,Bologna
+2026-11-08,11,Monza,Atalanta
+2026-11-22,12,Lazio,Lecce
+2026-11-22,12,Sassuolo,Genoa
+2026-11-22,12,AC Milan,Frosinone
+2026-11-22,12,Napoli,Torino
+2026-11-22,12,Juventus,Venezia
+2026-11-22,12,Atalanta,Inter
+2026-11-22,12,Bologna,Udinese
+2026-11-22,12,Parma,AS Roma
+2026-11-22,12,como,Cagliari
+2026-11-22,12,Monza,Fiorentina
+2026-11-29,13,Sassuolo,Napoli
+2026-11-29,13,Cagliari,AC Milan
+2026-11-29,13,Udinese,Fiorentina
+2026-11-29,13,AS Roma,Monza
+2026-11-29,13,Torino,Lazio
+2026-11-29,13,Inter,Genoa
+2026-11-29,13,Frosinone,Parma
+2026-11-29,13,Venezia,Bologna
+2026-11-29,13,Lecce,Atalanta
+2026-11-29,13,como,Juventus
+2026-12-06,14,Lazio,Atalanta
+2026-12-06,14,AC Milan,Parma
+2026-12-06,14,Napoli,Lecce
+2026-12-06,14,Genoa,Torino
+2026-12-06,14,Juventus,Udinese
+2026-12-06,14,Bologna,AS Roma
+2026-12-06,14,Fiorentina,Cagliari
+2026-12-06,14,Frosinone,Inter
+2026-12-06,14,Venezia,Sassuolo
+2026-12-06,14,Monza,como
+2026-12-13,15,Lazio,AS Roma
+2026-12-13,15,Cagliari,Venezia
+2026-12-13,15,Napoli,AC Milan
+2026-12-13,15,Udinese,Frosinone
+2026-12-13,15,Juventus,Monza
+2026-12-13,15,Atalanta,Genoa
+2026-12-13,15,Inter,Torino
+2026-12-13,15,Parma,Fiorentina
+2026-12-13,15,Lecce,Sassuolo
+2026-12-13,15,como,Bologna
+2026-12-20,16,Sassuolo,Parma
+2026-12-20,16,AC Milan,como
+2026-12-20,16,Genoa,Udinese
+2026-12-20,16,AS Roma,Juventus
+2026-12-20,16,Atalanta,Napoli
+2026-12-20,16,Fiorentina,Bologna
+2026-12-20,16,Torino,Cagliari
+2026-12-20,16,Frosinone,Lazio
+2026-12-20,16,Venezia,Monza
+2026-12-20,16,Lecce,Inter
+2027-01-03,17,Cagliari,Genoa
+2027-01-03,17,Udinese,Atalanta
+2027-01-03,17,AS Roma,Frosinone
+2027-01-03,17,Bologna,Juventus
+2027-01-03,17,Fiorentina,Lazio
+2027-01-03,17,Torino,Venezia
+2027-01-03,17,Inter,Sassuolo
+2027-01-03,17,Parma,Napoli
+2027-01-03,17,como,Lecce
+2027-01-03,17,Monza,AC Milan
+2027-01-06,18,Lazio,Inter
+2027-01-06,18,Sassuolo,Udinese
+2027-01-06,18,AC Milan,Fiorentina
+2027-01-06,18,Napoli,Cagliari
+2027-01-06,18,Genoa,Monza
+2027-01-06,18,Juventus,Torino
+2027-01-06,18,Atalanta,como
+2027-01-06,18,Frosinone,Bologna
+2027-01-06,18,Venezia,AS Roma
+2027-01-06,18,Lecce,Parma
+2027-01-10,19,Cagliari,Sassuolo
+2027-01-10,19,Udinese,Napoli
+2027-01-10,19,AS Roma,AC Milan
+2027-01-10,19,Bologna,Genoa
+2027-01-10,19,Fiorentina,Lecce
+2027-01-10,19,Torino,Atalanta
+2027-01-10,19,Inter,Juventus
+2027-01-10,19,Parma,Venezia
+2027-01-10,19,como,Lazio
+2027-01-10,19,Monza,Frosinone
+2027-01-17,20,Lazio,Bologna
+2027-01-17,20,Sassuolo,Monza
+2027-01-17,20,AC Milan,Torino
+2027-01-17,20,Cagliari,como
+2027-01-17,20,Napoli,Fiorentina
+2027-01-17,20,Juventus,Genoa
+2027-01-17,20,Atalanta,AS Roma
+2027-01-17,20,Venezia,Frosinone
+2027-01-17,20,Parma,Inter
+2027-01-17,20,Lecce,Udinese
+2027-01-24,21,Genoa,Parma
+2027-01-24,21,Juventus,Cagliari
+2027-01-24,21,AS Roma,Udinese
+2027-01-24,21,Bologna,Atalanta
+2027-01-24,21,Fiorentina,Sassuolo
+2027-01-24,21,Inter,Venezia
+2027-01-24,21,Frosinone,AC Milan
+2027-01-24,21,Lecce,Torino
+2027-01-24,21,como,Napoli
+2027-01-24,21,Monza,Lazio
+2027-01-31,22,Lazio,Venezia
+2027-01-31,22,Sassuolo,como
+2027-01-31,22,AC Milan,Juventus
+2027-01-31,22,Cagliari,Parma
+2027-01-31,22,Napoli,Inter
+2027-01-31,22,Udinese,Bologna
+2027-01-31,22,Genoa,Lecce
+2027-01-31,22,Atalanta,Fiorentina
+2027-01-31,22,Torino,Frosinone
+2027-01-31,22,Monza,AS Roma
+2027-02-07,23,Juventus,Sassuolo
+2027-02-07,23,AS Roma,Torino
+2027-02-07,23,Atalanta,Lazio
+2027-02-07,23,Bologna,AC Milan
+2027-02-07,23,Fiorentina,Udinese
+2027-02-07,23,Inter,Cagliari
+2027-02-07,23,Venezia,Genoa
+2027-02-07,23,Parma,Frosinone
+2027-02-07,23,Lecce,Napoli
+2027-02-07,23,como,Monza
+2027-02-14,24,Cagliari,Lazio
+2027-02-14,24,Napoli,Juventus
+2027-02-14,24,Udinese,Venezia
+2027-02-14,24,Genoa,Atalanta
+2027-02-14,24,AS Roma,Parma
+2027-02-14,24,Bologna,como
+2027-02-14,24,Torino,Sassuolo
+2027-02-14,24,Inter,AC Milan
+2027-02-14,24,Frosinone,Fiorentina
+2027-02-14,24,Monza,Lecce
+2027-02-21,25,Lazio,Napoli
+2027-02-21,25,Sassuolo,AS Roma
+2027-02-21,25,AC Milan,Genoa
+2027-02-21,25,Udinese,Parma
+2027-02-21,25,Juventus,Bologna
+2027-02-21,25,Atalanta,Monza
+2027-02-21,25,Fiorentina,Inter
+2027-02-21,25,Venezia,Cagliari
+2027-02-21,25,Lecce,Frosinone
+2027-02-21,25,como,Torino
+2027-02-28,26,Cagliari,Udinese
+2027-02-28,26,Genoa,Lazio
+2027-02-28,26,AS Roma,Venezia
+2027-02-28,26,Bologna,Lecce
+2027-02-28,26,Torino,Fiorentina
+2027-02-28,26,Inter,Atalanta
+2027-02-28,26,Frosinone,Napoli
+2027-02-28,26,Parma,Sassuolo
+2027-02-28,26,como,AC Milan
+2027-02-28,26,Monza,Juventus
+2027-03-07,27,Lazio,Frosinone
+2027-03-07,27,Sassuolo,Bologna
+2027-03-07,27,AC Milan,Cagliari
+2027-03-07,27,Napoli,Parma
+2027-03-07,27,Udinese,Inter
+2027-03-07,27,Juventus,AS Roma
+2027-03-07,27,Atalanta,Torino
+2027-03-07,27,Fiorentina,Venezia
+2027-03-07,27,Lecce,como
+2027-03-07,27,Monza,Genoa
+2027-03-14,28,Lazio,Juventus
+2027-03-14,28,AC Milan,Sassuolo
+2027-03-14,28,Cagliari,Fiorentina
+2027-03-14,28,Genoa,AS Roma
+2027-03-14,28,Bologna,Napoli
+2027-03-14,28,Torino,Inter
+2027-03-14,28,Frosinone,Monza
+2027-03-14,28,Venezia,Atalanta
+2027-03-14,28,Parma,Lecce
+2027-03-14,28,como,Udinese
+2027-03-21,29,Sassuolo,Cagliari
+2027-03-21,29,Napoli,Venezia
+2027-03-21,29,Udinese,Torino
+2027-03-21,29,Juventus,como
+2027-03-21,29,AS Roma,Lecce
+2027-03-21,29,Atalanta,AC Milan
+2027-03-21,29,Fiorentina,Genoa
+2027-03-21,29,Inter,Frosinone
+2027-03-21,29,Parma,Lazio
+2027-03-21,29,Monza,Bologna
+2027-04-04,30,Sassuolo,Atalanta
+2027-04-04,30,AC Milan,Monza
+2027-04-04,30,Cagliari,Napoli
+2027-04-04,30,Genoa,Inter
+2027-04-04,30,AS Roma,Bologna
+2027-04-04,30,Torino,Juventus
+2027-04-04,30,Frosinone,Udinese
+2027-04-04,30,Venezia,Parma
+2027-04-04,30,Lecce,Lazio
+2027-04-04,30,como,Fiorentina
+2027-04-11,31,Lazio,Torino
+2027-04-11,31,Cagliari,Atalanta
+2027-04-11,31,Napoli,Sassuolo
+2027-04-11,31,Udinese,Monza
+2027-04-11,31,Juventus,Lecce
+2027-04-11,31,Bologna,Venezia
+2027-04-11,31,Fiorentina,AC Milan
+2027-04-11,31,Inter,AS Roma
+2027-04-11,31,Frosinone,Genoa
+2027-04-11,31,Parma,como
+2027-04-18,32,Sassuolo,Lecce
+2027-04-18,32,AC Milan,Napoli
+2027-04-18,32,AS Roma,Lazio
+2027-04-18,32,Atalanta,Udinese
+2027-04-18,32,Bologna,Cagliari
+2027-04-18,32,Fiorentina,Parma
+2027-04-18,32,Torino,Genoa
+2027-04-18,32,Venezia,Juventus
+2027-04-18,32,como,Frosinone
+2027-04-18,32,Monza,Inter
+2027-04-25,33,Lazio,como
+2027-04-25,33,Cagliari,Monza
+2027-04-25,33,Napoli,Udinese
+2027-04-25,33,Genoa,Sassuolo
+2027-04-25,33,Juventus,Fiorentina
+2027-04-25,33,Inter,Bologna
+2027-04-25,33,Frosinone,AS Roma
+2027-04-25,33,Venezia,Torino
+2027-04-25,33,Parma,Atalanta
+2027-04-25,33,Lecce,AC Milan
+2027-05-02,34,Sassuolo,Frosinone
+2027-05-02,34,AC Milan,Lazio
+2027-05-02,34,Udinese,Genoa
+2027-05-02,34,AS Roma,Napoli
+2027-05-02,34,Atalanta,Juventus
+2027-05-02,34,Bologna,Fiorentina
+2027-05-02,34,Torino,Parma
+2027-05-02,34,Lecce,Cagliari
+2027-05-02,34,como,Inter
+2027-05-02,34,Monza,Venezia
+2027-05-09,35,Lazio,Sassuolo
+2027-05-09,35,Napoli,Monza
+2027-05-09,35,Udinese,Juventus
+2027-05-09,35,Genoa,Cagliari
+2027-05-09,35,Fiorentina,AS Roma
+2027-05-09,35,Torino,Bologna
+2027-05-09,35,Inter,Lecce
+2027-05-09,35,Frosinone,Atalanta
+2027-05-09,35,Venezia,como
+2027-05-09,35,Parma,AC Milan
+2027-05-16,36,Lazio,Udinese
+2027-05-16,36,Sassuolo,Venezia
+2027-05-16,36,AC Milan,AS Roma
+2027-05-16,36,Cagliari,Torino
+2027-05-16,36,Napoli,Genoa
+2027-05-16,36,Juventus,Inter
+2027-05-16,36,Bologna,Frosinone
+2027-05-16,36,Lecce,Fiorentina
+2027-05-16,36,como,Atalanta
+2027-05-16,36,Monza,Parma
+2027-05-23,37,Udinese,Sassuolo
+2027-05-23,37,Genoa,Bologna
+2027-05-23,37,AS Roma,como
+2027-05-23,37,Atalanta,Lecce
+2027-05-23,37,Fiorentina,Monza
+2027-05-23,37,Torino,Napoli
+2027-05-23,37,Inter,Lazio
+2027-05-23,37,Frosinone,Cagliari
+2027-05-23,37,Venezia,AC Milan
+2027-05-23,37,Parma,Juventus
+2027-05-30,38,Lazio,Fiorentina
+2027-05-30,38,Sassuolo,Inter
+2027-05-30,38,AC Milan,Udinese
+2027-05-30,38,Cagliari,AS Roma
+2027-05-30,38,Napoli,Atalanta
+2027-05-30,38,Juventus,Frosinone
+2027-05-30,38,Bologna,Parma
+2027-05-30,38,Lecce,Venezia
+2027-05-30,38,como,Genoa
+2027-05-30,38,Monza,Torino

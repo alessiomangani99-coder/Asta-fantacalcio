@@ -1,0 +1,557 @@
+﻿PORTIERI
+
+Fascia,Squadra,Nome,Prezzo,Budget_%,Integr.,Titol.
+Portieri Top,Roma,Svilar,55,12%,100%,100%
+Portieri Top,Milan,Maignan,50,10%,60%,100%
+Portieri Top,Napoli,Meret,50,10%,20%,80%
+Portieri Top,Como,Butez,45,9%,100%,100%
+Portieri Top,Atalanta,Carnesecchi,45,9%,100%,100%
+Portieri Top,Inter,Martinez Jo.,40,8%,100%,70%
+Portieri Top,Juventus,Vicario,40,8%,60%,70%
+Portieri Semi-Top,Fiorentina,De Gea,25,7%,100%,100%
+Portieri Semi-Top,Lazio,Mandas,25,5%,100%,100%
+Portieri Semi-Top,Bologna,Skorupski,25,5%,60%,100%
+Portieri Terza Fascia,Genoa,Bijlow,15,3%,20%,100%
+Portieri Terza Fascia,Cagliari,Caprile,10,2%,60%,100%
+Portieri Terza Fascia,Lecce,Falcone,10,2%,100%,100%
+Portieri Terza Fascia,Udinese,Okoye,10,2%,20%,100%
+Portieri Terza Fascia,Sassuolo,Muric,5,1%,60%,100%
+Portieri Quarta Fascia,Cagliari,Sherri,1,1%,100%,10%
+Portieri Quarta Fascia,Parma,Corvi,3,0.6%,100%,100%
+Portieri Quarta Fascia,Parma,Daffara,1,0.2%,100%,10%
+Portieri Quarta Fascia,Venezia,Stankovic F.,1,0.2%,60%,100%
+Portieri Quarta Fascia,Frosinone,Palmisani,1,0.2%,100%,100%
+Portieri Quarta Fascia,Monza,Thiam,1,0.2%,100%,100%
+Portieri Quarta Fascia,Frosinone,Desplanches,1,0.2%,20%,10%
+Portieri Quarta Fascia,Lecce,Bleve,1,0.2%,60%,10%
+Portieri Quarta Fascia,Fiorentina,Christensen O.,1,0.2%,100%,10%
+Portieri Quarta Fascia,Napoli,Contini,1,0.2%,20%,10%
+Portieri Quarta Fascia,Roma,De Marzi,1,0.2%,100%,10%
+Portieri Quarta Fascia,Inter,Di Gennaro,1,0.2%,60%,10%
+Portieri Quarta Fascia,Parma,Ghidotti,1,0.2%,100%,10%
+Portieri Quarta Fascia,Roma,Gollini,1,0.2%,20%,10%
+Portieri Quarta Fascia,Venezia,Grandi,1,0.2%,100%,10%
+Portieri Quarta Fascia,Bologna,Happonen,1,0.2%,100%,10%
+Portieri Quarta Fascia,Fiorentina,Lezzerini,1,0.2%,20%,10%
+Portieri Quarta Fascia,Frosinone,Lolic,1,0.2%,100%,10%
+Portieri Quarta Fascia,Torino,Mascardi,1,0.2%,100%,100%
+Portieri Quarta Fascia,Venezia,Montipò,1,0.2%,100%,10%
+Portieri Quarta Fascia,Lazio,Motta,1,0.2%,60%,10%
+Portieri Quarta Fascia,Udinese,Mrozek,1,0.2%,20%,10%
+Portieri Quarta Fascia,Udinese,Padelli,1,0.2%,60%,10%
+Portieri Quarta Fascia,Torino,Paleari,1,0.2%,100%,10%
+Portieri Quarta Fascia,Lecce,Penev,1,0.2%,100%,10%
+Portieri Quarta Fascia,Bologna,Pessina Mas.,1,0.2%,100%,10%
+Portieri Quarta Fascia,Udinese,Piana,1,0.2%,100%,10%
+Portieri Quarta Fascia,Juventus,Pinsoglio,1,0.2%,60%,10%
+Portieri Quarta Fascia,Frosinone,Pisseri,1,0.2%,100%,10%
+Portieri Quarta Fascia,Venezia,Pozzi,1,0.2%,100%,10%
+Portieri Quarta Fascia,Cagliari,Radunovic,1,0.2%,60%,10%
+Portieri Quarta Fascia,Lazio,Renzetti,1,0.2%,100%,10%
+Portieri Quarta Fascia,Sassuolo,Russo A.,1,0.2%,100%,10%
+Portieri Quarta Fascia,Sassuolo,Satalino,1,0.2%,60%,10%
+Portieri Quarta Fascia,Torino,Siviero,1,0.2%,60%,10%
+Portieri Quarta Fascia,Genoa,Sommariva,1,0.2%,100%,10%
+Portieri Quarta Fascia,Atalanta,Sportiello,1,0.2%,20%,10%
+Portieri Quarta Fascia,Genoa,Stolz,1,0.2%,100%,10%
+Portieri Quarta Fascia,Monza,Strajnar,1,0.2%,100%,10%
+Portieri Quarta Fascia,Milan,Terracciano,1,0.2%,100%,10%
+Portieri Quarta Fascia,Como,Tornqvist,1,0.2%,100%,10%
+Portieri Quarta Fascia,Milan,Torriani,1,0.2%,100%,10%
+Portieri Quarta Fascia,Sassuolo,Turati,1,0.2%,60%,10%
+Portieri Quarta Fascia,Como,Vigorito,1,0.2%,100%,10%
+Portieri Quarta Fascia,Atalanta,Vismara,1,0.2%,100%,10%
+Portieri Quarta Fascia,Como,Sanchez Ro.,1,0.2%,100%,10%
+Portieri Quarta Fascia,Torino, Perri,1,0.2%,100%,10%
+Portieri Scommesse,Inter,Provedel,10,2%,20%,30%
+Portieri Scommesse,Napoli,Milinkovic-Savic V.,5,1%,100%,20%
+Portieri Scommesse,Juventus,Grabara,5,1%,100%,30%
+
+DIFENSORI
+
+Fascia,Squadra,Nome,Prezzo,Budget_%,Integr.,Titol.
+Difensori Top,Inter,Dimarco,75,15%,100%,100%
+Difensori Top,Roma,Molina N.,50,10%,20%,100%
+Difensori Top,Roma,Wesley,50,10%,60%,100%
+Difensori Top,Roma,Mancini,45,9%,100%,100%
+Difensori Top,Inter,Bastoni,45,9%,60%,100%
+Difensori Top,Milan,Pavlovic,45,9%,100%,100%
+Difensori Top,Napoli,Rrahmani,40,8.5%,60%,100%
+Difensori Top,Inter,Akanji,40,8%,100%,100%
+Difensori Top,Juventus,Bremer,40,8%,20%,100%
+
+Difensori Semi-Top,Juventus,Kalulu,35,7%,60%,100%
+Difensori Semi-Top,Roma,N'Dicka,30,7%,100%,100%
+Difensori Semi-Top,Udinese,Solet,35,6%,100%,100%
+Difensori Semi-Top,Genoa,Ostigard,30,6%,60%,100%
+Difensori Semi-Top,Inter,Bisseck,25,5%,100%,50%
+Difensori Semi-Top,Napoli,Di Lorenzo,25,5%,20%,100%
+Difensori Semi-Top,Milan,Gila,25,5%,60%,100%
+Difensori Semi-Top,Inter,Stones,25,5%,100%,50%
+Difensori Semi-Top,Roma,Hermoso,25,5%,60%,50%
+Difensori Semi-Top,Como,Ramon,25,5%,60%,100%
+Difensori Semi-Top,Atalanta,Scalvini,25,5%,20%,100%
+Difensori Semi-Top,Como,Chalobah T.,25,5%,100%,100%
+
+Difensori Terza Fascia,Juventus,Lucumì,20,4%,60%,50%
+Difensori Terza Fascia,Genoa,Vasquez,15,3%,100%,100%
+Difensori Terza Fascia,Milan,Bartesaghi,15,3%,100%,50%
+Difensori Terza Fascia,Bologna,Miranda J.,15,3%,60%,100%
+Difensori Terza Fascia,Udinese,Vojvoda,15,3%,60%,100%
+Difensori Terza Fascia,Fiorentina,Dragusin,15,3%,20%,100%
+Difensori Terza Fascia,Atalanta,Bernasconi,15,3%,60%,100%
+Difensori Terza Fascia,Lecce,Tiago Gabriel,10,2%,100%,100%
+Difensori Terza Fascia,Juventus,Cambiaso,10,2%,100%,100%
+Difensori Terza Fascia,Juventus,Celik,10,2%,100%,50%
+Difensori Terza Fascia,Parma,Delprato,10,2%,100%,100%
+Difensori Terza Fascia,Udinese,Kamara H.,10,2%,60%,100%
+Difensori Terza Fascia,Napoli,Spinazzola,10,2%,20%,100%
+Difensori Terza Fascia,Parma,Valeri,15,2%,100%,100%
+Difensori Terza Fascia,Parma,Diego Carlos,10,2%,100%,50%
+Difensori Terza Fascia,Atalanta,Zappacosta,10,2%,60%,100%
+Difensori Terza Fascia,Torino,Coco,10,2%,100%,100%
+Difensori Terza Fascia,Atalanta,Kristensen T.,10,2%,60%,50%
+Difensori Terza Fascia,Atalanta,Kossounou,10,2%,20%,50%
+Difensori Terza Fascia,Lazio,Romagnoli,10,2%,60%,10%
+Difensori Terza Fascia,Lazio,Sutalo J.,10,2%,20%,100%
+Difensori Terza Fascia,Monza,Mangas,10,0.6%,60%,100%
+Difensori Quarta Fascia,Atalanta,Hien,5,1%,20%,10%
+Difensori Quarta Fascia,Cagliari,Mina,5,1%,60%,100%
+Difensori Quarta Fascia,Milan,Gabbia,5,1%,60%,100%
+Difensori Quarta Fascia,Sassuolo,Idzes,5,1%,100%,100%
+Difensori Quarta Fascia,Torino,Ismajli,5,1%,20%,100%
+Difensori Quarta Fascia,Cagliari,Obert,5,1%,100%,100%
+Difensori Quarta Fascia,Torino,Comuzzo,5,1%,60%,100%
+Difensori Quarta Fascia,Bologna,Theate,5,1%,100%,100%
+Difensori Quarta Fascia,Bologna,Heggem,5,1%,60%,50%
+Difensori Quarta Fascia,Sassuolo,Obrador,5,1%,20%,50%
+Difensori Quarta Fascia,Como,Valle,5,1%,60%,50%
+Difensori Quarta Fascia,Juventus,Kelly L.,5,1%,100%,50%
+Difensori Quarta Fascia,Napoli,Olivera,5,1%,60%,50%
+Difensori Quarta Fascia,Torino,Pedersen,5,1%,20%,100%
+Difensori Quarta Fascia,Venezia,Bella-Kotchap,3,0.6%,60%,100%
+Difensori Quarta Fascia,Lecce,Gallo,1,0.2%,60%,100%
+Difensori Quarta Fascia,Lecce,Gaspar K.,1,0.2%,20%,50%
+Difensori Quarta Fascia,Genoa,Marcandalli,1,0.2%,100%,100%
+Difensori Quarta Fascia,Lecce,Veiga D.,1,0.2%,100%,100%
+Difensori Quarta Fascia,Bologna,Zortea,1,0.2%,60%,50%
+Difensori Quarta Fascia,Roma,Rensch,1,0.2%,20%,50%
+Difensori Scommesse,Inter,Spence,25,5%,20%,50%
+Difensori Scommesse,Fiorentina,Valdepenas,20,4%,100%,50%
+Difensori Scommesse,Como,Couto,15,3%,100%,100%
+Difensori Scommesse,Fiorentina,Jimenez A.,15,3%,100%,50%
+Difensori Scommesse,Roma,Koulierakis,15,3%,60%,50%
+Difensori Scommesse,Como,Kaiki,15,3%,100%,50%
+Difensori Scommesse,Lazio,Doekhi,10,2%,60%,50%
+Difensori Scommesse,Napoli,Buongiorno,10,2%,20%,50%
+Difensori Scommesse,Napoli,Badiashile,5,1%,20%,100%
+Difensori Scommesse,Inter,Carlos Augusto,5,1%,60%,50%
+Difensori Scommesse,Napoli,Beukema,5,1%,60%,50%
+Difensori Scommesse,Atalanta,Bellanova,1,0.2%,60%,50%
+Difensori Scommesse,Fiorentina,Viery,1,0.2%,100%,50%
+Altri,Fiorentina,Dodò,1,0.2%,20%,50%
+Altri,Milan,Tomori,1,0.2%,60%,10%
+Altri,Atalanta,Ahanor,1,0.2%,60%,10%
+Altri,Lazio,Marusic,1,0.2%,60%,100%
+Altri,Frosinone,Monterisi,1,0.2%,60%,50%
+Altri,Inter,Pavard,1,0.2%,60%,10%
+Altri,Lazio,Tavares N.,1,0.2%,20%,50%
+Altri,Roma,Balerdi,1,0.2%,60%,10%
+Altri,Frosinone,Bracaglia,1,0.2%,100%,50%
+Altri,Venezia,Correia T.,1,0.2%,60%,50%
+Altri,Torino,Fortini,1,0.2%,60%,50%
+Altri,Torino,Belghali,1,0.2%,100%,10%
+Altri,Torino,Patterson,1,0.2%,20%,10%
+Altri,Torino,Comert,1,0.2%,60%,10%
+Altri,Venezia,Haps,1,0.2%,60%,100%
+Altri,Venezia,Juan Jesus,1,0.2%,60%,50%
+Altri,Bologna,Holm,1,0.2%,100%,10%
+Altri,Como,Kempf,1,0.2%,60%,50%
+Altri,Cagliari,Kofler,1,0.2%,100%,10%
+Altri,Cagliari,Sugawara,1,0.2%,60%,100%
+Altri,Atalanta,Kolasinac,1,0.2%,60%,50%
+Altri,Sassuolo,Leysen F.,1,0.2%,100%,50%
+Altri,Sassuolo,Caleta-Car,1,0.2%,60%,10%
+Altri,Genoa,Martin,1,0.2%,60%,10%
+Altri,Venezia,Moreno M.,1,0.2%,60%,50%
+Altri,Frosinone,Oyono A.,1,0.2%,60%,50%
+Altri,Fiorentina,Parisi,1,0.2%,100%,10%
+Altri,Lazio,Pedraza,1,0.2%,60%,50%
+Altri,Lecce,Siebert,1,0.2%,60%,50%
+Altri,Bologna,Vitik,1,0.2%,60%,50%
+Altri,Cagliari,Zè Pedro,1,0.2%,60%,100%
+Altri,Udinese,Arizala,1,0.2%,100%,10%
+Altri,Udinese,Bertola,1,0.2%,100%,50%
+Altri,Monza,Birindelli,1,0.2%,60%,100%
+Altri,Frosinone,Calvani,1,0.2%,100%,50%
+Altri,Torino,Cömert,1,0.2%,60%,50%
+Altri,Monza,Delli Carri,1,0.2%,100%,50%
+Altri,Milan,De Winter,1,0.2%,60%,50%
+Altri,Sassuolo,Doig,1,0.2%,60%,50%
+Altri,Milan,Estupinan,1,0.2%,100%,10%
+Altri,Napoli,Favasuli,1,0.2%,100%,50%
+Altri,Juventus,Gatti,1,0.2%,60%,50%
+Altri,Roma,Ghilardi,1,0.2%,100%,50%
+Altri,Venezia,Halhal,1,0.2%,60%,50%
+Altri,Udinese,Kabasele,1,0.2%,100%,100%
+Altri,Monza,Lucchesi,1,0.2%,100%,50%
+Altri,Genoa,Mitaj,1,0.2%,60%,50%
+Altri,Fiorentina,Pongracic,1,0.2%,60%,10%
+Altri,Cagliari,Rodriguez Ju.,1,0.2%,60%,100%
+Altri,Como,Smolcic I.,1,0.2%,100%,50%
+Altri,Frosinone,Terzic,1,0.2%,20%,50%
+Altri,Parma,Troilo,1,0.2%,100%,50%
+Altri,Parma,Valenti,1,0.2%,60%,10%
+Altri,Sassuolo,Walukiewicz,1,0.2%,100%,10%
+Altri,Udinese,Zanoli,1,0.2%,60%,50%
+Altri,Frosinone,Akpoguma,1,0.2%,60%,50%
+Altri,Parma,Britschgi,1,0.2%,100%,50%
+Altri,Sassuolo,Candè,1,0.2%,60%,50%
+Altri,Monza,Carboni A.,1,0.2%,100%,100%
+Altri,Bologna,Casale,1,0.2%,20%,50%
+Altri,Frosinone,Cittadini,1,0.2%,60%,50%
+Altri,Udinese,Ebosse,1,0.2%,60%,10%
+Altri,Lazio,Floriani Mussolini,1,0.2%,100%,10%
+Altri,Venezia,Hainaut,1,0.2%,100%,50%
+Altri,Bologna,Helland,1,0.2%,100%,50%
+Altri,Cagliari,Idrissi R.,1,0.2%,100%,10%
+Altri,Fiorentina,Joao Mario,1,0.2%,60%,50%
+Altri,Como,Kambwala,1,0.2%,60%,10%
+Altri,Genoa,Drameh,1,0.2%,100%,100%
+Altri,Monza,Kouadio,1,0.2%,100%,100%
+Altri,Monza,Goglichidze,1,0.2%,60%,10%
+Altri,Sassuolo,Odenthal,1,0.2%,100%,50%
+Altri,Udinese,Palma,1,0.2%,20%,10%
+Altri,Lazio,Provstgaard,1,0.2%,100%,50%
+Altri,Fiorentina,Ranieri L.,1,0.2%,100%,10%
+Altri,Venezia,Schingtienne,1,0.2%,60%,100%
+Altri,Venezia,Sverko,1,0.2%,20%,10%
+Altri,Frosinone,Tchato,1,0.2%,60%,50%
+Altri,Udinese,Abankwah,1,0.2%,100%,50%
+Altri,Bologna,Alhassane,1,0.2%,100%,10%
+Altri,Cagliari,Aurelio,1,0.2%,60%,50%
+Altri,Lecce,Dembelè A.,1,0.2%,100%,10%
+Altri,Monza,Bakoune,1,0.2%,60%,50%
+Altri,Torino,Biraghi,1,0.2%,60%,10%
+Altri,Sassuolo,Cinquegrano,1,0.2%,100%,50%
+Altri,Milan,Diawara S.,1,0.2%,100%,10%
+Altri,Venezia,Franjic,1,0.2%,60%,10%
+Altri,Lecce,Jean,1,0.2%,60%,50%
+Altri,Lazio,Lazzari,1,0.2%,60%,10%
+Altri,Napoli,Marin R.,1,0.2%,100%,100%
+Altri,Lecce,Ndaba,1,0.2%,100%,10%
+Altri,Parma,Ndiaye,1,0.2%,20%,50%
+Altri,Parma,Drobnic,1,0.2%,100%,50%
+Altri,Genoa,Otoa,1,0.2%,60%,10%
+Altri,Lazio,Pellegrini Lu.,1,0.2%,60%,10%
+Altri,Genoa,Puczka,1,0.2%,100%,10%
+Altri,Genoa,Sabelli,1,0.2%,100%,10%
+Altri,Venezia,Sagrado,1,0.2%,60%,50%
+Altri,Milan,Terracciano F.,1,0.2%,60%,10%
+Altri,Como,Van Der Brempt,1,0.2%,60%,10%
+Altri,Frosinone,Amey,1,0.2%,100%,10%
+Altri,Monza,Antov,1,0.2%,100%,50%
+Altri,Juventus,Cabal,1,0.2%,60%,10%
+Altri,Parma,Carboni F.,1,0.2%,100%,10%
+Altri,Bologna,De Silvestri,1,0.2%,20%,50%
+Altri,Como,Goldaniga,1,0.2%,60%,50%
+Altri,Venezia,Gomes,1,0.2%,100%,10%
+Altri,Roma,Lulli,1,0.2%,100%,50%
+Altri,Sassuolo,Macchioni,1,0.2%,100%,50%
+Altri,Napoli,Marianucci,1,0.2%,100%,10%
+Altri,Monza,Maye,1,0.2%,60%,50%
+Altri,Venezia,Mazzocchi,1,0.2%,60%,50%
+Altri,Sassuolo,Missori,1,0.2%,100%,10%
+Altri,Udinese,Mlacic,1,0.2%,100%,10%
+Altri,Frosinone,Omar Fayed,1,0.2%,60%,10%
+Altri,Lazio,Patric,1,0.2%,20%,50%
+Altri,Sassuolo,Pieragnolo,1,0.2%,60%,50%
+Altri,Juventus,Rugani,1,0.2%,60%,50%
+Altri,Roma,Ziolkowski,1,0.2%,100%,10%
+
+CENTROCAMPISTI 
+
+Fascia,Squadra,Nome,Prezzo,Budget_%,Integr.,Titol.
+Top,Como,Paz N.,80,16%,100%,100%
+Top,Inter,Calhanoglu,70,14%,60%,100%
+Top,Napoli,McTominay,70,14%,100%,100%
+Top,Bologna,Orsolini,70,14%,100%,100%
+Top,Como,Baturina,70,14%,100%,100%
+Top,Milan,Pulisic,60,12%,60%,100%
+Semi-Top,Lazio,Zaccagni,55,11%,60%,100%
+Semi-Top,Milan,Rabiot,50,10%,100%,100%
+Semi-Top,Roma,Mora,50,10%,100%,50%
+Semi-Top,Como,Da Cunha,45,9%,100%,100%
+Semi-Top,Udinese,Zaniolo,45,9%,20%,100%
+Semi-Top,Napoli,De Bruyne,45,9%,60%,100%
+Semi-Top,Lazio,Frattesi,45,9%,100%,100%
+Semi-Top,Fiorentina,Atta,40,8%,100%,100%
+Semi-Top,Juventus,Conceicao,40,8%,100%,100%
+Semi-Top,Lazio,Gudmundsson A.,40,8%,60%,100%
+Semi-Top,Fiorentina,Mastantuono,40,8%,100%,100%
+Semi-Top,Inter,Barella,35,7%,100%,100%
+Semi-Top,Juventus,Mckennie,35,7%,100%,100%
+Semi-Top,Atalanta,Samardzic,35,7%,100%,100%
+Semi-Top,Atalanta,Rowe,35,7%,100%,50%
+Semi-Top,Torino,Vlasic,30,6%,60%,100%
+Semi-Top,Atalanta,Ederson D.S.,30,6%,100%,100%
+Semi-Top,Udinese,Ekkelenkamp,30,6%,100%,100%
+Semi-Top,Juventus,Gonzalez N.,30,6%,60%,100%
+Semi-Top,Juventus,Alajbegovic,30,6%,100%,50%
+Terza Fascia,Lazio,Taylor K.,25,5%,100%,100%
+Terza Fascia,Inter,Jones C.,25,5%,100%,100%
+Terza Fascia,Atalanta,Kessié,25,5%,100%,100%
+Terza Fascia,Inter,Zielinski,25,5%,60%,100%
+Terza Fascia,Milan,Modric,20,4%,100%,100%
+Terza Fascia,Milan,Saelemaekers,20,4%,100%,100%
+Terza Fascia,Roma,Koné M.,20,4%,100%,100%
+Terza Fascia,Napoli,Zambo Anguissa,20,4%,100%,100%
+Terza Fascia,Frosinone,Calò,20,4%,100%,100%
+Terza Fascia,Sassuolo,Thorstvedt,15,3%,60%,100%
+Terza Fascia,Monza,Colpani,15,3%,100%,100%
+Terza Fascia,Frosinone,Schmid,15,3%,100%,100%
+Terza Fascia,Atalanta,Gaetano,15,3%,100%,100%
+Terza Fascia,Udinese,Piotrowski,15,3%,100%,100%
+Terza Fascia,Genoa,Baldanzi,10,2%,60%,100%
+Quarta Fascia,Juventus,Thuram K.,20,4%,100%,100%
+Quarta Fascia,Como,Perrone,15,3%,100%,100%
+Quarta Fascia,Lazio,Cancellieri,15,3%,100%,50%
+Quarta Fascia,Torino,Casadei,15,3%,100%,100%
+Quarta Fascia,Lazio,Isaksen,15,3%,100%,100%
+Quarta Fascia,Napoli,Politano,10,2%,100%,100%
+Quarta Fascia,Sassuolo,Koné I.,10,2%,100%,100%
+Quarta Fascia,Roma,Pellegrini Lo.,5,1%,60%,100%
+Quarta Fascia,Torino,Mandragora,5,1%,100%,100%
+Quarta Fascia,Atalanta,Pasalic,5,1%,100%,100%
+Quarta Fascia,Fiorentina,Fagioli,5,1%,100%,100%
+Quarta Fascia,Fiorentina,Ndour,5,1%,100%,100%
+Quarta Fascia,Cagliari,Fazzini,5,1%,100%,100%
+Quarta Fascia,Torino,Fitz-Jim,5,1%,100%,100%
+Quarta Fascia,Monza,Folorunsho,5,1%,100%,100%
+Scommesse,Fiorentina,Goncalves P.,30,6%,100%,100%
+Scommesse,Inter,Diouf,25,5%,100%,50%
+Scommesse,Milan,Moreira,20,4%,100%,100%
+Scommesse,Napoli,Vergara,20,4%,100%,100%
+Scommesse,Milan,Hutchinson,20,4%,100%,100%
+Scommesse,Atalanta,Elmas,20,4%,100%,100%
+Scommesse,Como,Rodriguez Je.,15,3%,100%,100%
+Scommesse,Bologna,Bernardeschi,15,3%,100%,100%
+Scommesse,Milan,Chukwueze,15,3%,60%,100%
+Scommesse,Bologna,Cambiaghi,10,2%,60%,100%
+Scommesse,Bologna,Mbangula,10,2%,100%,100%
+Scommesse,Bologna,Odgaard,10,2%,100%,100%
+Scommesse,Fiorentina,Njie,10,2%,100%,50%
+Scommesse,Sassuolo,Volpato,5,1%,100%,100%
+Scommesse,Sassuolo,Adzic,5,1%,100%,100%
+Scommesse,Sassuolo,Bakola,5,1%,100%,100%
+Scommesse,Como,Milla,5,1%,100%,100%
+Scommesse,Venezia,Fernandez T.,5,1%,100%,100%
+Scommesse,Torino,Cacciamani,1,0.2%,100%,100%
+Altri,Roma,Cristante,1,0.2%,100%,100%
+Altri,Juventus,Locatelli,1,0.2%,100%,100%
+Altri,Inter,Sucic P.,1,0.2%,100%,100%
+Altri,Napoli,Lobotka,1,0.2%,100%,100%
+Altri,Cagliari,Adopo,1,0.2%,100%,100%
+Altri,Monza,Akinsanmiro,1,0.2%,100%,100%
+Altri,Parma,Bernabè,1,0.2%,60%,100%
+Altri,Lecce,Coulibaly L.,1,0.2%,100%,100%
+Altri,Bologna,Ferguson,1,0.2%,60%,100%
+Altri,Genoa,Frendrup,1,0.2%,100%,100%
+Altri,Udinese,Karlstrom,1,0.2%,100%,100%
+Altri,Juventus,Koopmeiners,1,0.2%,60%,100%
+Altri,Lecce,Monteiro J.,1,0.2%,100%,100%
+Altri,Roma,Pisilli,1,0.2%,100%,100%
+Altri,Cagliari,Romano,1,0.2%,100%,100%
+Altri,Lazio,Rovella,1,0.2%,100%,100%
+Altri,Juventus,Sarr P.,1,0.2%,100%,100%
+Altri,Genoa,Sow,1,0.2%,100%,100%
+Altri,Udinese,Unai Gomez,1,0.2%,100%,100%
+Altri,Atalanta,Zalewski,1,0.2%,100%,100%
+Altri,Venezia,Basic,1,0.2%,100%,100%
+Altri,Torino,Braganca,1,0.2%,100%,100%
+Altri,Como,Caqueret,1,0.2%,100%,100%
+Altri,Genoa,Ellertsson,1,0.2%,100%,100%
+Altri,Como,Liberali,1,0.2%,100%,100%
+Altri,Sassuolo,Matic,1,0.2%,100%,100%
+Altri,Parma,Nicolussi Caviglia,1,0.2%,100%,100%
+Altri,Torino,Oristanio,1,0.2%,100%,100%
+Altri,Fiorentina,Oulai,1,0.2%,100%,100%
+Altri,Monza,Pessina,1,0.2%,100%,100%
+Altri,Lecce,Pierotti,1,0.2%,100%,100%
+Altri,Bologna,Pobega,1,0.2%,100%,100%
+Altri,Monza,Touré I.,1,0.2%,100%,100%
+Altri,Cagliari,Winks,1,0.2%,100%,100%
+Altri,Frosinone,Zerbin,1,0.2%,100%,100%
+Altri,Juventus,Zhegrova,1,0.2%,100%,100%
+Altri,Bologna,Amondarain,1,0.2%,100%,100%
+Altri,Venezia,Busio,1,0.2%,100%,100%
+Altri,Milan,Cissé A.,1,0.2%,100%,100%
+Altri,Lazio,Dele-Bashiru,1,0.2%,100%,100%
+Altri,Cagliari,Felici,1,0.2%,100%,100%
+Altri,Torino,Gineitis,1,0.2%,100%,100%
+Altri,Milan,Jashari,1,0.2%,100%,100%
+Altri,Parma,Keita M.,1,0.2%,100%,100%
+Altri,Inter,Luis Henrique,1,0.2%,100%,100%
+Altri,Genoa,Meichtry,1,0.2%,100%,100%
+Altri,Venezia,Perez K.,1,0.2%,100%,100%
+Altri,Venezia,Sohm,1,0.2%,100%,100%
+Altri,Como,Addai,1,0.2%,100%,100%
+Altri,Parma,Almqvist,1,0.2%,100%,100%
+Altri,Genoa,Amorim,1,0.2%,100%,100%
+Altri,Lecce,Berisha M.,1,0.2%,100%,100%
+Altri,Lazio,Cataldi,1,0.2%,100%,100%
+Altri,Frosinone,Cichella,1,0.2%,100%,100%
+Altri,Roma,De Roon,1,0.2%,100%,100%
+Altri,Sassuolo,Dominguez B.,1,0.2%,100%,100%
+Altri,Juventus,Douglas Luiz,1,0.2%,60%,100%
+Altri,Parma,Fabbian,1,0.2%,100%,100%
+Altri,Frosinone,Fini,1,0.2%,100%,100%
+Altri,Lecce,Gandelman,1,0.2%,100%,100%
+Altri,Frosinone,Grillitsch,1,0.2%,100%,100%
+Altri,Torino,Ilkhan,1,0.2%,100%,100%
+Altri,Frosinone,Koutsoupias,1,0.2%,100%,100%
+Altri,Milan,Loftus-Cheek,1,0.2%,100%,100%
+Altri,Cagliari,Massolin,1,0.2%,100%,100%
+Altri,Genoa,Messias,1,0.2%,60%,100%
+Altri,Udinese,Miller L.,1,0.2%,100%,100%
+Altri,Inter,Mkhitaryan,1,0.2%,100%,100%
+Altri,Bologna,Moro N.,1,0.2%,100%,100%
+Altri,Lecce,Ngom,1,0.2%,100%,100%
+Altri,Como,Ricci S.,1,0.2%,100%,100%
+Altri,Genoa,Traoré Hj.,1,0.2%,100%,100%
+Altri,Torino,Aboukhlal,1,0.2%,100%,100%
+Altri,Fiorentina,Brescianini,1,0.2%,100%,100%
+Altri,Monza,Colombo L.,1,0.2%,100%,100%
+Altri,Cagliari,Deiola,1,0.2%,100%,100%
+Altri,Parma,Diallo A.,1,0.2%,100%,100%
+Altri,Cagliari,Gagliardini,1,0.2%,100%,100%
+Altri,Frosinone,Gelli F.,1,0.2%,100%,100%
+Altri,Napoli,Gilmour,1,0.2%,100%,100%
+Altri,Lecce,Gorter,1,0.2%,100%,100%
+Altri,Venezia,Helgason,1,0.2%,100%,100%
+Altri,Lecce,Maleh,1,0.2%,100%,100%
+Altri,Frosinone,Masini,1,0.2%,100%,100%
+Altri,Milan,Musah,1,0.2%,100%,100%
+Altri,Parma,Ordonez C.,1,0.2%,100%,100%
+Altri,Inter,Stankovic A.,1,0.2%,100%,100%
+Altri,Sassuolo,Sulemana I.,1,0.2%,100%,100%
+Altri,Lazio,Belahyane,1,0.2%,100%,100%
+Altri,Sassuolo,Boloca,1,0.2%,100%,100%
+Altri,Udinese,Chakvetadze,1,0.2%,100%,100%
+Altri,Monza,Ciurria,1,0.2%,100%,100%
+Altri,Parma,Cremaschi,1,0.2%,100%,100%
+Altri,Venezia,Duncan,1,0.2%,100%,100%
+Altri,Bologna,El Azzouzi O.,1,0.2%,100%,100%
+Altri,Cagliari,Fadera,1,0.2%,100%,100%
+Altri,Monza,Foe Ondoa,1,0.2%,100%,100%
+Altri,Monza,Forson O.,1,0.2%,100%,100%
+Altri,Frosinone,Hasa,1,0.2%,100%,100%
+Altri,Udinese,Javanovic,1,0.2%,100%,100%
+Altri,Sassuolo,Lipani,1,0.2%,100%,100%
+Altri,Genoa,Venturino,1,0.2%,100%,100%
+Altri,Udinese,Zarraga,1,0.2%,100%,100%
+Altri,Torino,Anjorin,1,0.2%,100%,100%
+Altri,Cagliari,Ciervo,1,0.2%,100%,100%
+Altri,Milan,Comotto,1,0.2%,100%,100%
+Altri,Venezia,Dagasso,1,0.2%,100%,100%
+Altri,Frosinone,El Azzouzi A.,1,0.2%,100%,100%
+Altri,Lecce,Fofana Sa.,1,0.2%,100%,100%
+Altri,Torino,Ilic,1,0.2%,100%,100%
+Altri,Lecce,Kaba,1,0.2%,100%,100%
+Altri,Parma,Konaté A.,1,0.2%,100%,100%
+Altri,Frosinone,Kone B.,1,0.2%,100%,100%
+Altri,Lecce,Laerke,1,0.2%,100%,100%
+Altri,Como,Lahdo,1,0.2%,100%,100%
+Altri,Torino,Liteta,1,0.2%,100%,100%
+Altri,Monza,Mout,1,0.2%,100%,100%
+Altri,Lecce,Przyborek,1,0.2%,100%,100%
+
+ATTACCANTI
+
+Fascia,Squadra,Nome,Prezzo,Budget_%,Integr.,Titol.
+Top,Roma,Malen,185,37%,100%,100%
+Top,Inter,Martinez L.,150,30%,100%,100%
+Top,Milan,Ramos G.,140,28%,100%,100%
+Top,Como,Kean,110,22%,100%,100%
+Top,Napoli,Hojlund,100,20%,100%,100%
+Top,Inter,Thuram,100,20%,100%,100%
+Top,Juventus,Kolo Muani,100,20%,100%,100%
+Semi-Top,Como,Douvikas,60,12%,100%,100%
+Semi-Top,Torino,Simeone,60,12%,100%,50%
+Semi-Top,Juventus,Woltemade,50,10%,100%,50%
+Semi-Top,Sassuolo,Berardi,50,10%,20%,100%
+Semi-Top,Udinese,Davis K.,50,10%,20%,50%
+Semi-Top,Atalanta,Scamacca,50,10%,20%,10%
+Semi-Top,Atalanta,Krstovic,50,10%,100%,100%
+Semi-Top,Roma,Dybala,50,10%,60%,100%
+Semi-Top,Fiorentina,Beto,45,9%,100%,50%
+Terza,Lazio,Pinamonti,40,8%,100%,100%
+Terza,Juventus,Yildiz,35,7%,100%,100%
+Terza,Sassuolo,Laurienté,35,7%,100%,100%
+Terza,Como,Diao,35,7%,100%,100%
+Terza,Atalanta,De Ketelaere,30,6%,100%,100%
+Terza,Atalanta,Raspadori,30,6%,100%,50%
+Terza,Napoli,Santos A.,30,6%,100%,50%
+Terza,Bologna,Dovbyk,25,5%,100%,100%
+Quarta,Sassuolo,Esposito Se.,15,3%,100%,100%
+Quarta,Venezia,Adams A.,15,3%,100%,50%
+Quarta,Genoa,Colombo,15,3%,100%,100%
+Quarta,Bologna,Piccoli,15,3%,100%,100%
+Quarta,Parma,Romero D.,10,2%,100%,50%
+Quarta,Venezia,Yeboah J.,10,2%,100%,50%
+Quarta,Frosinone,Ghedjemis,10,2%,100%,100%
+Quarta,Monza,Varela G.,10,2%,100%,50%
+Quarta,Frosinone,Bobcek,5,1%,100%,50%
+Scomm.,Inter,Esposito F.P.,50,10%,100%,100%
+Scomm.,Fiorentina,Pellegrino M.,25,5%,100%,50%
+Scomm.,Roma,Castro S.,20,4%,100%,100%
+Scomm.,Roma,Soulé,15,3%,100%,100%
+Scomm.,Inter,Bonny,15,3%,100%,100%
+Scomm.,Napoli,Lang,5,1%,100%,50%
+Scomm.,Cagliari,Nzola,5,1%,100%,50%
+Altri,Lecce,Geubbels,1,0.2%,100%,50%
+Altri,Cagliari,Kevin Carlos,1,0.2%,100%,50%
+Altri,Torino,Adams C.,1,0.2%,100%,50%
+Altri,Parma,Touré E.,1,0.2%,100%,50%
+Altri,Sassuolo,Bowie,1,0.2%,100%,50%
+Altri,Monza,Cutrone,1,0.2%,100%,50%
+Altri,Frosinone,Raimondo,1,0.2%,100%,50%
+Altri,Genoa,Osmajic,1,0.2%,100%,50%
+Altri,Genoa,Vitinha D.,1,0.2%,100%,50%
+Altri,Juventus,Boga,1,0.2%,100%,50%
+Altri,Fiorentina,Gnonto,1,0.2%,100%,50%
+Altri,Venezia,Rrahmani Al.,1,0.2%,100%,50%
+Altri,Frosinone,Kvernadze,1,0.2%,100%,50%
+Altri,Napoli,Neres,1,0.2%,100%,50%
+Altri,Lazio,Noslin,1,0.2%,100%,50%
+Altri,Lecce,Stulic,1,0.2%,100%,50%
+Altri,Atalanta,Sulemana K.,1,0.2%,100%,50%
+Altri,Torino,Zapata D.,1,0.2%,60%,100%
+Altri,Monza,Zeballos,1,0.2%,100%,50%
+Altri,Frosinone,Birligea,1,0.2%,100%,50%
+Altri,Cagliari,Maldini,1,0.2%,100%,100%
+Altri,Monza,Ngonge,1,0.2%,100%,50%
+Altri,Venezia,Adorante,1,0.2%,100%,50%
+Altri,Cagliari,Borrelli,1,0.2%,100%,50%
+Altri,Milan,Camarda,1,0.2%,100%,50%
+Altri,Lecce,Fatah,1,0.2%,100%,50%
+Altri,Parma,Frigan,1,0.2%,100%,50%
+Altri,Napoli,Giovane,1,0.2%,100%,50%
+Altri,Udinese,Gueye,1,0.2%,100%,50%
+Altri,Genoa,Havel,1,0.2%,100%,50%
+Altri,Torino,Kulenovic,1,0.2%,100%,50%
+Altri,Napoli,Lucca,1,0.2%,100%,100%
+Altri,Cagliari,Mendy P.,1,0.2%,100%,50%
+Altri,Juventus,Milik,1,0.2%,20%,10%
+Altri,Monza,Mota,1,0.2%,100%,100%
+Altri,Lecce,N'Dri,1,0.2%,100%,50%
+Altri,Monza,Robinson J.,1,0.2%,100%,50%
+Altri,Juventus,Ekhator,1,0.2%,100%,50%
+Altri,Parma,Elphege,1,0.2%,100%,50%
+Altri,Parma,Lontani,1,0.2%,100%,50%
+Altri,Udinese,Bayo V.,1,0.2%,100%,50%
+Altri,Parma,De Martis,1,0.2%,100%,50%
+Altri,Venezia,Lauberbach,1,0.2%,100%,50%
+Altri,Venezia,Lisman,1,0.2%,100%,50%
+Altri,Genoa,Robinho Junior,1,0.2%,100%,50%
+Altri,Cagliari,Trepy,1,0.2%,100%,50%
