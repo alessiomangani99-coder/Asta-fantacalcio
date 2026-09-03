@@ -319,14 +319,17 @@
   display: none !important;
 }
 
-.modal-dialog {
+.modal-dialog, .modal-box {
   background: var(--bg-surface);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   width: 100%;
   max-width: 680px;
-  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(59, 130, 246, 0.15);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(59, 130, 246, 0.15);
   animation: modalEnter 0.2s ease-out;
 }
 
@@ -348,6 +351,7 @@
   padding: 1.25rem 1.5rem;
   background: var(--bg-surface-elevated);
   border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
 }
 
 .modal-header-title {
@@ -381,6 +385,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Scheda Giocatore Chiamato */
@@ -452,17 +459,20 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 290px;
+  width: 340px;
+  max-width: min(350px, calc(100vw - 40px));
+  max-height: 75vh;
+  overflow-y: auto;
   background: #0d1322;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 10px;
-  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.85), 0 0 15px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.85), 0 0 20px rgba(59, 130, 246, 0.2);
   z-index: 100;
-  padding: 0.85rem;
+  padding: 0.95rem;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  backdrop-filter: blur(12px);
+  gap: 0.75rem;
+  backdrop-filter: blur(14px);
   animation: popoverFadeIn 0.15s ease-out;
 }
 
@@ -736,8 +746,39 @@
   background: var(--bg-surface-elevated);
   border-top: 1px solid var(--border-subtle);
   display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.btn-cancel-call {
+  padding: 0.75rem 1.25rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  color: #fca5a5;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-cancel-call:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+}
+
+.btn-cancel-call:active {
+  transform: translateY(0);
 }
 
 .btn-confirm-bid {
@@ -752,17 +793,34 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  white-space: nowrap;
 }
 
-.btn-confirm-bid:hover:not(:disabled) {
+.btn-confirm-bid:hover {
   transform: translateY(-1px);
   box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
 }
 
-.btn-confirm-bid:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  box-shadow: none;
+.btn-confirm-bid:active {
+  transform: translateY(0);
+}
+
+/* Feedback Visivo Lampeggiante per Campi Mancanti (es. Manager non selezionato) */
+.field-error-flash {
+  animation: errorFlash 0.5s ease-in-out 3 !important;
+  border-color: #ef4444 !important;
+  outline: none;
+}
+
+@keyframes errorFlash {
+  0%, 100% {
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    border-color: #ef4444;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.85), 0 0 0 3px rgba(239, 68, 68, 0.4);
+  }
 }
 
 /* ==========================================================================
@@ -1300,29 +1358,60 @@
   border: 1px solid var(--border-subtle);
 }
 
-.cal-mode-btn {
+.cal-mode-btn,
+.cal-nav-tab-btn {
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  padding: 0.5rem 0.95rem;
-  border-radius: 7px;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.825rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
 
-.cal-mode-btn:hover {
+.cal-mode-btn:hover,
+.cal-nav-tab-btn:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.cal-mode-btn.active {
+.cal-mode-btn.active,
+.cal-nav-tab-btn.active {
   background: var(--accent-blue);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+}
+
+.att-subtab-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.att-subtab-btn:hover {
+  color: #fff;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.att-subtab-btn.active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--accent-blue);
+  color: #93c5fd;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
 }
 
 /* Griglia Rating Squadre */
@@ -1340,7 +1429,7 @@
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.75rem;
   transition: border-color 0.15s ease;
 }
 
@@ -1356,15 +1445,15 @@
 
 .team-rating-name {
   font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 800;
   color: #fff;
 }
 
 .team-rating-badge {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   padding: 0.2rem 0.55rem;
   border-radius: 6px;
 }
@@ -1390,26 +1479,70 @@
 .team-rating-controls {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
+}
+
+.team-rating-stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+.btn-step {
+  background: transparent;
+  border: none;
+  color: #93c5fd;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  width: 32px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-step:hover {
+  background: rgba(59, 130, 246, 0.25);
+  color: #fff;
+}
+
+.btn-step:active {
+  background: rgba(59, 130, 246, 0.4);
+}
+
+.rating-number-input {
+  width: 44px;
+  height: 34px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-align: center;
+  padding: 0;
+  -moz-appearance: textfield;
+}
+
+.rating-number-input::-webkit-outer-spin-button,
+.rating-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .rating-slider {
   flex: 1;
   accent-color: #3b82f6;
   cursor: pointer;
-}
-
-.rating-number-input {
-  width: 50px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.95rem;
-  text-align: center;
-  padding: 0.3rem 0.2rem;
 }
 
 /* Badge tabelle incroci */
@@ -1779,4 +1912,278 @@
 
 .btn-clear-multiteam:hover {
   color: #fff;
+}
+
+/* ==========================================================================
+   MODALE GUIDA CHIAMATE RAPIDE PER FASCIA
+   ========================================================================== */
+
+/* Gruppo pulsanti chiamata rapida */
+.quick-call-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* Pulsante Chiama per Fascia nella sala d'asta */
+.btn-tier-guide {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.6rem 1.15rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-tier-guide:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.55);
+  transform: translateY(-1px);
+}
+
+.btn-tier-guide:active {
+  transform: translateY(0);
+}
+
+/* Modale Guida */
+.tier-guide-modal-dialog {
+  max-width: min(1280px, 96vw);
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* Selettore Ruoli in alto */
+.tier-guide-role-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.tier-role-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.tier-role-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.tier-role-tab-btn.active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.tier-role-tab-btn[data-tier-role="P"].active {
+  background: #d97706;
+  border-color: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+}
+
+.tier-role-tab-btn[data-tier-role="D"].active {
+  background: #059669;
+  border-color: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+}
+
+.tier-role-tab-btn[data-tier-role="C"].active {
+  background: #2563eb;
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+}
+
+.tier-role-tab-btn[data-tier-role="A"].active {
+  background: #dc2626;
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+}
+
+/* Corpo Guida Chiamate */
+.tier-guide-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-secondary);
+}
+
+/* Griglia Fasce Responsive */
+.tier-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.1rem;
+  align-items: start;
+}
+
+/* Card Singola Fascia */
+.tier-col-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.tier-col-header {
+  padding: 0.75rem 0.9rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tier-col-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.tier-col-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  white-space: nowrap;
+}
+
+.tier-col-badge.all-bought {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-muted);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+/* Lista Calciatori nella Fascia */
+.tier-players-list {
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 58vh;
+  overflow-y: auto;
+}
+
+/* Chip Calciatore */
+.tier-player-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.tier-player-chip:hover {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.tier-player-chip:active {
+  transform: translateY(0);
+}
+
+.tier-p-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tier-p-team {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Giocatore già Acquistato: Effetto Barrato & Inattivo */
+.tier-player-chip.is-bought {
+  text-decoration: line-through;
+  opacity: 0.38;
+  pointer-events: none;
+  cursor: default;
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+}
+
+.tier-player-chip.is-bought .tier-p-name,
+.tier-player-chip.is-bought .tier-p-team {
+  color: var(--text-muted);
+}
+
+/* Footer Guida Chiamate */
+.tier-guide-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.5rem;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+}
+
+.tier-guide-footer-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.tier-guide-footer-hint strong {
+  color: #34d399;
 }

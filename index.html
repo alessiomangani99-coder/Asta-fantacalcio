@@ -122,9 +122,14 @@
               </button>
             </div>
 
-            <button id="btn-random-call" class="btn-random-pick" title="Estrae un giocatore casuale libero tra quelli filtrati">
-              🎲 Chiama a Sorte tra i Liberi
-            </button>
+            <div class="quick-call-actions">
+              <button type="button" id="btn-open-fast-tier-guide" class="btn-tier-guide" title="Guida Chiamate Rapide per Fascia: seleziona e chiama all'istante">
+                🎯 Chiama per Fascia
+              </button>
+              <button type="button" id="btn-random-call" class="btn-random-pick" title="Estrae un giocatore casuale libero tra quelli filtrati">
+                🎲 Chiama a Sorte tra i Liberi
+              </button>
+            </div>
           </div>
         </div>
 
@@ -209,111 +214,120 @@
                 Analisi algoritmica ponderata sulle 38 giornate di Serie A (380 partite): ottimizza l'alternanza difensiva dei portieri e le coppie d'attacco per massimizzare i bonus.
               </p>
             </div>
+            <!-- I 3 TAB PRINCIPALI -->
             <div class="calendar-nav-controls">
-              <button type="button" class="cal-mode-btn active" data-mode="focus">⚡ Focus Squadra (Rapido)</button>
-              <button type="button" class="cal-mode-btn" data-mode="goalkeepers">🧤 Alternanza Portieri</button>
-              <button type="button" class="cal-mode-btn" data-mode="attackers">⚽ Alternanza Attaccanti</button>
-              <button type="button" class="cal-mode-btn" data-mode="ratings">⭐ Rating Squadre (1-10)</button>
-            </div>
-          </div>
-
-          <!-- Filtri e Statistiche Incroci -->
-          <div id="calendar-filter-bar" class="auction-controls-bar" style="margin-bottom: 1.25rem;">
-            <div class="controls-row-top" style="justify-content: space-between; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                <label class="field-label" style="margin-bottom: 0;">Filtra per Squadra Specifica:</label>
-                <select id="calendar-team-filter" class="select-control" style="min-width: 220px;">
-                  <option value="ALL">Tutte le Squadre (Classifica Completa)</option>
-                  <!-- Popolato dinamicamente con le 20 squadre -->
-                </select>
-              </div>
-
-              <div id="calendar-summary-stat" class="stat-pill">
-                <span class="label">Incroci analizzati:</span>
-                <span id="cal-pairs-count" class="value highlight">190 combinazioni</span>
-              </div>
+              <button type="button" class="cal-nav-tab-btn active" data-cal-tab="goalkeepers">🧤 Alternanza Portieri</button>
+              <button type="button" class="cal-nav-tab-btn" data-cal-tab="attackers">⚽ Alternanza Attaccanti</button>
+              <button type="button" class="cal-nav-tab-btn" data-cal-tab="ratings">⭐ Rating Squadre (1-10)</button>
             </div>
           </div>
 
           <!-- ============================================================
-               PANNELLO FOCUS SQUADRA (CALCOLATORE RAPIDO ASTA DAL VIVO)
+               TAB 1: ALTERNANZA PORTIERI
                ============================================================ -->
-          <div id="view-cal-focus" class="cal-subview">
-            <!-- Barra Selezione Squadra Pivot -->
+          <div id="cal-view-goalkeepers" class="cal-main-view">
+            <!-- Barra Selezione Squadra Pivot Portieri -->
             <div class="focus-pivot-bar">
               <div class="focus-pivot-selector-row">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                  <span style="font-size: 1.35rem;">🎯</span>
+                  <span style="font-size: 1.35rem;">🧤</span>
                   <div>
-                    <label class="field-label" style="margin-bottom: 0; color: #93c5fd; font-size: 0.85rem;">Squadra Pivot da Analizzare:</label>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Seleziona dal menu o clicca un badge rapido sotto</div>
+                    <label class="field-label" style="margin-bottom: 0; color: #93c5fd; font-size: 0.85rem;">Squadra Pivot da Analizzare (Portieri):</label>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Seleziona dal menu a tendina o clicca una pillola rapida</div>
                   </div>
                 </div>
 
-                <select id="focus-pivot-team-select" class="select-control focus-select" style="min-width: 240px; font-weight: 700; font-size: 0.95rem;">
+                <select id="cal-gk-pivot-select" class="select-control focus-select" style="min-width: 240px; font-weight: 700; font-size: 0.95rem;">
                   <!-- Popolato dinamicamente con le 20 squadre -->
                 </select>
               </div>
 
-              <!-- Quick Pills delle 20 Squadre per selezione istantanea a 1-click -->
-              <div id="focus-quick-team-pills" class="focus-pills-row">
-                <!-- 20 pill buttons -->
+              <!-- Quick Pills delle 20 Squadre -->
+              <div id="cal-gk-quick-pills" class="focus-pills-row">
+                <!-- 20 pill buttons generati dinamicamente -->
               </div>
             </div>
 
-            <!-- Scheda Riassuntiva Squadra Pivot Selezionata -->
-            <div id="focus-pivot-summary-card" class="focus-summary-card">
+            <!-- Scheda Riassuntiva Squadra Pivot Portieri -->
+            <div id="cal-gk-pivot-summary" class="focus-summary-card">
               <!-- Riassunto squadra pivot generato dinamicamente -->
             </div>
 
-            <!-- Tre Tab Rapidi per la Squadra Pivot -->
-            <div class="focus-tabs-header">
-              <button type="button" class="focus-tab-btn active" data-focus-tab="gk">
-                🧤 Portieri - Migliori Coppie <span class="badge-count">19</span>
-              </button>
-              <button type="button" class="focus-tab-btn" data-focus-tab="att-pairs">
-                ⚽ Attaccanti - Migliori Coppie <span class="badge-count">19</span>
-              </button>
-              <button type="button" class="focus-tab-btn" data-focus-tab="att-triplets">
-                🎯 Attaccanti - Migliori Tris <span class="badge-count">171</span>
-              </button>
+            <!-- Tabella 19 Coppie Portieri -->
+            <div class="table-responsive-wrapper">
+              <div class="table-header-info">
+                <span class="table-count-label">Tutte le 19 Coppie di Portieri con <strong id="cal-lbl-gk-team" class="text-highlight">...</strong></span>
+                <span style="font-size: 0.775rem; color: var(--text-muted);">
+                  Ordinata per minor difficoltà media ponderata sulle 38 giornate. Mostra i portieri titolari e il tuo [Mio Prezzo Max].
+                </span>
+              </div>
+              <table class="players-table">
+                <thead>
+                  <tr>
+                    <th style="width: 45px;">#</th>
+                    <th>Squadra Partner</th>
+                    <th>Portieri Titolari Partner & [Mio Prezzo Max]</th>
+                    <th>Indice Difficoltà Minima</th>
+                    <th>Big Match Insieme (Rating ≥ 8)</th>
+                    <th>Alternanza Casa/Fuori</th>
+                    <th style="text-align: center; width: 140px;">Azione Asta</th>
+                  </tr>
+                </thead>
+                <tbody id="cal-gk-table-body">
+                  <!-- 19 righe generate dinamicamente -->
+                </tbody>
+              </table>
             </div>
+          </div>
 
-            <!-- Tab 1 Focus: Portieri Coppie -->
-            <div id="focus-tab-view-gk" class="focus-subview">
-              <div class="table-responsive-wrapper">
-                <div class="table-header-info">
-                  <span class="table-count-label">Tutte le 19 Coppie di Portieri con <strong id="focus-lbl-team-gk" class="text-highlight">...</strong></span>
-                  <span style="font-size: 0.775rem; color: var(--text-muted);">
-                    Ordinata per minor difficoltà media. Mostra il tuo "Mio Prezzo Max" per valutare all'istante l'impatto sul budget.
-                  </span>
+          <!-- ============================================================
+               TAB 2: ALTERNANZA ATTACCANTI
+               ============================================================ -->
+          <div id="cal-view-attackers" class="cal-main-view" style="display: none;">
+            <!-- Barra Selezione Squadra Pivot Attaccanti -->
+            <div class="focus-pivot-bar">
+              <div class="focus-pivot-selector-row">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <span style="font-size: 1.35rem;">⚽</span>
+                  <div>
+                    <label class="field-label" style="margin-bottom: 0; color: #93c5fd; font-size: 0.85rem;">Squadra Pivot da Analizzare (Attaccanti):</label>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Seleziona dal menu a tendina o clicca una pillola rapida</div>
+                  </div>
                 </div>
-                <table class="players-table">
-                  <thead>
-                    <tr>
-                      <th style="width: 45px;">#</th>
-                      <th>Squadra Partner</th>
-                      <th>Portieri Titolari Partner & [Mio Prezzo Max]</th>
-                      <th>Indice Difficoltà Minima</th>
-                      <th>Big Match Insieme (Rating ≥ 8)</th>
-                      <th>Alternanza Casa/Fuori</th>
-                      <th style="text-align: center; width: 140px;">Azione Asta</th>
-                    </tr>
-                  </thead>
-                  <tbody id="focus-gk-table-body">
-                    <!-- 19 righe generate dinamicamente -->
-                  </tbody>
-                </table>
+
+                <select id="cal-att-pivot-select" class="select-control focus-select" style="min-width: 240px; font-weight: 700; font-size: 0.95rem;">
+                  <!-- Popolato dinamicamente con le 20 squadre -->
+                </select>
+              </div>
+
+              <!-- Quick Pills delle 20 Squadre -->
+              <div id="cal-att-quick-pills" class="focus-pills-row">
+                <!-- 20 pill buttons generati dinamicamente -->
               </div>
             </div>
 
-            <!-- Tab 2 Focus: Attaccanti Coppie -->
-            <div id="focus-tab-view-att-pairs" class="focus-subview hidden">
+            <!-- Scheda Riassuntiva Squadra Pivot Attaccanti -->
+            <div id="cal-att-pivot-summary" class="focus-summary-card">
+              <!-- Riassunto squadra pivot generato dinamicamente -->
+            </div>
+
+            <!-- Selettore Sub-Tab Attaccanti: Migliori Coppie vs Migliori Tris -->
+            <div class="focus-tabs-header">
+              <button type="button" class="att-subtab-btn active" data-att-subtab="pairs">
+                ⚽ Migliori Coppie (2 Squadre) <span class="badge-count">19</span>
+              </button>
+              <button type="button" class="att-subtab-btn" data-att-subtab="triplets">
+                🎯 Migliori Tris (3 Squadre) <span class="badge-count">171</span>
+              </button>
+            </div>
+
+            <!-- Sub-vista 1: Coppie Attaccanti -->
+            <div id="cal-att-subview-pairs" class="att-subview">
               <div class="table-responsive-wrapper">
                 <div class="table-header-info">
-                  <span class="table-count-label">Tutte le 19 Coppie d'Attacco con <strong id="focus-lbl-team-att-pairs" class="text-highlight">...</strong></span>
+                  <span class="table-count-label">Tutte le 19 Coppie d'Attacco con <strong id="cal-lbl-att-pairs-team" class="text-highlight">...</strong></span>
                   <span style="font-size: 0.775rem; color: var(--text-muted);">
-                    Ordinata per partite favorevoli garantite e appetibilità offensiva.
+                    Ordinata per turni con match favorevole garantito (avversario rating ≤ 5 o in casa con rating ≤ 6). Mostra solo attaccanti (Ruolo A).
                   </span>
                 </div>
                 <table class="players-table">
@@ -328,20 +342,20 @@
                       <th style="text-align: center; width: 140px;">Azione Asta</th>
                     </tr>
                   </thead>
-                  <tbody id="focus-att-pairs-table-body">
+                  <tbody id="cal-att-pairs-table-body">
                     <!-- 19 righe generate dinamicamente -->
                   </tbody>
                 </table>
               </div>
             </div>
 
-            <!-- Tab 3 Focus: Attaccanti Tris -->
-            <div id="focus-tab-view-att-triplets" class="focus-subview hidden">
+            <!-- Sub-vista 2: Tris Attaccanti -->
+            <div id="cal-att-subview-triplets" class="att-subview" style="display: none;">
               <div class="table-responsive-wrapper">
                 <div class="table-header-info">
-                  <span class="table-count-label">Tutti i 171 Tris d'Attacco con <strong id="focus-lbl-team-att-triplets" class="text-highlight">...</strong></span>
+                  <span class="table-count-label">Tutti i 171 Tris d'Attacco con <strong id="cal-lbl-att-triplets-team" class="text-highlight">...</strong></span>
                   <span style="font-size: 0.775rem; color: var(--text-muted);">
-                    Copertura su 38 giornate di almeno un match contro difese morbide tra le 3 squadre.
+                    Ordinata per indice di appetibilità offensiva e copertura su 38 giornate di almeno un match contro difese morbide. Solo attaccanti (Ruolo A).
                   </span>
                 </div>
                 <table class="players-table">
@@ -355,7 +369,7 @@
                       <th style="text-align: center; width: 140px;">Azione Asta</th>
                     </tr>
                   </thead>
-                  <tbody id="focus-att-triplets-table-body">
+                  <tbody id="cal-att-triplets-table-body">
                     <!-- 171 righe generate dinamicamente -->
                   </tbody>
                 </table>
@@ -363,70 +377,16 @@
             </div>
           </div>
 
-          <!-- Pannello 1: Alternanza Portieri Generale -->
-          <div id="view-cal-goalkeepers" class="cal-subview hidden">
-            <div class="table-responsive-wrapper">
-              <div class="table-header-info">
-                <span class="table-count-label">Migliori Coppie di Portieri (Ordinata per Minor Difficoltà Media)</span>
-                <span style="font-size: 0.775rem; color: var(--text-muted);">
-                  💡 Minimo della difficoltà tra i due portieri ogni giornata. Considera fattore Casa/Trasferta (±0.5) e scontro con Big (Rating ≥ 8).
-                </span>
-              </div>
-              <table class="players-table">
-                <thead>
-                  <tr>
-                    <th style="width: 50px;">#</th>
-                    <th>Squadra A & Portieri</th>
-                    <th>Squadra B & Portieri</th>
-                    <th>Indice Medio Difficoltà</th>
-                    <th>Big Match Insieme (Rating ≥ 8)</th>
-                    <th>Alternanza Casa/Trasf.</th>
-                    <th style="text-align: center; width: 130px;">Valutazione</th>
-                  </tr>
-                </thead>
-                <tbody id="cal-goalkeepers-table-body">
-                  <!-- Righe generate dinamicamente -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Pannello 2: Alternanza Attaccanti -->
-          <div id="view-cal-attackers" class="cal-subview hidden">
-            <div class="table-responsive-wrapper">
-              <div class="table-header-info">
-                <span class="table-count-label">Migliori Coppie di Attaccanti (Caccia al Bonus e Partite Abbordabili)</span>
-                <span style="font-size: 0.775rem; color: var(--text-muted);">
-                  💡 Partita favorevole: avversario con Rating ≤ 5 oppure partita in casa contro avversario con Rating ≤ 6.
-                </span>
-              </div>
-              <table class="players-table">
-                <thead>
-                  <tr>
-                    <th style="width: 50px;">#</th>
-                    <th>Squadra A & Attaccanti Top</th>
-                    <th>Squadra B & Attaccanti Top</th>
-                    <th>Giornate con ≥1 Match Favorevole</th>
-                    <th>Doppio Match Favorevole</th>
-                    <th>Indice Difficoltà Minima</th>
-                    <th style="text-align: center; width: 130px;">Appetibilità</th>
-                  </tr>
-                </thead>
-                <tbody id="cal-attackers-table-body">
-                  <!-- Righe generate dinamicamente -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Pannello 3: Rating Forza Squadre (1-10) -->
-          <div id="view-cal-ratings" class="cal-subview hidden">
+          <!-- ============================================================
+               TAB 3: RATING SQUADRE (1-10)
+               ============================================================ -->
+          <div id="cal-view-ratings" class="cal-main-view" style="display: none;">
             <div class="settings-card" style="margin-bottom: 1.5rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
                 <div>
-                  <h3 class="settings-card-title" style="margin-bottom: 0.35rem;">Valutazione Forza Complessiva Squadre (1 - 10)</h3>
+                  <h3 class="settings-card-title" style="margin-bottom: 0.35rem;">⭐ Valutazione Forza Complessiva Squadre (1 - 10)</h3>
                   <p style="font-size: 0.85rem; color: var(--text-secondary);">
-                    Modifica il rating difensivo/offensivo di ciascun club. L'algoritmo ricalcolerà istantaneamente le classifiche di alternanza portieri e attaccanti.
+                    Modifica il rating difensivo/offensivo di ciascun club. L'algoritmo ricalcolerà istantaneamente le classifiche di alternanza portieri e attaccanti su salvataggio in localStorage.
                   </p>
                 </div>
                 <button type="button" id="btn-reset-team-ratings" class="btn-header" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.4); color: #93c5fd;">
@@ -435,7 +395,7 @@
               </div>
 
               <div id="team-ratings-grid" class="team-ratings-grid">
-                <!-- 20 card generate dinamicamente con slider e input -->
+                <!-- 20 card generate dinamicamente con stepper numerico -->
               </div>
             </div>
           </div>
@@ -589,7 +549,7 @@
          MODALE BATTITORE (LIVE BIDDING MODAL)
          ================================================================== -->
     <div id="modal-battitore" class="modal-overlay hidden">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-box">
         <div class="modal-header">
           <div class="modal-header-title">
             <span>🔨</span> Battitore d'Asta Live
@@ -615,7 +575,7 @@
                   🔒 Dati Segreti
                 </button>
 
-                <!-- Popover Segreto a Scomparsa Istantanea -->
+                <!-- Popover Segreto a Scomparsa Istantanea (PRIVACY SHIELD) -->
                 <div id="popover-secret-intel" class="secret-intel-popover hidden">
                   <div class="secret-popover-header">
                     <span>🔒 Dati Personali Riservati</span>
@@ -646,6 +606,22 @@
                   <div id="secret-overbid-warn" class="secret-overbid-warn hidden">
                     ⚠️ Attenzione: l'offerta corrente ha superato il tuo Max Imposto!
                   </div>
+
+                  <!-- Suggeritore Dinamico Incroci Calendario (SEGRETO - Collocato esclusivamente qui dentro) -->
+                  <div id="modal-calendar-recommender" class="modal-recommender-box hidden">
+                    <div class="rec-header">
+                      <div>
+                        <span class="rec-header-title">💡 Incroci Calendario Consigliati (<span id="rec-role-name">Portieri</span>):</span>
+                        <div id="rec-header-sub" class="rec-header-sub">Migliori partner complementari</div>
+                      </div>
+                      <button type="button" id="btn-modal-open-focus" class="btn-focus-shortcut" title="Apri alternanze per questa squadra">
+                        📅 Vai a Incroci
+                      </button>
+                    </div>
+                    <div id="rec-partners-container" class="rec-partners-grid">
+                      <!-- Card generate dinamicamente da calendarEngine -->
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -653,22 +629,6 @@
             <!-- Barra Pubblica: Prezzo Base d'Asta sempre a 0 cr -->
             <div class="called-player-public-bar">
               <span class="public-label">Base d'asta: <strong style="color: #60a5fa; font-family: var(--font-display);">0 crediti</strong></span>
-            </div>
-
-            <!-- Suggeritore Dinamico Incroci Calendario (per Portieri e Attaccanti) -->
-            <div id="modal-calendar-recommender" class="modal-recommender-box hidden">
-              <div class="rec-header">
-                <div>
-                  <span class="rec-header-title">💡 Incroci Calendario Consigliati (<span id="rec-role-name">Portieri</span>):</span>
-                  <div id="rec-header-sub" class="rec-header-sub">Migliori partner complementari</div>
-                </div>
-                <button type="button" id="btn-modal-open-focus" class="btn-focus-shortcut" title="Apri il Calcolatore Rapido Alternanze per questa squadra">
-                  ⚡ Focus Squadra
-                </button>
-              </div>
-              <div id="rec-partners-container" class="rec-partners-grid">
-                <!-- Card generate dinamicamente da calendarEngine -->
-              </div>
             </div>
           </div>
 
@@ -711,10 +671,49 @@
           </div>
         </div>
 
-
         <div class="modal-footer">
-          <button type="button" id="btn-confirm-bid" class="btn-confirm-bid" disabled>
-            🔨 Aggiudica Giocatore
+          <button type="button" id="btn-cancel-call" class="btn-cancel-call" title="Chiudi la chiamata e lascia il giocatore svincolato">
+            ❌ Annulla Chiamata (Nessun Acquisto)
+          </button>
+          <button type="button" id="btn-confirm-bid" class="btn-confirm-bid">
+            🔨 Assegna / Conferma Acquisto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modale Guida Chiamate Rapide per Fascia -->
+    <div id="modal-tier-guide" class="modal-overlay hidden">
+      <div class="modal-dialog modal-box tier-guide-modal-dialog">
+        <div class="modal-header">
+          <div class="modal-header-title">
+            <span>🎯</span> <span>Guida Chiamate Rapide per Fascia</span>
+          </div>
+          <button type="button" id="btn-close-tier-guide" class="btn-close-modal" title="Chiudi (ESC)">✕</button>
+        </div>
+
+        <!-- Selettore Ruoli Rapido in Cima al Modale -->
+        <div class="tier-guide-role-tabs">
+          <button type="button" class="tier-role-tab-btn active" data-tier-role="P">🧤 Portieri</button>
+          <button type="button" class="tier-role-tab-btn" data-tier-role="D">🛡️ Difensori</button>
+          <button type="button" class="tier-role-tab-btn" data-tier-role="C">⚙️ Centrocampisti</button>
+          <button type="button" class="tier-role-tab-btn" data-tier-role="A">⚡ Attaccanti</button>
+        </div>
+
+        <!-- Corpo con Griglia a Fasce -->
+        <div class="modal-body tier-guide-body">
+          <div id="tier-guide-grid" class="tier-guide-grid">
+            <!-- Colonne per fascia generate dinamicamente da JS -->
+          </div>
+        </div>
+
+        <!-- Footer Sticky Informativo -->
+        <div class="modal-footer tier-guide-footer">
+          <div class="tier-guide-footer-hint">
+            💡 Clicca su un calciatore <strong>libero</strong> per aprire istantaneamente il battitore d'asta. I calciatori già acquistati appaiono barrati.
+          </div>
+          <button type="button" id="btn-footer-close-tier-guide" class="btn-header">
+            Chiudi Finestra
           </button>
         </div>
       </div>

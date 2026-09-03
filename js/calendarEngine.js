@@ -133,7 +133,8 @@ class CalendarEngine {
    */
   getTeamKeyPlayers(team, role) {
     const all = typeof this.getPlayers === 'function' ? this.getPlayers() : [];
-    return all.filter(p => p.squadra === team && p.ruolo === role)
+    const targetRole = String(role || '').trim().toUpperCase();
+    return all.filter(p => p.squadra === team && String(p.ruolo || '').trim().toUpperCase() === targetRole)
       .sort((a, b) => {
         const titA = parseInt(a.titolarita, 10) || 0;
         const titB = parseInt(b.titolarita, 10) || 0;
@@ -418,7 +419,7 @@ class CalendarEngine {
 
     const attackerCache = {};
     allTeams.forEach(t => {
-      attackerCache[t] = this.getTeamKeyPlayers(t, 'A').slice(0, 2);
+      attackerCache[t] = this.getTeamKeyPlayers(t, 'A').slice(0, 3);
     });
 
     const preA = fixtureCache[pivotTeam];

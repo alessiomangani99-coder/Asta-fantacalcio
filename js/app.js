@@ -190,12 +190,12 @@ class AppController {
     this.calendarEngine = typeof CalendarEngine !== 'undefined'
       ? new CalendarEngine(window.CALENDARIO_SERIE_A, () => this.state.getAllPlayers())
       : null;
-    this.calendarMode = 'focus'; // 'focus' | 'goalkeepers' | 'attackers' | 'ratings'
-    this.calendarSelectedTeam = 'ALL';
-    this.focusPivotTeam = 'Juventus';
-    this.focusActiveTab = 'gk'; // 'gk' | 'att-pairs' | 'att-triplets'
+    this.calendarActiveTab = 'goalkeepers'; // 'goalkeepers' | 'attackers' | 'ratings'
+    this.calPivotTeam = 'Juventus';
+    this.attActiveSubtab = 'pairs'; // 'pairs' | 'triplets'
     this.multiTeamFilter = null;
     this.antiSpyActive = true;
+    this.tierGuideActiveRole = 'P';
 
     // Filtri Sala d'Asta
     this.filters = {
@@ -456,93 +456,108 @@ class AppController {
       btnResetAuction.addEventListener('click', () => this.confirmResetAuction());
     }
 
-    // Controlli Sezione Calendario
-    document.querySelectorAll('.cal-mode-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.cal-mode-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.calendarMode = btn.getAttribute('data-mode');
-
-        const filterBar = document.getElementById('calendar-filter-bar');
-        if (filterBar) {
-          filterBar.style.display = (this.calendarMode === 'ratings' || this.calendarMode === 'focus') ? 'none' : 'block';
-        }
-
-        const viewFocus = document.getElementById('view-cal-focus');
-        const viewGk = document.getElementById('view-cal-goalkeepers');
-        const viewAtt = document.getElementById('view-cal-attackers');
-        const viewRat = document.getElementById('view-cal-ratings');
-
-        if (viewFocus) viewFocus.classList.toggle('hidden', this.calendarMode !== 'focus');
-        if (viewGk) viewGk.classList.toggle('hidden', this.calendarMode !== 'goalkeepers');
-        if (viewAtt) viewAtt.classList.toggle('hidden', this.calendarMode !== 'attackers');
-        if (viewRat) viewRat.classList.toggle('hidden', this.calendarMode !== 'ratings');
-
-        if (this.calendarMode === 'focus') {
-          this.renderFocusSection();
-        } else if (this.calendarMode === 'ratings') {
-          this.renderTeamRatingsGrid();
-        } else {
-          this.renderCalendarTables();
-        }
-      });
-    });
-
-    // Sub-tab Focus Squadra (Portieri, Attaccanti Coppie, Attaccanti Tris)
-    document.querySelectorAll('.focus-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.focus-tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.focusActiveTab = btn.getAttribute('data-focus-tab');
-
-        const viewGk = document.getElementById('focus-tab-view-gk');
-        const viewAttPairs = document.getElementById('focus-tab-view-att-pairs');
-        const viewAttTriplets = document.getElementById('focus-tab-view-att-triplets');
-
-        if (viewGk) viewGk.classList.toggle('hidden', this.focusActiveTab !== 'gk');
-        if (viewAttPairs) viewAttPairs.classList.toggle('hidden', this.focusActiveTab !== 'att-pairs');
-        if (viewAttTriplets) viewAttTriplets.classList.toggle('hidden', this.focusActiveTab !== 'att-triplets');
-
-        if (this.focusActiveTab === 'gk') this.renderFocusGkTable();
-        else if (this.focusActiveTab === 'att-pairs') this.renderFocusAttPairsTable();
-        else if (this.focusActiveTab === 'att-triplets') this.renderFocusAttTripletsTable();
-      });
-    });
-
-    const focusSelect = document.getElementById('focus-pivot-team-select');
-    if (focusSelect) {
-      focusSelect.addEventListener('change', (e) => {
-        this.focusPivotTeam = e.target.value;
-        this.renderFocusSection();
-      });
-    }
-
-    const btnModalFocus = document.getElementById('btn-modal-open-focus');
-    if (btnModalFocus) {
-      btnModalFocus.addEventListener('click', () => {
+    // Tasto "Annulla Chiamata (Nessun Acquisto)" nel modale
+    const btnCancelCall = document.getElementById('btn-cancel-call');
+    if (btnCancelCall) {
+      btnCancelCall.addEventListener('click', () => {
         if (this.currentAuctionPlayer) {
-          this.openFocusTeam(this.currentAuctionPlayer.squadra);
+          const playerName = this.currentAuctionPlayer.nome;
+          this.closeAuctionModal();
+          this.showToast(`Chiamata per ${playerName} annullata. Il calciatore resta svincolato/libero.`, 'info');
+        } else {
+          this.closeAuctionModal();
         }
       });
     }
 
-    const calTeamFilter = document.getElementById('calendar-team-filter');
-    if (calTeamFilter) {
-      calTeamFilter.addEventListener('change', (e) => {
-        this.calendarSelectedTeam = e.target.value;
-        this.renderCalendarTables();
+    // Controlli Sezione Calendario: 3 Tab Principali
+    document.querySelectorAll('.cal-nav-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-cal-tab');
+        this.switchCalendarTab(tab);
+      });
+    });
+
+    // Sub-tab Attaccanti (Migliori Coppie vs Migliori Tris)
+    document.querySelectorAll('.att-subtab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const subtab = btn.getAttribute('data-att-subtab');
+        this.switchAttSubtab(subtab);
+      });
+    });
+
+    // Selezione Squadra Pivot Portieri
+    const gkSelect = document.getElementById('cal-gk-pivot-select');
+    if (gkSelect) {
+      gkSelect.addEventListener('change', (e) => {
+        this.setCalendarPivotTeam(e.target.value);
       });
     }
 
+    // Selezione Squadra Pivot Attaccanti
+    const attSelect = document.getElementById('cal-att-pivot-select');
+    if (attSelect) {
+      attSelect.addEventListener('change', (e) => {
+        this.setCalendarPivotTeam(e.target.value);
+      });
+    }
+
+    // Tasto Ripristina Valutazioni Squadre (Rating 1-10)
     const btnResetRatings = document.getElementById('btn-reset-team-ratings');
     if (btnResetRatings) {
       btnResetRatings.addEventListener('click', () => {
         if (this.calendarEngine) {
           this.calendarEngine.resetRatings();
           this.renderTeamRatingsGrid();
-          this.renderCalendarTables();
+          if (this.calendarActiveTab === 'goalkeepers') this.renderCalendarGkTab();
+          if (this.calendarActiveTab === 'attackers') this.renderCalendarAttTab();
           this.showToast('Valutazioni squadre ripristinate ai valori predefiniti!', 'info');
         }
+      });
+    }
+
+    // Tasto "Vai a Incroci" all'interno del Popover Dati Segreti del Battitore
+    const btnModalFocus = document.getElementById('btn-modal-open-focus');
+    if (btnModalFocus) {
+      btnModalFocus.addEventListener('click', () => {
+        if (this.currentAuctionPlayer) {
+          const role = this.currentAuctionPlayer.ruolo;
+          const team = this.currentAuctionPlayer.squadra;
+          this.closeAuctionModal();
+          this.switchTab('calendar');
+          this.switchCalendarTab(role === 'P' ? 'goalkeepers' : 'attackers', team);
+        }
+      });
+    }
+
+    // Apertura Guida Chiamate Rapide per Fascia
+    const btnOpenTierGuide = document.getElementById('btn-open-fast-tier-guide');
+    if (btnOpenTierGuide) {
+      btnOpenTierGuide.addEventListener('click', () => {
+        this.openTierGuideModal();
+      });
+    }
+
+    // Selettore Ruoli nel Modale Guida Chiamate
+    document.querySelectorAll('.tier-role-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const role = btn.getAttribute('data-tier-role');
+        this.switchTierGuideRole(role);
+      });
+    });
+
+    // Chiusura Modale Guida Chiamate
+    const btnCloseTierGuide = document.getElementById('btn-close-tier-guide');
+    if (btnCloseTierGuide) {
+      btnCloseTierGuide.addEventListener('click', () => {
+        this.closeTierGuideModal();
+      });
+    }
+
+    const btnFooterCloseTierGuide = document.getElementById('btn-footer-close-tier-guide');
+    if (btnFooterCloseTierGuide) {
+      btnFooterCloseTierGuide.addEventListener('click', () => {
+        this.closeTierGuideModal();
       });
     }
 
@@ -556,6 +571,15 @@ class AppController {
           popover.classList.add('hidden');
           const btnSec = document.getElementById('btn-secret-intel');
           if (btnSec) btnSec.classList.remove('active');
+          return;
+        }
+      }
+
+      // Se il modale Guida Chiamate è aperto, ESC lo chiude
+      const modalTierGuide = document.getElementById('modal-tier-guide');
+      if (modalTierGuide && !modalTierGuide.classList.contains('hidden')) {
+        if (e.key === 'Escape') {
+          this.closeTierGuideModal();
           return;
         }
       }
@@ -1031,6 +1055,8 @@ class AppController {
       const slotsConfig = this.state.getSlotsConfig();
 
       let optionsHtml = '<option value="">-- Seleziona il Manager Acquirente --</option>';
+      let defaultManagerId = '';
+
       managers.forEach(m => {
         const counts = this.auction.getManagerRosterCounts(m.id);
         const freeSlots = this.auction.getManagerFreeSlots(m.id);
@@ -1045,9 +1071,19 @@ class AppController {
 
         const disabledAttr = (isRoleFull || isTeamFull || maxBid < 1) ? 'disabled' : '';
 
+        // Pre-seleziona il primo manager idoneo all'acquisto
+        if (!defaultManagerId && !isRoleFull && !isTeamFull && maxBid >= 1) {
+          defaultManagerId = m.id;
+        }
+
         optionsHtml += `<option value="${m.id}" ${disabledAttr}>${m.name}${statusText}</option>`;
       });
       managerSelect.innerHTML = optionsHtml;
+
+      // Auto-selezione primo manager idoneo
+      if (defaultManagerId) {
+        managerSelect.value = defaultManagerId;
+      }
     }
 
     // Inizializza input prezzo a 0 (prezzo base d'asta sempre a 0 di default)
@@ -1121,6 +1157,9 @@ class AppController {
     const managerSelect = document.getElementById('bid-manager-select');
     const priceInput = document.getElementById('bid-price-input');
 
+    // Il pulsante deve rimanere SEMPRE cliccabile (gestirà gli alert in handleAssignBid)
+    if (confirmBtn) confirmBtn.disabled = false;
+
     if (!msgBox || !this.currentAuctionPlayer) return;
 
     const managerId = managerSelect ? managerSelect.value : null;
@@ -1141,15 +1180,13 @@ class AppController {
     if (!managerId) {
       msgBox.className = 'validation-msg-box msg-neutral';
       msgBox.innerHTML = 'ℹ️ Seleziona un manager per verificare offerta e crediti disponibili.';
-      if (confirmBtn) confirmBtn.disabled = true;
       return;
     }
 
-    // Se l'offerta è 0, richiedi almeno 1 credito per aggiudicare
+    // Se l'offerta è 0, suggerisci di inserire almeno 1 credito
     if (price < 1) {
       msgBox.className = 'validation-msg-box msg-neutral';
       msgBox.innerHTML = 'ℹ️ Offerta corrente: <strong>0 cr</strong>. Per aggiudicare il calciatore seleziona almeno <strong>1 credito</strong>.';
-      if (confirmBtn) confirmBtn.disabled = true;
       return;
     }
 
@@ -1158,11 +1195,9 @@ class AppController {
     if (validation.allowed) {
       msgBox.className = 'validation-msg-box msg-success';
       msgBox.innerHTML = `✅ Offerta valida! Offerta massima consentita: <strong>${validation.maxBid} cr</strong>.`;
-      if (confirmBtn) confirmBtn.disabled = false;
     } else {
       msgBox.className = 'validation-msg-box msg-error';
       msgBox.innerHTML = `⛔ ${validation.reason}`;
-      if (confirmBtn) confirmBtn.disabled = true;
     }
   }
 
@@ -1216,8 +1251,36 @@ class AppController {
     const managerId = managerSelect ? managerSelect.value : null;
     const price = priceInput ? parseInt(priceInput.value, 10) : 0;
 
+    // 1. Controllo se il Manager è selezionato: se manca, bordo rosso lampeggiante + alert
+    if (!managerId) {
+      if (managerSelect) {
+        managerSelect.classList.remove('field-error-flash');
+        void managerSelect.offsetWidth; // trigger reflow
+        managerSelect.classList.add('field-error-flash');
+        managerSelect.focus();
+        setTimeout(() => managerSelect.classList.remove('field-error-flash'), 1600);
+      }
+      this.showToast('⚠️ Seleziona prima a quale Manager assegnare il calciatore!', 'warning');
+      return;
+    }
+
+    // 2. Controllo se il prezzo è valido (almeno 1 credito)
     if (price < 1) {
-      this.showToast('L\'offerta minima per aggiudicare un calciatore è di 1 credito.', 'warning');
+      if (priceInput) {
+        priceInput.classList.remove('field-error-flash');
+        void priceInput.offsetWidth;
+        priceInput.classList.add('field-error-flash');
+        priceInput.focus();
+        setTimeout(() => priceInput.classList.remove('field-error-flash'), 1600);
+      }
+      this.showToast('⚠️ Inserisci un\'offerta valida (almeno 1 credito) per aggiudicare il calciatore.', 'warning');
+      return;
+    }
+
+    // 3. Validazione regole asta (budget, crediti di riserva, slot pieni)
+    const validation = this.auction.validateBid(managerId, this.currentAuctionPlayer, price);
+    if (!validation.allowed) {
+      this.showToast(`⛔ Assegnazione bloccata: ${validation.reason}`, 'error');
       return;
     }
 
@@ -1230,6 +1293,7 @@ class AppController {
       this.renderAuctionList();
       this.renderTeamsBoard();
       this.renderHistory();
+      this.renderTierGuideModal();
     } else {
       this.showToast(`Errore: ${result.error}`, 'error');
     }
@@ -1285,6 +1349,7 @@ class AppController {
       this.renderAuctionList();
       this.renderTeamsBoard();
       this.renderHistory();
+      this.renderTierGuideModal();
     } else {
       this.showToast(`Errore: ${result.error}`, 'error');
     }
@@ -1309,6 +1374,7 @@ class AppController {
       this.renderAuctionList();
       this.renderTeamsBoard();
       this.renderHistory();
+      this.renderTierGuideModal();
     } else {
       this.showToast(`Errore annullamento: ${res.error}`, 'error');
     }
@@ -1323,6 +1389,150 @@ class AppController {
     const randomIndex = Math.floor(Math.random() * unassigned.length);
     const chosen = unassigned[randomIndex];
     this.openAuctionModal(chosen.id);
+  }
+
+  // =========================================================================
+  // GUIDA CHIAMATE RAPIDE PER FASCIA
+  // =========================================================================
+  openTierGuideModal(role = null) {
+    if (role) {
+      this.tierGuideActiveRole = role;
+    }
+    const modal = document.getElementById('modal-tier-guide');
+    if (!modal) return;
+
+    this.updateTierGuideRoleTabs();
+    this.renderTierGuideModal();
+    modal.classList.remove('hidden');
+  }
+
+  closeTierGuideModal() {
+    const modal = document.getElementById('modal-tier-guide');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+  }
+
+  switchTierGuideRole(role) {
+    if (!role) return;
+    this.tierGuideActiveRole = role;
+    this.updateTierGuideRoleTabs();
+    this.renderTierGuideModal();
+  }
+
+  updateTierGuideRoleTabs() {
+    document.querySelectorAll('.tier-role-tab-btn').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-tier-role') === this.tierGuideActiveRole);
+    });
+  }
+
+  getCanonicalTierInfo(fasciaRaw) {
+    const f = String(fasciaRaw || '').trim().toLowerCase();
+    if (f.includes('semi-top') || f.includes('semitop')) return { key: 'semi-top', order: 2, label: 'Semi-Top' };
+    if (f.includes('top')) return { key: 'top', order: 1, label: 'Top' };
+    if (f.includes('terza') || f === 'terza') return { key: 'terza', order: 3, label: 'Terza Fascia' };
+    if (f.includes('quarta') || f === 'quarta') return { key: 'quarta', order: 4, label: 'Quarta Fascia' };
+    if (f.includes('scomm')) return { key: 'scommesse', order: 5, label: 'Scommesse' };
+    return { key: 'altri', order: 6, label: 'Altri' };
+  }
+
+  renderTierGuideModal() {
+    const container = document.getElementById('tier-guide-grid');
+    if (!container) return;
+
+    const allPlayers = this.state.getAllPlayers();
+    const rolePlayers = allPlayers.filter(p => String(p.ruolo || '').toUpperCase() === this.tierGuideActiveRole);
+
+    // Mappa con ordine standard delle fasce
+    const tiersMap = new Map();
+    const defaultTierOrder = [
+      { key: 'top', order: 1, label: 'Top' },
+      { key: 'semi-top', order: 2, label: 'Semi-Top' },
+      { key: 'terza', order: 3, label: 'Terza Fascia' },
+      { key: 'quarta', order: 4, label: 'Quarta Fascia' },
+      { key: 'scommesse', order: 5, label: 'Scommesse' },
+      { key: 'altri', order: 6, label: 'Altri' }
+    ];
+
+    defaultTierOrder.forEach(t => {
+      tiersMap.set(t.key, { ...t, players: [] });
+    });
+
+    rolePlayers.forEach(p => {
+      const info = this.getCanonicalTierInfo(p.fascia);
+      let tierObj = tiersMap.get(info.key);
+      if (!tierObj) {
+        tierObj = { key: info.key, order: info.order, label: info.label, players: [] };
+        tiersMap.set(info.key, tierObj);
+      }
+      tierObj.players.push(p);
+    });
+
+    let html = '';
+    tiersMap.forEach(tier => {
+      if (tier.players.length === 0) return;
+
+      // Ordina i calciatori: prima i liberi, poi per titolarità / alfabetico
+      tier.players.sort((a, b) => {
+        const aBought = (a.stato === 'acquistato' || Boolean(a.proprietario_id)) ? 1 : 0;
+        const bBought = (b.stato === 'acquistato' || Boolean(b.proprietario_id)) ? 1 : 0;
+        if (aBought !== bBought) return aBought - bBought;
+        return (b.titolarita || 0) - (a.titolarita || 0) || a.nome.localeCompare(b.nome);
+      });
+
+      const totalCount = tier.players.length;
+      const freeCount = tier.players.filter(p => p.stato !== 'acquistato' && !p.proprietario_id).length;
+      const badgeClass = freeCount === 0 ? 'tier-col-badge all-bought' : 'tier-col-badge';
+
+      let chipsHtml = '';
+      tier.players.forEach(p => {
+        const isBought = p.stato === 'acquistato' || Boolean(p.proprietario_id);
+        if (isBought) {
+          chipsHtml += `
+            <div class="tier-player-chip is-bought" title="${p.nome} (${p.squadra}) - Già acquistato">
+              <span class="tier-p-name">${p.nome}</span>
+              <span class="tier-p-team">(${p.squadra})</span>
+            </div>
+          `;
+        } else {
+          chipsHtml += `
+            <div class="tier-player-chip" data-player-id="${p.id}" title="Clicca per chiamare all'asta ${p.nome} (${p.squadra})">
+              <span class="tier-p-name">${p.nome}</span>
+              <span class="tier-p-team">(${p.squadra})</span>
+            </div>
+          `;
+        }
+      });
+
+      html += `
+        <div class="tier-col-card">
+          <div class="tier-col-header">
+            <span class="tier-col-title">${tier.label}</span>
+            <span class="${badgeClass}">${freeCount}/${totalCount} liberi</span>
+          </div>
+          <div class="tier-players-list">
+            ${chipsHtml}
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+
+    // Click-to-Bid Istantaneo sui chip dei calciatori liberi
+    container.querySelectorAll('.tier-player-chip:not(.is-bought)').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const playerId = chip.getAttribute('data-player-id');
+        if (playerId) {
+          this.selectPlayerFromTierGuide(playerId);
+        }
+      });
+    });
+  }
+
+  selectPlayerFromTierGuide(playerId) {
+    this.closeTierGuideModal();
+    this.openAuctionModal(playerId);
   }
 
   setupCSVUpload() {
@@ -1515,162 +1725,156 @@ class AppController {
     this.showToast('Filtro squadre rimosso.', 'info');
   }
 
-  openFocusTeam(teamName) {
-    if (!teamName) return;
-    this.focusPivotTeam = teamName;
-    this.calendarMode = 'focus';
+  // =========================================================================
+  // SEZIONE CALENDARIO & INCROCI SQUADRE (3 TAB PRINCIPALI)
+  // =========================================================================
+  switchCalendarTab(tabName, pivotTeam = null) {
+    if (!tabName) return;
+    this.calendarActiveTab = tabName;
+    if (pivotTeam) {
+      this.calPivotTeam = pivotTeam;
+    }
 
-    this.closeAuctionModal();
-    this.switchTab('calendar');
-
-    document.querySelectorAll('.cal-mode-btn').forEach(b => {
-      b.classList.toggle('active', b.getAttribute('data-mode') === 'focus');
+    // Switch tab buttons
+    document.querySelectorAll('.cal-nav-tab-btn').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-cal-tab') === tabName);
     });
 
-    const filterBar = document.getElementById('calendar-filter-bar');
-    if (filterBar) filterBar.style.display = 'none';
+    // Switch viste (display: block al tab attivo, display: none agli altri)
+    const viewGk = document.getElementById('cal-view-goalkeepers');
+    const viewAtt = document.getElementById('cal-view-attackers');
+    const viewRat = document.getElementById('cal-view-ratings');
 
-    document.getElementById('view-cal-focus')?.classList.remove('hidden');
-    document.getElementById('view-cal-goalkeepers')?.classList.add('hidden');
-    document.getElementById('view-cal-attackers')?.classList.add('hidden');
-    document.getElementById('view-cal-ratings')?.classList.add('hidden');
+    if (viewGk) viewGk.style.display = tabName === 'goalkeepers' ? 'block' : 'none';
+    if (viewAtt) viewAtt.style.display = tabName === 'attackers' ? 'block' : 'none';
+    if (viewRat) viewRat.style.display = tabName === 'ratings' ? 'block' : 'none';
 
-    this.renderFocusSection();
+    this.renderCalendarSection();
   }
 
-  // =========================================================================
-  // SEZIONE CALENDARIO & INCROCI SQUADRE
-  // =========================================================================
+  setCalendarPivotTeam(teamName) {
+    if (!teamName) return;
+    this.calPivotTeam = teamName;
+
+    // Sincronizza i select
+    const gkSelect = document.getElementById('cal-gk-pivot-select');
+    const attSelect = document.getElementById('cal-att-pivot-select');
+    if (gkSelect) gkSelect.value = teamName;
+    if (attSelect) attSelect.value = teamName;
+
+    this.renderCalendarSection();
+  }
+
+  switchAttSubtab(subtabName) {
+    this.attActiveSubtab = subtabName || 'pairs';
+
+    document.querySelectorAll('.att-subtab-btn').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-att-subtab') === this.attActiveSubtab);
+    });
+
+    const subviewPairs = document.getElementById('cal-att-subview-pairs');
+    const subviewTriplets = document.getElementById('cal-att-subview-triplets');
+
+    if (subviewPairs) subviewPairs.style.display = this.attActiveSubtab === 'pairs' ? 'block' : 'none';
+    if (subviewTriplets) subviewTriplets.style.display = this.attActiveSubtab === 'triplets' ? 'block' : 'none';
+
+    if (this.attActiveSubtab === 'pairs') {
+      this.renderCalendarAttPairs();
+    } else {
+      this.renderCalendarAttTriplets();
+    }
+  }
+
   renderCalendarSection() {
     if (!this.calendarEngine && typeof CalendarEngine !== 'undefined') {
       this.calendarEngine = new CalendarEngine(window.CALENDARIO_SERIE_A, () => this.state.getAllPlayers());
     }
     if (!this.calendarEngine) return;
 
-    // Popola select squadre se vuota
-    const select = document.getElementById('calendar-team-filter');
-    if (select && select.options.length <= 1) {
-      const teams = this.calendarEngine.getAllTeams();
-      teams.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t;
-        opt.textContent = `Solo incroci con: ${t}`;
-        select.appendChild(opt);
-      });
-    }
-
-    if (this.calendarMode === 'focus') {
-      this.renderFocusSection();
-    } else if (this.calendarMode === 'ratings') {
+    if (this.calendarActiveTab === 'goalkeepers') {
+      this.renderCalendarGkTab();
+    } else if (this.calendarActiveTab === 'attackers') {
+      this.renderCalendarAttTab();
+    } else if (this.calendarActiveTab === 'ratings') {
       this.renderTeamRatingsGrid();
-    } else {
-      this.renderCalendarTables();
     }
   }
 
-  renderFocusSection() {
+  renderCalendarGkTab() {
     if (!this.calendarEngine) return;
-
-    const select = document.getElementById('focus-pivot-team-select');
     const teams = this.calendarEngine.getAllTeams();
 
+    // Select Pivot Portieri
+    const select = document.getElementById('cal-gk-pivot-select');
     if (select && select.options.length <= 1) {
       select.innerHTML = '';
       teams.forEach(t => {
         const opt = document.createElement('option');
         opt.value = t;
         opt.textContent = t;
-        if (t === this.focusPivotTeam) opt.selected = true;
+        if (t === this.calPivotTeam) opt.selected = true;
         select.appendChild(opt);
       });
     } else if (select) {
-      select.value = this.focusPivotTeam;
+      select.value = this.calPivotTeam;
     }
 
-    // Renderizza 20 pill buttons per selezione rapida
-    const pillsRow = document.getElementById('focus-quick-team-pills');
+    // Pills Squadre Portieri
+    const pillsRow = document.getElementById('cal-gk-quick-pills');
     if (pillsRow) {
       let pillsHtml = '';
       teams.forEach(t => {
-        const isActive = t === this.focusPivotTeam;
+        const isActive = t === this.calPivotTeam;
         pillsHtml += `<button type="button" class="team-pill-btn ${isActive ? 'active' : ''}" data-team="${t}">${t}</button>`;
       });
       pillsRow.innerHTML = pillsHtml;
 
       pillsRow.querySelectorAll('.team-pill-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          this.focusPivotTeam = btn.getAttribute('data-team');
-          if (select) select.value = this.focusPivotTeam;
-          this.renderFocusSection();
+          this.setCalendarPivotTeam(btn.getAttribute('data-team'));
         });
       });
     }
 
-    // Renderizza scheda riassuntiva pivot
-    const summaryCard = document.getElementById('focus-pivot-summary-card');
+    // Scheda Riassuntiva Pivot Portieri
+    const summaryCard = document.getElementById('cal-gk-pivot-summary');
     if (summaryCard) {
-      const rating = this.calendarEngine.getTeamRating(this.focusPivotTeam);
+      const rating = this.calendarEngine.getTeamRating(this.calPivotTeam);
       const tierClass = rating >= 8 ? 'rating-badge-top' : rating >= 6 ? 'rating-badge-mid' : 'rating-badge-low';
       const tierLabel = rating >= 8 ? 'TOP' : rating >= 6 ? 'MEDIA' : 'SALVEZZA';
 
-      const gks = this.calendarEngine.getTeamKeyPlayers(this.focusPivotTeam, 'P');
-      const atts = this.calendarEngine.getTeamKeyPlayers(this.focusPivotTeam, 'A');
-
-      const gksTxt = gks.slice(0, 2).map(p => `<strong>${p.nome}</strong> <span style="color: #fbbf24; font-weight: 700;">[${p.prezzo_massimo_imposto || 1} cr]</span>`).join(', ') || 'N.D.';
-      const attsTxt = atts.slice(0, 3).map(p => `<strong>${p.nome}</strong> <span style="color: #fbbf24; font-weight: 700;">[${p.prezzo_massimo_imposto || 1} cr]</span>`).join(', ') || 'N.D.';
+      const gks = this.calendarEngine.getTeamKeyPlayers(this.calPivotTeam, 'P');
+      const gksTxt = gks.slice(0, 2).map(p =>
+        `<strong>${p.nome}</strong> (${p.titolarita || '?'}%) <span style="color: #fbbf24; font-weight: 700;">[${p.prezzo_massimo_imposto || 1} cr]</span>`
+      ).join(', ') || 'N.D.';
 
       summaryCard.innerHTML = `
         <div class="focus-summary-left">
-          <span class="focus-summary-name">${this.focusPivotTeam}</span>
+          <span class="focus-summary-name">${this.calPivotTeam}</span>
           <span class="team-rating-badge ${tierClass}">${rating}/10 (${tierLabel})</span>
         </div>
         <div class="focus-summary-roster">
           <div class="focus-summary-item">
-            <span class="f-lbl">Portieri Titolari ${this.focusPivotTeam}:</span>
+            <span class="f-lbl">🧤 Portieri Titolari ${this.calPivotTeam}:</span>
             <span class="f-val">${gksTxt}</span>
-          </div>
-          <div class="focus-summary-item">
-            <span class="f-lbl">Attaccanti Principali ${this.focusPivotTeam}:</span>
-            <span class="f-val">${attsTxt}</span>
           </div>
         </div>
       `;
     }
 
-    // Aggiorna etichette squadra
-    ['focus-lbl-team-gk', 'focus-lbl-team-att-pairs', 'focus-lbl-team-att-triplets'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = this.focusPivotTeam;
-    });
+    // Label squadra
+    const labelTeam = document.getElementById('cal-lbl-gk-team');
+    if (labelTeam) labelTeam.textContent = this.calPivotTeam;
 
-    // Mostra la sottovista corretta
-    const viewGk = document.getElementById('focus-tab-view-gk');
-    const viewAttPairs = document.getElementById('focus-tab-view-att-pairs');
-    const viewAttTriplets = document.getElementById('focus-tab-view-att-triplets');
+    // Tabella 19 Coppie Portieri
+    const tbody = document.getElementById('cal-gk-table-body');
+    if (!tbody) return;
 
-    if (viewGk) viewGk.classList.toggle('hidden', this.focusActiveTab !== 'gk');
-    if (viewAttPairs) viewAttPairs.classList.toggle('hidden', this.focusActiveTab !== 'att-pairs');
-    if (viewAttTriplets) viewAttTriplets.classList.toggle('hidden', this.focusActiveTab !== 'att-triplets');
-
-    // Renderizza dati tabella attiva
-    if (this.focusActiveTab === 'gk') {
-      this.renderFocusGkTable();
-    } else if (this.focusActiveTab === 'att-pairs') {
-      this.renderFocusAttPairsTable();
-    } else if (this.focusActiveTab === 'att-triplets') {
-      this.renderFocusAttTripletsTable();
-    }
-  }
-
-  renderFocusGkTable() {
-    const tbody = document.getElementById('focus-gk-table-body');
-    if (!tbody || !this.calendarEngine) return;
-
-    const pairs = this.calendarEngine.getFocusTeamGoalkeepers(this.focusPivotTeam);
+    const pairs = this.calendarEngine.getFocusTeamGoalkeepers(this.calPivotTeam);
     let html = '';
 
     pairs.forEach((p, idx) => {
-      const playersPartnerHtml = p.playersPartner.map(x =>
+      const playersPartnerHtml = (p.playersPartner || []).map(x =>
         `<span class="player-tag-price"><strong>${x.nome}</strong> (${x.titolarita || '?'}%)<span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
       ).join('') || 'N.D.';
 
@@ -1693,7 +1897,7 @@ class AppController {
             <span style="font-weight: 700; color: ${altColor};">${p.homeAwayAlternation}/38 (${altPct}%)</span>
           </td>
           <td style="text-align: center;">
-            <button type="button" class="btn-filter-listone" onclick="window.app.filterListoneByTeams(['${this.focusPivotTeam}', '${p.partnerTeam}'])">
+            <button type="button" class="btn-filter-listone" onclick="window.app.filterListoneByTeams(['${this.calPivotTeam}', '${p.partnerTeam}'])">
               🔍 Filtra nel Listone
             </button>
           </td>
@@ -1704,16 +1908,91 @@ class AppController {
     tbody.innerHTML = html;
   }
 
-  renderFocusAttPairsTable() {
-    const tbody = document.getElementById('focus-att-pairs-table-body');
+  renderCalendarAttTab() {
+    if (!this.calendarEngine) return;
+    const teams = this.calendarEngine.getAllTeams();
+
+    // Select Pivot Attaccanti
+    const select = document.getElementById('cal-att-pivot-select');
+    if (select && select.options.length <= 1) {
+      select.innerHTML = '';
+      teams.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        if (t === this.calPivotTeam) opt.selected = true;
+        select.appendChild(opt);
+      });
+    } else if (select) {
+      select.value = this.calPivotTeam;
+    }
+
+    // Pills Squadre Attaccanti
+    const pillsRow = document.getElementById('cal-att-quick-pills');
+    if (pillsRow) {
+      let pillsHtml = '';
+      teams.forEach(t => {
+        const isActive = t === this.calPivotTeam;
+        pillsHtml += `<button type="button" class="team-pill-btn ${isActive ? 'active' : ''}" data-team="${t}">${t}</button>`;
+      });
+      pillsRow.innerHTML = pillsHtml;
+
+      pillsRow.querySelectorAll('.team-pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          this.setCalendarPivotTeam(btn.getAttribute('data-team'));
+        });
+      });
+    }
+
+    // Scheda Riassuntiva Pivot Attaccanti (SOLO RUOLO A)
+    const summaryCard = document.getElementById('cal-att-pivot-summary');
+    if (summaryCard) {
+      const rating = this.calendarEngine.getTeamRating(this.calPivotTeam);
+      const tierClass = rating >= 8 ? 'rating-badge-top' : rating >= 6 ? 'rating-badge-mid' : 'rating-badge-low';
+      const tierLabel = rating >= 8 ? 'TOP' : rating >= 6 ? 'MEDIA' : 'SALVEZZA';
+
+      // Filtro TASSATIVO ruolo A
+      const atts = this.calendarEngine.getTeamKeyPlayers(this.calPivotTeam, 'A');
+      const attsTxt = atts.slice(0, 3).map(p =>
+        `<strong>${p.nome}</strong> (${p.titolarita || '?'}%) <span style="color: #fbbf24; font-weight: 700;">[${p.prezzo_massimo_imposto || 1} cr]</span>`
+      ).join(', ') || 'N.D.';
+
+      summaryCard.innerHTML = `
+        <div class="focus-summary-left">
+          <span class="focus-summary-name">${this.calPivotTeam}</span>
+          <span class="team-rating-badge ${tierClass}">${rating}/10 (${tierLabel})</span>
+        </div>
+        <div class="focus-summary-roster">
+          <div class="focus-summary-item">
+            <span class="f-lbl">⚽ Attaccanti Principali ${this.calPivotTeam}:</span>
+            <span class="f-val">${attsTxt}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Label squadra
+    ['cal-lbl-att-pairs-team', 'cal-lbl-att-triplets-team'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = this.calPivotTeam;
+    });
+
+    // Subtab switch
+    this.switchAttSubtab(this.attActiveSubtab);
+  }
+
+  renderCalendarAttPairs() {
+    const tbody = document.getElementById('cal-att-pairs-table-body');
     if (!tbody || !this.calendarEngine) return;
 
-    const pairs = this.calendarEngine.getFocusTeamAttackersPairs(this.focusPivotTeam);
+    const pairs = this.calendarEngine.getFocusTeamAttackersPairs(this.calPivotTeam);
     let html = '';
 
     pairs.forEach((p, idx) => {
-      const playersPartnerHtml = p.playersPartner.map(x =>
-        `<span class="player-tag-price"><strong>${x.nome}</strong><span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
+      // FIX BUG ATTACCANTI: Filtro tassativo ruolo A (Attaccanti), nessun portiere permesso
+      const validAtts = (p.playersPartner || []).filter(pl => String(pl.ruolo || '').toUpperCase() === 'A');
+      const playersPartnerHtml = validAtts.slice(0, 3).map(x =>
+        `<span class="player-tag-price"><strong>${x.nome}</strong> (${x.titolarita || '?'}%)<span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
       ).join('') || 'N.D.';
 
       const pct = Math.round((p.softMatchdaysCount / 38) * 100);
@@ -1728,7 +2007,7 @@ class AppController {
           <td><span style="font-weight: 700; color: #60a5fa;">${p.doubleSoftMatchdaysCount} turni</span></td>
           <td><span style="font-family: var(--font-display); font-weight: 700; color: #fbbf24;">${p.indiceOffensivo}</span></td>
           <td style="text-align: center;">
-            <button type="button" class="btn-filter-listone" onclick="window.app.filterListoneByTeams(['${this.focusPivotTeam}', '${p.partnerTeam}'])">
+            <button type="button" class="btn-filter-listone" onclick="window.app.filterListoneByTeams(['${this.calPivotTeam}', '${p.partnerTeam}'])">
               🔍 Filtra nel Listone
             </button>
           </td>
@@ -1739,20 +2018,24 @@ class AppController {
     tbody.innerHTML = html;
   }
 
-  renderFocusAttTripletsTable() {
-    const tbody = document.getElementById('focus-att-triplets-table-body');
+  renderCalendarAttTriplets() {
+    const tbody = document.getElementById('cal-att-triplets-table-body');
     if (!tbody || !this.calendarEngine) return;
 
-    const triplets = this.calendarEngine.getFocusTeamAttackersTriplets(this.focusPivotTeam);
+    const triplets = this.calendarEngine.getFocusTeamAttackersTriplets(this.calPivotTeam);
     let html = '';
 
     triplets.forEach((t, idx) => {
-      const playersBHtml = t.playersB.map(x =>
-        `<span class="player-tag-price"><strong>${x.nome}</strong><span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
+      // FIX BUG ATTACCANTI: Solo ed esclusivamente attaccanti ruolo A
+      const validB = (t.playersB || []).filter(pl => String(pl.ruolo || '').toUpperCase() === 'A');
+      const validC = (t.playersC || []).filter(pl => String(pl.ruolo || '').toUpperCase() === 'A');
+
+      const playersBHtml = validB.slice(0, 3).map(x =>
+        `<span class="player-tag-price"><strong>${x.nome}</strong> (${x.titolarita || '?'}%)<span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
       ).join('') || 'N.D.';
 
-      const playersCHtml = t.playersC.map(x =>
-        `<span class="player-tag-price"><strong>${x.nome}</strong><span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
+      const playersCHtml = validC.slice(0, 3).map(x =>
+        `<span class="player-tag-price"><strong>${x.nome}</strong> (${x.titolarita || '?'}%)<span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
       ).join('') || 'N.D.';
 
       const badgeClass = t.softMatchdaysCount >= 36 ? 'score-badge-green' : t.softMatchdaysCount >= 33 ? 'score-badge-blue' : 'score-badge-orange';
@@ -1775,7 +2058,7 @@ class AppController {
             <span style="font-family: var(--font-display); font-weight: 700; color: #fbbf24;">${t.indiceTris}</span>
           </td>
           <td style="text-align: center;">
-            <button type="button" class="btn-filter-listone" onclick="window.app.filterListoneByTeams(['${this.focusPivotTeam}', '${t.teamB}', '${t.teamC}'])">
+            <button type="button" class="btn-filter-listone" onclick="window.app.filterListoneByTeams(['${this.calPivotTeam}', '${t.teamB}', '${t.teamC}'])">
               🔍 Filtra nel Listone
             </button>
           </td>
@@ -1805,8 +2088,12 @@ class AppController {
             <span class="team-rating-badge ${tierClass}" id="rating-badge-${team}">${rating}/10 (${tierLabel})</span>
           </div>
           <div class="team-rating-controls">
+            <div class="team-rating-stepper">
+              <button type="button" class="btn-step btn-step-down" data-team="${team}" title="Diminuisci rating">-</button>
+              <input type="number" class="rating-number-input" min="1" max="10" value="${rating}" data-team="${team}">
+              <button type="button" class="btn-step btn-step-up" data-team="${team}" title="Aumenta rating">+</button>
+            </div>
             <input type="range" class="rating-slider" min="1" max="10" step="1" value="${rating}" data-team="${team}">
-            <input type="number" class="rating-number-input" min="1" max="10" value="${rating}" data-team="${team}">
           </div>
         </div>
       `;
@@ -1814,165 +2101,57 @@ class AppController {
 
     grid.innerHTML = html;
 
-    // Event listeners su slider e number input
+    const updateTeamRatingUI = (team, val) => {
+      val = Math.min(10, Math.max(1, parseInt(val, 10) || 5));
+      this.calendarEngine.setTeamRating(team, val);
+
+      const numInput = grid.querySelector(`.rating-number-input[data-team="${team}"]`);
+      if (numInput) numInput.value = val;
+
+      const slider = grid.querySelector(`.rating-slider[data-team="${team}"]`);
+      if (slider) slider.value = val;
+
+      const badge = document.getElementById(`rating-badge-${team}`);
+      if (badge) {
+        const tierClass = val >= 8 ? 'rating-badge-top' : val >= 6 ? 'rating-badge-mid' : 'rating-badge-low';
+        const tierLabel = val >= 8 ? 'TOP' : val >= 6 ? 'MEDIA' : 'SALVEZZA';
+        badge.className = `team-rating-badge ${tierClass}`;
+        badge.textContent = `${val}/10 (${tierLabel})`;
+      }
+    };
+
+    // Stepper buttons
+    grid.querySelectorAll('.btn-step-down').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const team = btn.getAttribute('data-team');
+        const cur = this.calendarEngine.getTeamRating(team);
+        updateTeamRatingUI(team, cur - 1);
+      });
+    });
+
+    grid.querySelectorAll('.btn-step-up').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const team = btn.getAttribute('data-team');
+        const cur = this.calendarEngine.getTeamRating(team);
+        updateTeamRatingUI(team, cur + 1);
+      });
+    });
+
+    // Slider
     grid.querySelectorAll('.rating-slider').forEach(slider => {
       slider.addEventListener('input', (e) => {
         const team = e.target.getAttribute('data-team');
-        const val = parseInt(e.target.value, 10);
-        this.calendarEngine.setTeamRating(team, val);
-
-        const numInput = grid.querySelector(`.rating-number-input[data-team="${team}"]`);
-        if (numInput) numInput.value = val;
-
-        const badge = document.getElementById(`rating-badge-${team}`);
-        if (badge) {
-          const tierClass = val >= 8 ? 'rating-badge-top' : val >= 6 ? 'rating-badge-mid' : 'rating-badge-low';
-          const tierLabel = val >= 8 ? 'TOP' : val >= 6 ? 'MEDIA' : 'SALVEZZA';
-          badge.className = `team-rating-badge ${tierClass}`;
-          badge.textContent = `${val}/10 (${tierLabel})`;
-        }
+        updateTeamRatingUI(team, e.target.value);
       });
     });
 
+    // Direct number input
     grid.querySelectorAll('.rating-number-input').forEach(input => {
       input.addEventListener('change', (e) => {
         const team = e.target.getAttribute('data-team');
-        let val = parseInt(e.target.value, 10) || 5;
-        val = Math.min(10, Math.max(1, val));
-        e.target.value = val;
-        this.calendarEngine.setTeamRating(team, val);
-
-        const slider = grid.querySelector(`.rating-slider[data-team="${team}"]`);
-        if (slider) slider.value = val;
-
-        const badge = document.getElementById(`rating-badge-${team}`);
-        if (badge) {
-          const tierClass = val >= 8 ? 'rating-badge-top' : val >= 6 ? 'rating-badge-mid' : 'rating-badge-low';
-          const tierLabel = val >= 8 ? 'TOP' : val >= 6 ? 'MEDIA' : 'SALVEZZA';
-          badge.className = `team-rating-badge ${tierClass}`;
-          badge.textContent = `${val}/10 (${tierLabel})`;
-        }
+        updateTeamRatingUI(team, e.target.value);
       });
     });
-  }
-
-  renderCalendarTables() {
-    if (!this.calendarEngine) return;
-
-    const targetTeam = this.calendarSelectedTeam === 'ALL' ? null : this.calendarSelectedTeam;
-    const countLabel = document.getElementById('cal-pairs-count');
-
-    if (this.calendarMode === 'goalkeepers') {
-      const tbody = document.getElementById('cal-goalkeepers-table-body');
-      if (!tbody) return;
-
-      const pairs = this.calendarEngine.getAllGoalkeeperPairs(targetTeam);
-      if (countLabel) countLabel.textContent = `${pairs.length} combinazioni analizzate`;
-
-      if (pairs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nessun incrocio trovato per i criteri selezionati.</td></tr>';
-        return;
-      }
-
-      let html = '';
-      pairs.forEach((p, idx) => {
-        const pA = p.playersA.map(x => `<strong>${x.nome}</strong> (${x.titolarita || '?'} tit)`).join(', ') || 'N.D.';
-        const pB = p.playersB.map(x => `<strong>${x.nome}</strong> (${x.titolarita || '?'} tit)`).join(', ') || 'N.D.';
-
-        const badgeClass = p.indiceMedio <= 5.15 ? 'score-badge-green' : p.indiceMedio <= 5.35 ? 'score-badge-blue' : p.indiceMedio <= 5.55 ? 'score-badge-orange' : 'score-badge-red';
-        const ratingWord = p.indiceMedio <= 5.15 ? '⭐ Top Incrocio' : p.indiceMedio <= 5.35 ? '👍 Molto Buono' : p.indiceMedio <= 5.55 ? '⚖️ Discreto' : '⚠️ Sconsigliato';
-
-        const altPercentage = Math.round((p.homeAwayAlternation / 38) * 100);
-        const altColor = p.homeAwayAlternation >= 34 ? '#34d399' : p.homeAwayAlternation >= 22 ? '#60a5fa' : '#94a3b8';
-
-        html += `
-          <tr class="player-row">
-            <td style="font-weight: 800; color: var(--text-muted);">${idx + 1}</td>
-            <td>
-              <div class="team-badge" style="margin-bottom: 0.25rem;">${p.teamA}</div>
-              <div class="sub-players-list">${pA}</div>
-            </td>
-            <td>
-              <div class="team-badge" style="margin-bottom: 0.25rem;">${p.teamB}</div>
-              <div class="sub-players-list">${pB}</div>
-            </td>
-            <td>
-              <span class="score-badge ${badgeClass}">${p.indiceMedio}</span>
-              <div style="font-size: 0.725rem; color: var(--text-muted); margin-top: 2px;">Diff. min media</div>
-            </td>
-            <td>
-              <span style="font-weight: 700; color: ${p.bigMatchOverlap <= 1 ? '#34d399' : p.bigMatchOverlap <= 3 ? '#fbbf24' : '#f87171'};">
-                ${p.bigMatchOverlap} su 38
-              </span>
-              <div style="font-size: 0.725rem; color: var(--text-muted);">${p.bigMatchOverlap === 0 ? 'Mai insieme contro Big' : 'giornate critiche'}</div>
-            </td>
-            <td>
-              <span style="font-weight: 700; color: ${altColor};">
-                ${p.homeAwayAlternation} / 38 (${altPercentage}%)
-              </span>
-              <div style="font-size: 0.725rem; color: var(--text-muted);">Incrocio Casa/Trasf.</div>
-            </td>
-            <td style="text-align: center;">
-              <span class="score-badge ${badgeClass}" style="font-size: 0.775rem;">${ratingWord}</span>
-            </td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = html;
-    } else if (this.calendarMode === 'attackers') {
-      const tbody = document.getElementById('cal-attackers-table-body');
-      if (!tbody) return;
-
-      const pairs = this.calendarEngine.getAllAttackerPairs(targetTeam);
-      if (countLabel) countLabel.textContent = `${pairs.length} combinazioni analizzate`;
-
-      if (pairs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nessun incrocio trovato per i criteri selezionati.</td></tr>';
-        return;
-      }
-
-      let html = '';
-      pairs.forEach((p, idx) => {
-        const pA = p.playersA.map(x => `<strong>${x.nome}</strong>`).join(', ') || 'N.D.';
-        const pB = p.playersB.map(x => `<strong>${x.nome}</strong>`).join(', ') || 'N.D.';
-
-        const pct = Math.round((p.softMatchdaysCount / 38) * 100);
-        const badgeClass = p.softMatchdaysCount >= 33 ? 'score-badge-green' : p.softMatchdaysCount >= 30 ? 'score-badge-blue' : 'score-badge-orange';
-        const ratingWord = p.softMatchdaysCount >= 33 ? '🔥 Tridente d\'Oro' : p.softMatchdaysCount >= 30 ? '⚡ Ottimo Mix' : '👍 Buona Alternanza';
-
-        html += `
-          <tr class="player-row">
-            <td style="font-weight: 800; color: var(--text-muted);">${idx + 1}</td>
-            <td>
-              <div class="team-badge" style="margin-bottom: 0.25rem;">${p.teamA}</div>
-              <div class="sub-players-list">${pA}</div>
-            </td>
-            <td>
-              <div class="team-badge" style="margin-bottom: 0.25rem;">${p.teamB}</div>
-              <div class="sub-players-list">${pB}</div>
-            </td>
-            <td>
-              <span class="score-badge ${badgeClass}">${p.softMatchdaysCount} / 38 (${pct}%)</span>
-              <div style="font-size: 0.725rem; color: var(--text-muted); margin-top: 2px;">giornate con match morbido</div>
-            </td>
-            <td>
-              <span style="font-weight: 700; color: #60a5fa;">${p.doubleSoftMatchdaysCount} giornate</span>
-              <div style="font-size: 0.725rem; color: var(--text-muted);">entrambe contro difese facili</div>
-            </td>
-            <td>
-              <span style="font-family: var(--font-display); font-weight: 700; color: #fbbf24;">${p.indiceOffensivo}</span>
-              <div style="font-size: 0.725rem; color: var(--text-muted);">Indice difficoltà</div>
-            </td>
-            <td style="text-align: center;">
-              <span class="score-badge ${badgeClass}" style="font-size: 0.775rem;">${ratingWord}</span>
-            </td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = html;
-    }
   }
 
   async confirmResetAuction() {
@@ -1996,6 +2175,7 @@ class AppController {
     this.renderTeamsBoard();
     this.renderHistory();
     this.renderSettings();
+    this.renderTierGuideModal();
     this.showToast('Asta azzerata con successo.', 'info');
   }
 }
