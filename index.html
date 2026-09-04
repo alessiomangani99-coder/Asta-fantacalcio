@@ -785,6 +785,20 @@
                     ⚠️ Attenzione: l'offerta corrente ha superato il tuo Max Imposto!
                   </div>
 
+                  <!-- Blocco Rendimento Reale Certificato (Dati Storici Serie A) -->
+                  <div id="secret-historical-stats-box" class="secret-historical-stats-box">
+                    <div class="secret-stats-header">
+                      <div class="stats-header-left">
+                        <span class="stats-header-icon">📈</span>
+                        <span class="stats-header-title">Rendimento Reale Certificato</span>
+                      </div>
+                      <div id="secret-stats-badges" class="secret-stats-badges"></div>
+                    </div>
+                    <div id="secret-stats-content" class="secret-stats-content">
+                      <!-- Generato dinamicamente in JS -->
+                    </div>
+                  </div>
+
                   <!-- Indicatore Contestuale Target Budget per Reparto -->
                   <div id="secret-dept-budget-box" class="secret-dept-budget-box">
                     <div class="secret-dept-budget-header">
@@ -940,6 +954,7 @@
   </div>
 
   <!-- Script Modulari dell'Applicazione -->
+  <script src="stats_giocatori.js"></script>
   <script src="js/defaultData.js"></script>
   <script src="calendario.js"></script>
   <script src="js/calendarEngine.js"></script>

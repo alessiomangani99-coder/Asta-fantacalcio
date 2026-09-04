@@ -878,6 +878,21 @@ class AppController {
       const titClass = titNum >= 80 ? 'badge-stat-green' : titNum >= 50 ? 'badge-stat-orange' : 'badge-stat-red';
       const intClass = intNum >= 80 ? 'badge-stat-green' : intNum >= 50 ? 'badge-stat-orange' : 'badge-stat-red';
 
+      // Badge Tattici Riservati (Rigorista, Modificatore) con protezione Anti-Spionaggio
+      const histStats = window.getHistoricalStats ? window.getHistoricalStats(player) : null;
+      let badgeRigoristaHtml = '';
+      let badgeModificatoreHtml = '';
+
+      if (histStats) {
+        const hasPenaltyInLast = histStats.last.rig && histStats.last.rig !== '0/0' && !histStats.last.rig.startsWith('0/');
+        if (hasPenaltyInLast || histStats.carriera.has_penalties) {
+          badgeRigoristaHtml = `<span class="secret-mask tactical-mini-badge badge-penalty" title="Rigorista Certificato">🎯 Rigorista</span>`;
+        }
+        if (histStats.last.mv >= 6.15 && histStats.last.pres > 0) {
+          badgeModificatoreHtml = `<span class="secret-mask tactical-mini-badge badge-modifier" title="Ottimo da Modificatore (MV ${histStats.last.mv.toFixed(2)})">🛡️ Modificatore</span>`;
+        }
+      }
+
       html += `
         <tr class="player-row ${isAcquistato ? 'row-acquired' : ''}" data-id="${player.id}">
           <td class="col-role">
@@ -887,6 +902,8 @@ class AppController {
             <div class="player-name-cell">
               <span class="player-name">${player.nome}</span>
               <span class="player-fascia secret-mask" title="Fascia segreta">${player.fascia || ''}</span>
+              ${badgeRigoristaHtml}
+              ${badgeModificatoreHtml}
             </div>
           </td>
           <td class="col-team">
@@ -1155,6 +1172,9 @@ class AppController {
     const secretWarnElem = document.getElementById('secret-overbid-warn');
     if (secretWarnElem) secretWarnElem.classList.add('hidden');
 
+    // Popola Rendimento Reale Certificato (Dati Storici Serie A)
+    this.populateHistoricalStatsSecret(player);
+
     // Assicura che il popover segreto sia chiuso di default
     const popoverSecret = document.getElementById('popover-secret-intel');
     if (popoverSecret) popoverSecret.classList.add('hidden');
@@ -1420,6 +1440,132 @@ class AppController {
         }
       });
     });
+  }
+
+  // POPOLA BLOCCO RENDIMENTO REALE CERTIFICATO (DATI SEGRETI)
+  populateHistoricalStatsSecret(player) {
+    const badgesContainer = document.getElementById('secret-stats-badges');
+    const contentContainer = document.getElementById('secret-stats-content');
+    if (!badgesContainer || !contentContainer) return;
+
+    badgesContainer.innerHTML = '';
+    contentContainer.innerHTML = '';
+
+    const histStats = window.getHistoricalStats ? window.getHistoricalStats(player) : null;
+
+    if (!histStats || (histStats.carriera.tot_pres === 0 && histStats.last.pres === 0)) {
+      // Caso Calciatore Nuovo / Esordiente
+      contentContainer.innerHTML = `
+        <div class="stats-rookie-box">
+          <span class="rookie-icon">🌟</span>
+          <span class="rookie-text">Esordiente in Serie A / Nessuno storico precedente</span>
+        </div>
+      `;
+      return;
+    }
+
+    const { last, carriera } = histStats;
+    const isGK = player.ruolo === 'P' || (last.gol_sub > 0 || last.rig_par > 0);
+
+    // 1. Badge Tattici in Header Popover
+    let badgesHtml = '';
+    const hasPenaltyInLast = last.rig && last.rig !== '0/0' && !last.rig.startsWith('0/');
+    if (hasPenaltyInLast || carriera.has_penalties) {
+      badgesHtml += `<span class="tactical-mini-badge badge-penalty" title="Rigorista con almeno 1 rigore calciato">🎯 Rigorista</span>`;
+    }
+    if (last.mv >= 6.15 && last.pres > 0) {
+      badgesHtml += `<span class="tactical-mini-badge badge-modifier" title="Media Voto pura >= 6.15">🛡️ Ottimo da Modificatore</span>`;
+    }
+    badgesContainer.innerHTML = badgesHtml;
+
+    // 2. Sezione Ultima Stagione
+    const seasonLabel = last.season || '2025-26';
+    const mvStr = last.mv ? last.mv.toFixed(2) : '-';
+    const fmStr = last.fm ? last.fm.toFixed(2) : '-';
+
+    let subPillsHtml = '';
+    if (isGK) {
+      subPillsHtml = `
+        <div class="stats-pills-row stats-sub-pills">
+          <div class="stat-pill stat-pill-sm">
+            <span class="stat-pill-label">Gol Subiti:</span>
+            <strong class="stat-pill-val" style="color: #f87171;">${last.gol_sub}</strong>
+          </div>
+          <div class="stat-pill stat-pill-sm">
+            <span class="stat-pill-label">Rigori Parati:</span>
+            <strong class="stat-pill-val" style="color: #60a5fa;">${last.rig_par}</strong>
+          </div>
+        </div>
+      `;
+    } else {
+      const pills = [];
+      if (last.gol > 0) {
+        pills.push(`
+          <div class="stat-pill stat-pill-sm">
+            <span class="stat-pill-label">Gol:</span>
+            <strong class="stat-pill-val" style="color: #34d399;">${last.gol}</strong>
+          </div>
+        `);
+      }
+      if (last.ass > 0) {
+        pills.push(`
+          <div class="stat-pill stat-pill-sm">
+            <span class="stat-pill-label">Assist:</span>
+            <strong class="stat-pill-val" style="color: #38bdf8;">${last.ass}</strong>
+          </div>
+        `);
+      }
+      if (last.rig && last.rig !== '0/0' && !last.rig.startsWith('0/')) {
+        pills.push(`
+          <div class="stat-pill stat-pill-sm">
+            <span class="stat-pill-label">Rigori:</span>
+            <strong class="stat-pill-val" style="color: #fbbf24;">${last.rig}</strong>
+          </div>
+        `);
+      }
+
+      if (pills.length > 0) {
+        subPillsHtml = `<div class="stats-pills-row stats-sub-pills">${pills.join('')}</div>`;
+      }
+    }
+
+    // 3. Trend Storico / Carriera
+    const avgFmStr = carriera.avg_fm ? carriera.avg_fm.toFixed(2) : fmStr;
+
+    contentContainer.innerHTML = `
+      <div class="stats-season-section">
+        <div class="stats-season-title">
+          <span>Ultima Stagione (<strong>${seasonLabel}</strong>)</span>
+          ${last.team ? `<span style="font-size: 0.675rem; color: #64748b;">${last.team}</span>` : ''}
+        </div>
+        <div class="stats-pills-row">
+          <div class="stat-pill">
+            <span class="stat-pill-label">Presenze</span>
+            <strong class="stat-pill-val">${last.pres}</strong>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-label">MV Pura</span>
+            <strong class="stat-pill-val val-mv">${mvStr}</strong>
+            <small>(pura)</small>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-label">Fantamedia</span>
+            <strong class="stat-pill-val val-fm">${fmStr}</strong>
+            <small>(con bonus)</small>
+          </div>
+        </div>
+        ${subPillsHtml}
+      </div>
+
+      <div class="stats-career-section">
+        <div class="stats-career-title">Trend Storico / Carriera Serie A</div>
+        <div class="stats-career-line">
+          Presenze Totali: <strong>${carriera.tot_pres}</strong> &nbsp;|&nbsp; Fantamedia Media: <strong>${avgFmStr}</strong>
+          ${!isGK && carriera.tot_gol > 0 ? `&nbsp;|&nbsp; Gol: <strong>${carriera.tot_gol}</strong>` : ''}
+          ${isGK && carriera.tot_gol_sub > 0 ? `&nbsp;|&nbsp; Subiti: <strong>${carriera.tot_gol_sub}</strong>` : ''}
+        </div>
+      </div>
+    `;
   }
 
   handleAssignBid() {
