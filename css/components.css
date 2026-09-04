@@ -691,54 +691,243 @@
   color: #fbbf24;
 }
 
-/* Box Messaggio di Validazione Offerta */
-.validation-msg-box {
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  font-weight: 500;
+/* ==========================================================================
+   LIVE RADAR PARTECIPANTI (CREDITI IN TEMPO REALE & CLICK-TO-SELECT)
+   ========================================================================== */
+.live-radar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(10, 15, 29, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
 }
 
-.msg-neutral {
-  background: rgba(148, 163, 184, 0.1);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: var(--text-secondary);
+.live-radar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.msg-success {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
-}
-
-.msg-error {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
-}
-
-/* Timer Countdown Overlay */
-.countdown-container {
+.live-radar-header-left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: rgba(10, 14, 23, 0.4);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-subtle);
+  gap: 0.5rem;
 }
 
-.countdown-display {
+.live-radar-title {
   font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 900;
-  color: #fbbf24;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.countdown-display.hidden {
-  display: none;
+.live-radar-role-badge {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.live-radar-summary {
+  font-family: var(--font-display);
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.live-radar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.45rem;
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+@media (min-width: 640px) {
+  .live-radar-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Custom scrollbar per live-radar-grid */
+.live-radar-grid::-webkit-scrollbar {
+  width: 5px;
+}
+.live-radar-grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
+}
+.live-radar-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+}
+.live-radar-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Radar Card Base */
+.radar-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  position: relative;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.radar-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.radar-manager-name {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.radar-badge {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.radar-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.725rem;
+  color: var(--text-muted);
+}
+
+.radar-credits-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  line-height: 1.15;
+}
+
+.radar-val-res {
+  color: var(--text-secondary);
+}
+
+.radar-val-res strong {
+  color: #e2e8f0;
+}
+
+.radar-val-max {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.radar-slot-badge {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+/* STATO 1: Manager Attivo / In Gara */
+.radar-card.status-active {
+  cursor: pointer;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.radar-card.status-active:hover {
+  background: var(--bg-surface-hover);
+  border-color: rgba(16, 185, 129, 0.65);
+  transform: translateY(-1px);
+}
+
+.radar-card.status-active .radar-badge {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+/* STATO 2: Manager Fuori Budget (Opacità al 40%, Testo Rosso/Grigio) */
+.radar-card.status-out {
+  opacity: 0.4;
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(15, 20, 30, 0.4);
+  cursor: default;
+}
+
+.radar-card.status-out:hover {
+  opacity: 0.65;
+}
+
+.radar-card.status-out .radar-badge {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.radar-card.status-out .radar-val-max {
+  color: #f87171;
+}
+
+/* STATO 3: Slot Pieni (Disabilitato / Grigio scuro) */
+.radar-card.status-full {
+  opacity: 0.45;
+  background: rgba(15, 18, 25, 0.7);
+  border-color: rgba(255, 255, 255, 0.05);
+  cursor: not-allowed;
+}
+
+.radar-card.status-full .radar-badge {
+  background: rgba(100, 116, 139, 0.2);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.radar-card.status-full .radar-slot-badge {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* SELEZIONATO: Bordo o bagliore azzurro di evidenziazione */
+.radar-card.is-selected {
+  border-color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.12) !important;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.45), inset 0 0 0 1px #3b82f6 !important;
+  opacity: 1 !important;
+}
+
+.radar-card.is-selected .radar-manager-name {
+  color: #93c5fd;
 }
 
 .modal-footer {
@@ -2186,4 +2375,550 @@
 
 .tier-guide-footer-hint strong {
   color: #34d399;
+}
+
+/* ==========================================================================
+   TARGET BUDGET PER REPARTO CON RIBILANCIAMENTO DINAMICO
+   ========================================================================== */
+
+/* 1. Widget Finanziario Barra Superiore */
+.dept-budget-widget-bar {
+  background: rgba(11, 17, 32, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.4);
+}
+
+.dept-budget-widget-bar.is-collapsed .dept-widget-cards-grid,
+.dept-budget-widget-bar.is-collapsed .dept-widget-alert-container {
+  display: none !important;
+}
+
+.dept-widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dept-widget-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.dept-widget-icon {
+  font-size: 1.1rem;
+}
+
+.dept-widget-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dept-widget-user-select-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.5rem;
+}
+
+.dept-widget-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.dept-widget-select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #60a5fa;
+  font-family: var(--font-body);
+  font-size: 0.775rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.dept-widget-select:focus {
+  border-color: #3b82f6;
+}
+
+.dept-widget-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dept-widget-global-stat {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.dept-widget-global-stat strong {
+  color: #fbbf24;
+}
+
+.btn-toggle-dept-widget {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-toggle-dept-widget:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Alert Container (Tesoretto & Sforamento) */
+.dept-widget-alert-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.dept-widget-alert-container.hidden {
+  display: none !important;
+}
+
+.dept-alert-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.775rem;
+  line-height: 1.3;
+  animation: bannerSlideIn 0.2s ease-out;
+}
+
+@keyframes bannerSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dept-alert-banner.banner-tesoretto {
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #a7f3d0;
+}
+
+.dept-alert-banner.banner-deficit {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.btn-banner-action {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid currentColor;
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: 0.725rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-banner-action:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Griglia dei 4 Reparti */
+.dept-widget-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+@media (min-width: 840px) {
+  .dept-widget-cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Card di Singolo Reparto */
+.dept-role-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.dept-role-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.dept-role-card.role-p { border-top: 2.5px solid #fbbf24; }
+.dept-role-card.role-d { border-top: 2.5px solid #34d399; }
+.dept-role-card.role-c { border-top: 2.5px solid #60a5fa; }
+.dept-role-card.role-a { border-top: 2.5px solid #f87171; }
+
+.dept-role-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dept-role-name {
+  font-family: var(--font-display);
+  font-size: 0.775rem;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.dept-role-delta {
+  font-family: var(--font-display);
+  font-size: 0.675rem;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.dept-role-delta.delta-saved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.dept-role-delta.delta-over {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.dept-role-delta.delta-even {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* Barra di Avanzamento Reparto */
+.dept-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dept-progress-track {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dept-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.dept-role-card.role-p .dept-progress-fill { background: #fbbf24; }
+.dept-role-card.role-d .dept-progress-fill { background: #34d399; }
+.dept-role-card.role-c .dept-progress-fill { background: #60a5fa; }
+.dept-role-card.role-a .dept-progress-fill { background: #f87171; }
+
+.dept-role-card .dept-progress-fill.over-budget {
+  background: #ef4444 !important;
+}
+
+.dept-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.dept-spent-txt strong {
+  color: #e2e8f0;
+}
+
+.dept-slots-txt {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+/* Spesa Media Residua per Slot Libero */
+.dept-avg-slot-box {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  padding: 0.25rem 0.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.675rem;
+  color: var(--text-muted);
+  border: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.dept-avg-slot-box .avg-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.dept-avg-slot-box.is-complete {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+}
+
+/* 2. Impostazioni Allocazione Target in Tab Regole */
+.settings-card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.settings-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+
+.badge-plan-status {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+}
+
+.badge-plan-status.valid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.badge-plan-status.invalid {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.budget-plan-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+@media (min-width: 600px) {
+  .budget-plan-roles-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.budget-role-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.budget-role-item.role-item-p { border-left: 3px solid #fbbf24; }
+.budget-role-item.role-item-d { border-left: 3px solid #34d399; }
+.budget-role-item.role-item-c { border-left: 3px solid #60a5fa; }
+.budget-role-item.role-item-a { border-left: 3px solid #f87171; }
+
+.budget-role-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.budget-role-label {
+  font-family: var(--font-display);
+  font-size: 0.775rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.budget-role-credits-display {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.budget-role-inputs {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.input-with-addon {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.input-with-addon .setting-input {
+  width: 100%;
+  padding-right: 1.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.input-addon {
+  position: absolute;
+  right: 0.45rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Barra di Validazione Somma */
+.plan-validation-bar {
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  font-family: var(--font-display);
+  transition: all 0.2s ease;
+}
+
+.plan-validation-bar.valid {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.plan-validation-bar.invalid {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.plan-validation-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.budget-presets-row {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.btn-preset-budget {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-preset-budget:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* 3. Indicatore Contestuale nel Popover Dati Segreti Battitore */
+.secret-dept-budget-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.775rem;
+}
+
+.secret-dept-budget-header {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #60a5fa;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.secret-dept-budget-info {
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.secret-dept-budget-info strong {
+  color: #fff;
+}
+
+.secret-dept-advice {
+  margin-top: 0.2rem;
+  color: #cbd5e1;
+}
+
+.secret-dept-advice strong {
+  color: #fbbf24;
+}
+
+.secret-dept-overbudget-warn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 0.25rem 0.45rem;
+  border-radius: 4px;
+}
+
+.secret-dept-overbudget-warn.hidden {
+  display: none !important;
 }

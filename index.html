@@ -73,6 +73,40 @@
           ⚙️ Regole & Partecipanti
         </button>
       </nav>
+
+      <!-- Widget Finanziario: Target Budget per Reparto con Ribilanciamento Dinamico -->
+      <div id="dept-budget-widget-bar" class="dept-budget-widget-bar">
+        <div class="dept-widget-header">
+          <div class="dept-widget-title-group">
+            <span class="dept-widget-icon">📊</span>
+            <span class="dept-widget-title">Target Budget Reparti</span>
+            <div class="dept-widget-user-select-group">
+              <span class="dept-widget-label">Squadra:</span>
+              <select id="dept-widget-manager-select" class="dept-widget-select" title="Seleziona la squadra da monitorare">
+                <!-- Popolato dinamicamente da JS -->
+              </select>
+            </div>
+          </div>
+          <div class="dept-widget-actions">
+            <div id="dept-widget-global-stat" class="dept-widget-global-stat">
+              Spesi: <strong id="dept-widget-total-spent">0</strong> / <span id="dept-widget-total-target">500</span> cr
+            </div>
+            <button type="button" id="btn-toggle-dept-widget" class="btn-toggle-dept-widget" title="Comprimi / Espandi il widget">
+              ▴
+            </button>
+          </div>
+        </div>
+
+        <!-- Banner Dinamico Notifiche: Tesoretto & Allarmi Sforamento -->
+        <div id="dept-widget-alert-container" class="dept-widget-alert-container hidden">
+          <!-- Iniettato dinamicamente da JS -->
+        </div>
+
+        <!-- Griglia dei 4 Reparti (P, D, C, A) -->
+        <div id="dept-widget-cards-grid" class="dept-widget-cards-grid">
+          <!-- Card P, D, C, A generate dinamicamente da JS -->
+        </div>
+      </div>
     </header>
 
     <!-- Contenuto Principale (Viste Tab) -->
@@ -516,6 +550,150 @@
             </form>
           </div>
 
+          <!-- Configurazione Target Budget per Reparto con Ribilanciamento Dinamico -->
+          <div class="settings-card" id="settings-card-budget-plan">
+            <div class="settings-card-header-flex">
+              <h3 class="settings-card-title">📊 Target Budget per Reparto</h3>
+              <span class="badge-plan-status" id="budget-plan-status-badge">Bilanciato (100%) ✅</span>
+            </div>
+            <p class="settings-card-desc">
+              Pianifica la quota target del budget da destinare a ciascun ruolo. Il sistema monitora in tempo reale risparmi, over-budget e gestisce il ribilanciamento dinamico (<em>Effetto Tesoretto</em>).
+            </p>
+
+            <form id="form-budget-plan" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div class="form-field-group">
+                <label class="field-label" for="setting-budget-user-manager">Squadra di Riferimento ("La Mia Squadra")</label>
+                <select id="setting-budget-user-manager" class="setting-input">
+                  <!-- Popolato dinamicamente da JS -->
+                </select>
+              </div>
+
+              <!-- Griglia Allocazione per Ruolo -->
+              <div class="budget-plan-roles-grid">
+                <!-- Portieri (P) -->
+                <div class="budget-role-item role-item-p">
+                  <div class="budget-role-top">
+                    <span class="budget-role-label">🧤 Portieri (P)</span>
+                    <span class="budget-role-credits-display" id="plan-cr-display-P">40 cr</span>
+                  </div>
+                  <div class="budget-role-inputs">
+                    <div class="input-with-addon">
+                      <input type="number" id="plan-pct-P" class="setting-input plan-input-pct" min="1" max="90" step="1" value="8">
+                      <span class="input-addon">%</span>
+                    </div>
+                    <div class="input-with-addon">
+                      <input type="number" id="plan-cr-P" class="setting-input plan-input-cr" min="1" max="5000" step="1" value="40">
+                      <span class="input-addon">cr</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Difensori (D) -->
+                <div class="budget-role-item role-item-d">
+                  <div class="budget-role-top">
+                    <span class="budget-role-label">🛡️ Difensori (D)</span>
+                    <span class="budget-role-credits-display" id="plan-cr-display-D">60 cr</span>
+                  </div>
+                  <div class="budget-role-inputs">
+                    <div class="input-with-addon">
+                      <input type="number" id="plan-pct-D" class="setting-input plan-input-pct" min="1" max="90" step="1" value="12">
+                      <span class="input-addon">%</span>
+                    </div>
+                    <div class="input-with-addon">
+                      <input type="number" id="plan-cr-D" class="setting-input plan-input-cr" min="1" max="5000" step="1" value="60">
+                      <span class="input-addon">cr</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Centrocampisti (C) -->
+                <div class="budget-role-item role-item-c">
+                  <div class="budget-role-top">
+                    <span class="budget-role-label">⚙️ Centrocampisti (C)</span>
+                    <span class="budget-role-credits-display" id="plan-cr-display-C">140 cr</span>
+                  </div>
+                  <div class="budget-role-inputs">
+                    <div class="input-with-addon">
+                      <input type="number" id="plan-pct-C" class="setting-input plan-input-pct" min="1" max="90" step="1" value="28">
+                      <span class="input-addon">%</span>
+                    </div>
+                    <div class="input-with-addon">
+                      <input type="number" id="plan-cr-C" class="setting-input plan-input-cr" min="1" max="5000" step="1" value="140">
+                      <span class="input-addon">cr</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Attaccanti (A) -->
+                <div class="budget-role-item role-item-a">
+                  <div class="budget-role-top">
+                    <span class="budget-role-label">⚡ Attaccanti (A)</span>
+                    <span class="budget-role-credits-display" id="plan-cr-display-A">260 cr</span>
+                  </div>
+                  <div class="budget-role-inputs">
+                    <div class="input-with-addon">
+                      <input type="number" id="plan-pct-A" class="setting-input plan-input-pct" min="1" max="90" step="1" value="52">
+                      <span class="input-addon">%</span>
+                    </div>
+                    <div class="input-with-addon">
+                      <input type="number" id="plan-cr-A" class="setting-input plan-input-cr" min="1" max="5000" step="1" value="260">
+                      <span class="input-addon">cr</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Barra di Validazione Somma 100% -->
+              <div id="plan-validation-bar" class="plan-validation-bar valid">
+                <div class="plan-validation-info">
+                  <span>Totale Allocato: <strong id="plan-total-pct">100%</strong> (<strong id="plan-total-cr">500</strong> cr)</span>
+                  <span id="plan-validation-msg" class="plan-validation-msg">Bilanciato al 100%</span>
+                </div>
+              </div>
+
+              <!-- Preset Rapidi di Allocazione -->
+              <div class="form-field-group">
+                <label class="field-label">Preset Rapidi Consigliati</label>
+                <div class="budget-presets-row">
+                  <button type="button" class="btn-preset-budget" data-preset="standard">
+                    ⭐ Standard (8% - 12% - 28% - 52%)
+                  </button>
+                  <button type="button" class="btn-preset-budget" data-preset="heavy-attack">
+                    ⚡ Attacco Pesante (7% - 10% - 23% - 60%)
+                  </button>
+                  <button type="button" class="btn-preset-budget" data-preset="balanced">
+                    ⚖️ Equilibrato (10% - 15% - 30% - 45%)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Opzioni di Ribilanciamento Automatico -->
+              <div class="form-field-group">
+                <label class="field-label">Regola di Compensazione & Destinazione Tesoretto</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                  <div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Sposta Tesoretto su:</span>
+                    <select id="setting-tesoretto-target" class="setting-input">
+                      <option value="A" selected>Attaccanti (A)</option>
+                      <option value="C">Centrocampisti (C)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Attingi Sforamenti da:</span>
+                    <select id="setting-deficit-source" class="setting-input">
+                      <option value="A" selected>Attaccanti (A)</option>
+                      <option value="C">Centrocampisti (C)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-save-settings" id="btn-save-budget-plan">
+                💾 Salva Piano Budget Reparti
+              </button>
+            </form>
+          </div>
+
           <!-- Modulo Importazione Listone CSV & Zona Pericolo -->
           <div style="display: flex; flex-direction: column; gap: 1.5rem;">
             <div class="settings-card">
@@ -607,6 +785,22 @@
                     ⚠️ Attenzione: l'offerta corrente ha superato il tuo Max Imposto!
                   </div>
 
+                  <!-- Indicatore Contestuale Target Budget per Reparto -->
+                  <div id="secret-dept-budget-box" class="secret-dept-budget-box">
+                    <div class="secret-dept-budget-header">
+                      <span>📊 Target Budget Ruolo (<span id="secret-dept-role">P</span>)</span>
+                    </div>
+                    <div class="secret-dept-budget-info">
+                      Budget rimasto: <strong id="secret-dept-rem">0</strong> cr su <span id="secret-dept-target">0</span> allocati.
+                      <div id="secret-dept-advice" class="secret-dept-advice">
+                        Puoi spendere max <strong id="secret-dept-max-bid">0</strong> cr su questo giocatore per restare a target.
+                      </div>
+                    </div>
+                    <div id="secret-dept-overbudget-warn" class="secret-dept-overbudget-warn hidden">
+                      ⚠️ L'offerta supera il max consigliato per restare a target!
+                    </div>
+                  </div>
+
                   <!-- Suggeritore Dinamico Incroci Calendario (SEGRETO - Collocato esclusivamente qui dentro) -->
                   <div id="modal-calendar-recommender" class="modal-recommender-box hidden">
                     <div class="rec-header">
@@ -656,17 +850,20 @@
               </div>
             </div>
 
-            <!-- Box Validazione Offerta & Formula Crediti di Riserva -->
-            <div id="bid-validation-msg" class="validation-msg-box msg-neutral">
-              ℹ️ Seleziona un manager per verificare l'offerta massima e la riserva crediti.
-            </div>
-
-            <!-- Timer Conto alla Rovescia -->
-            <div class="countdown-container">
-              <button type="button" id="btn-start-countdown" class="btn-header">
-                ⏱ 3.. 2.. 1..
-              </button>
-              <div id="countdown-display" class="countdown-display hidden">3</div>
+            <!-- Live Radar Partecipanti (Crediti in Tempo Reale & Click-to-Select) -->
+            <div class="live-radar-section">
+              <div class="live-radar-header">
+                <div class="live-radar-header-left">
+                  <span class="live-radar-title">📡 Live Radar Partecipanti</span>
+                  <span id="live-radar-role-indicator" class="live-radar-role-badge">Ruolo: -</span>
+                </div>
+                <div class="live-radar-header-right">
+                  <span id="live-radar-summary" class="live-radar-summary">In gara: -</span>
+                </div>
+              </div>
+              <div id="live-radar-grid" class="live-radar-grid" role="list" aria-label="Radar Partecipanti e Disponibilità Crediti">
+                <!-- Card manager generate dinamicamente da JS -->
+              </div>
             </div>
           </div>
         </div>

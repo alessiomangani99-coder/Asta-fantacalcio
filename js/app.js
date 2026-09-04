@@ -25,7 +25,18 @@ class StateManager {
         { id: 'mgr_8', name: 'Bayer Leverduren', spent: 0, roster: [] }
       ],
       players: [],
-      history: []
+      history: [],
+      budgetPlan: {
+        userManagerId: 'mgr_1',
+        compensationRole: 'A',
+        tesorettoTarget: 'A',
+        roles: {
+          P: { pct: 8, targetCredits: 40 },
+          D: { pct: 12, targetCredits: 60 },
+          C: { pct: 28, targetCredits: 140 },
+          A: { pct: 52, targetCredits: 260 }
+        }
+      }
     };
   }
 
@@ -45,6 +56,21 @@ class StateManager {
               }
               return p;
             });
+          }
+          // Inizializzazione o migrazione Budget Plan per Reparto se assente
+          const initialBudget = this.data.league?.initialBudget || 500;
+          if (!this.data.budgetPlan || !this.data.budgetPlan.roles) {
+            this.data.budgetPlan = {
+              userManagerId: this.data.managers[0]?.id || 'mgr_1',
+              compensationRole: 'A',
+              tesorettoTarget: 'A',
+              roles: {
+                P: { pct: 8, targetCredits: Math.round(initialBudget * 0.08) },
+                D: { pct: 12, targetCredits: Math.round(initialBudget * 0.12) },
+                C: { pct: 28, targetCredits: Math.round(initialBudget * 0.28) },
+                A: { pct: 52, targetCredits: Math.round(initialBudget * 0.52) }
+              }
+            };
           }
           return true;
         }
@@ -132,6 +158,39 @@ class StateManager {
     return (this.data.league.initialBudget || 500) - (m.spent || 0);
   }
 
+  getBudgetPlan() {
+    if (!this.data.budgetPlan) {
+      const initialBudget = this.data.league?.initialBudget || 500;
+      this.data.budgetPlan = {
+        userManagerId: this.data.managers[0]?.id || 'mgr_1',
+        compensationRole: 'A',
+        tesorettoTarget: 'A',
+        roles: {
+          P: { pct: 8, targetCredits: Math.round(initialBudget * 0.08) },
+          D: { pct: 12, targetCredits: Math.round(initialBudget * 0.12) },
+          C: { pct: 28, targetCredits: Math.round(initialBudget * 0.28) },
+          A: { pct: 52, targetCredits: Math.round(initialBudget * 0.52) }
+        }
+      };
+    }
+    return this.data.budgetPlan;
+  }
+
+  setBudgetPlan(plan) {
+    this.data.budgetPlan = plan;
+    this.save();
+  }
+
+  getUserManagerId() {
+    return this.getBudgetPlan().userManagerId || (this.data.managers[0]?.id || 'mgr_1');
+  }
+
+  setUserManagerId(id) {
+    const plan = this.getBudgetPlan();
+    plan.userManagerId = id;
+    this.save();
+  }
+
   getAllPlayers() {
     return this.data.players;
   }
@@ -208,8 +267,7 @@ class AppController {
 
     // Stato Battitore in corso
     this.currentAuctionPlayer = null;
-    this.countdownInterval = null;
-    this.countdownSeconds = 3;
+
   }
 
   async init() {
@@ -234,6 +292,8 @@ class AppController {
     this.renderHistory();
     this.renderCalendarSection();
     this.renderSettings();
+    this.renderDeptBudgetWidget();
+    this.renderBudgetPlanSettings();
   }
 
   bindEvents() {
@@ -393,11 +453,6 @@ class AppController {
       managerSelect.addEventListener('change', () => this.updateBidValidationMessage());
     }
 
-    // Tasto Countdown Battitore
-    const btnCountdown = document.getElementById('btn-start-countdown');
-    if (btnCountdown) {
-      btnCountdown.addEventListener('click', () => this.startCountdown());
-    }
 
     // Tasto Conferma Assegnazione
     const btnConfirmBid = document.getElementById('btn-confirm-bid');
@@ -455,6 +510,53 @@ class AppController {
     if (btnResetAuction) {
       btnResetAuction.addEventListener('click', () => this.confirmResetAuction());
     }
+
+    // Toggle Comprimi/Espandi Widget Target Budget Reparti
+    const btnToggleDept = document.getElementById('btn-toggle-dept-widget');
+    const deptWidgetBar = document.getElementById('dept-budget-widget-bar');
+    if (btnToggleDept && deptWidgetBar) {
+      btnToggleDept.addEventListener('click', () => {
+        deptWidgetBar.classList.toggle('is-collapsed');
+        btnToggleDept.textContent = deptWidgetBar.classList.contains('is-collapsed') ? '▾' : '▴';
+      });
+    }
+
+    // Cambio Squadra di Riferimento nel Widget Superiore
+    const deptWidgetMgrSelect = document.getElementById('dept-widget-manager-select');
+    if (deptWidgetMgrSelect) {
+      deptWidgetMgrSelect.addEventListener('change', (e) => {
+        this.state.setUserManagerId(e.target.value);
+        this.renderDeptBudgetWidget();
+        this.renderBudgetPlanSettings();
+      });
+    }
+
+    // Cambio Squadra di Riferimento nella Schermata Impostazioni
+    const settingBudgetMgrSelect = document.getElementById('setting-budget-user-manager');
+    if (settingBudgetMgrSelect) {
+      settingBudgetMgrSelect.addEventListener('change', (e) => {
+        this.state.setUserManagerId(e.target.value);
+        this.renderDeptBudgetWidget();
+        this.renderBudgetPlanSettings();
+      });
+    }
+
+    // Salva Form Piano Target Budget
+    const formBudgetPlan = document.getElementById('form-budget-plan');
+    if (formBudgetPlan) {
+      formBudgetPlan.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.saveBudgetPlanSettings();
+      });
+    }
+
+    // Preset Rapidi Piano Target Budget
+    document.querySelectorAll('.btn-preset-budget').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.getAttribute('data-preset');
+        this.applyBudgetPreset(preset);
+      });
+    });
 
     // Tasto "Annulla Chiamata (Nessun Acquisto)" nel modale
     const btnCancelCall = document.getElementById('btn-cancel-call');
@@ -607,11 +709,20 @@ class AppController {
     });
 
     // Renderizza la vista attiva
-    if (tabId === 'auction') this.renderAuctionList();
-    if (tabId === 'teams') this.renderTeamsBoard();
+    if (tabId === 'auction') {
+      this.renderAuctionList();
+      this.renderDeptBudgetWidget();
+    }
+    if (tabId === 'teams') {
+      this.renderTeamsBoard();
+      this.renderDeptBudgetWidget();
+    }
     if (tabId === 'history') this.renderHistory();
     if (tabId === 'calendar') this.renderCalendarSection();
-    if (tabId === 'settings') this.renderSettings();
+    if (tabId === 'settings') {
+      this.renderSettings();
+      this.renderBudgetPlanSettings();
+    }
   }
 
   showToast(message, type = 'info') {
@@ -1001,6 +1112,8 @@ class AppController {
       });
       managersListElem.innerHTML = html;
     }
+
+    this.renderBudgetPlanSettings();
   }
 
   // APERTURA MODALE BATTITORE
@@ -1130,9 +1243,6 @@ class AppController {
       }
     }
 
-    // Reset countdown
-    this.resetCountdown();
-
     this.updateBidValidationMessage();
 
     // Mostra modale
@@ -1148,22 +1258,18 @@ class AppController {
     const btnSecret = document.getElementById('btn-secret-intel');
     if (btnSecret) btnSecret.classList.remove('active');
     this.currentAuctionPlayer = null;
-    this.resetCountdown();
   }
 
   updateBidValidationMessage() {
-    const msgBox = document.getElementById('bid-validation-msg');
     const confirmBtn = document.getElementById('btn-confirm-bid');
-    const managerSelect = document.getElementById('bid-manager-select');
     const priceInput = document.getElementById('bid-price-input');
 
     // Il pulsante deve rimanere SEMPRE cliccabile (gestirà gli alert in handleAssignBid)
     if (confirmBtn) confirmBtn.disabled = false;
 
-    if (!msgBox || !this.currentAuctionPlayer) return;
+    if (!this.currentAuctionPlayer) return;
 
-    const managerId = managerSelect ? managerSelect.value : null;
-    const price = priceInput ? parseInt(priceInput.value, 10) : 0;
+    const price = priceInput ? (parseInt(priceInput.value, 10) || 0) : 0;
 
     // Controllo discreto su superamento del Max Imposto personale
     const secretWarnElem = document.getElementById('secret-overbid-warn');
@@ -1177,69 +1283,143 @@ class AppController {
       }
     }
 
-    if (!managerId) {
-      msgBox.className = 'validation-msg-box msg-neutral';
-      msgBox.innerHTML = 'ℹ️ Seleziona un manager per verificare offerta e crediti disponibili.';
-      return;
-    }
+    // Aggiorna indicatore contestuale Target Budget di Reparto nei dati segreti
+    this.updateSecretDeptBudget(this.currentAuctionPlayer, price);
 
-    // Se l'offerta è 0, suggerisci di inserire almeno 1 credito
-    if (price < 1) {
-      msgBox.className = 'validation-msg-box msg-neutral';
-      msgBox.innerHTML = 'ℹ️ Offerta corrente: <strong>0 cr</strong>. Per aggiudicare il calciatore seleziona almeno <strong>1 credito</strong>.';
-      return;
-    }
-
-    const validation = this.auction.validateBid(managerId, this.currentAuctionPlayer, price);
-
-    if (validation.allowed) {
-      msgBox.className = 'validation-msg-box msg-success';
-      msgBox.innerHTML = `✅ Offerta valida! Offerta massima consentita: <strong>${validation.maxBid} cr</strong>.`;
-    } else {
-      msgBox.className = 'validation-msg-box msg-error';
-      msgBox.innerHTML = `⛔ ${validation.reason}`;
-    }
+    // Aggiorna dinamicamente il pannello "Live Radar Partecipanti"
+    this.renderLiveRadar();
   }
 
-  startCountdown() {
-    const btnCountdown = document.getElementById('btn-start-countdown');
-    const countdownDisplay = document.getElementById('countdown-display');
-    if (!btnCountdown || !countdownDisplay) return;
+  // =========================================================================
+  // LIVE RADAR PARTECIPANTI (CREDITI IN TEMPO REALE & CLICK-TO-SELECT)
+  // =========================================================================
+  renderLiveRadar() {
+    const grid = document.getElementById('live-radar-grid');
+    const roleIndicator = document.getElementById('live-radar-role-indicator');
+    const summaryIndicator = document.getElementById('live-radar-summary');
+    const managerSelect = document.getElementById('bid-manager-select');
+    const priceInput = document.getElementById('bid-price-input');
 
-    if (this.countdownInterval) {
-      this.resetCountdown();
-      return;
+    if (!grid || !this.currentAuctionPlayer) return;
+
+    const player = this.currentAuctionPlayer;
+    const currentPrice = priceInput ? (parseInt(priceInput.value, 10) || 0) : 0;
+    const selectedManagerId = managerSelect ? managerSelect.value : '';
+
+    if (roleIndicator) {
+      roleIndicator.textContent = `Ruolo ${player.ruolo}`;
     }
 
-    this.countdownSeconds = 3;
-    btnCountdown.textContent = '⏹ Ferma';
-    countdownDisplay.classList.remove('hidden');
-    countdownDisplay.textContent = this.countdownSeconds;
+    const managers = this.state.getAllManagers();
+    const slotsConfig = this.state.getSlotsConfig();
+    let inRaceCount = 0;
 
-    if (window.soundEngine) window.soundEngine.playTick();
+    let html = '';
 
-    this.countdownInterval = setInterval(() => {
-      this.countdownSeconds--;
-      if (this.countdownSeconds > 0) {
-        countdownDisplay.textContent = this.countdownSeconds;
-        if (window.soundEngine) window.soundEngine.playTick();
+    managers.forEach(m => {
+      const counts = this.auction.getManagerRosterCounts(m.id);
+      const freeSlots = this.auction.getManagerFreeSlots(m.id);
+      const remainingCredits = this.state.getManagerRemainingCredits(m.id);
+      const maxBid = this.auction.calculateMaxBid(m.id);
+
+      const roleCount = counts[player.ruolo] || 0;
+      const roleTotal = slotsConfig[player.ruolo] || 0;
+      const isRoleFull = freeSlots[player.ruolo] <= 0;
+      const isTeamFull = freeSlots.total <= 0;
+
+      // Determinazione dello stato rispetto all'offerta corrente
+      let statusClass = '';
+      let badgeHtml = '';
+      let isClickable = false;
+
+      // Soglia richiesta per rilanciare: se l'offerta è 0, serve poter spendere almeno 1 credito
+      const requiredBid = Math.max(1, currentPrice);
+
+      if (isTeamFull || isRoleFull) {
+        // STATO 3: Slot Pieni (Disabilitato / Grigio scuro)
+        statusClass = 'status-full';
+        badgeHtml = `<span class="radar-badge">${isTeamFull ? 'ROSA PIENA' : 'PIENO'}</span>`;
+        isClickable = false;
+      } else if (maxBid < requiredBid) {
+        // STATO 2: Manager Fuori Budget (Opacità ridotta al 40%, Testo Rosso/Grigio)
+        statusClass = 'status-out';
+        badgeHtml = `<span class="radar-badge">OUT (Max: ${maxBid} cr)</span>`;
+        isClickable = false;
       } else {
-        countdownDisplay.textContent = 'AGGIUDICATO!';
-        if (window.soundEngine) window.soundEngine.playGavel();
-        this.resetCountdown();
+        // STATO 1: Manager Attivo / In Gara (Bordo o Badge Verde)
+        statusClass = 'status-active';
+        badgeHtml = `<span class="radar-badge">IN GARA</span>`;
+        isClickable = true;
+        inRaceCount++;
       }
-    }, 1000);
-  }
 
-  resetCountdown() {
-    if (this.countdownInterval) {
-      clearInterval(this.countdownInterval);
-      this.countdownInterval = null;
+      const isSelected = (m.id === selectedManagerId);
+      const selectedClass = isSelected ? 'is-selected' : '';
+
+      html += `
+        <div class="radar-card ${statusClass} ${selectedClass}" 
+             data-manager-id="${m.id}" 
+             data-clickable="${isClickable}"
+             tabindex="0"
+             role="button"
+             aria-pressed="${isSelected}"
+             title="${m.name}: Residui ${remainingCredits} cr, Max Offerta ${maxBid} cr, Slot ${player.ruolo} ${roleCount}/${roleTotal}">
+          <div class="radar-card-top">
+            <span class="radar-manager-name">${m.name}</span>
+            ${badgeHtml}
+          </div>
+          <div class="radar-card-body">
+            <div class="radar-credits-info">
+              <span class="radar-val-res">Residui: <strong>${remainingCredits}</strong> cr</span>
+              <span class="radar-val-max">Max: ${maxBid} cr</span>
+            </div>
+            <span class="radar-slot-badge" title="Slot occupati per il ruolo ${player.ruolo}">
+              Slot ${player.ruolo}: ${roleCount}/${roleTotal}
+            </span>
+          </div>
+        </div>
+      `;
+    });
+
+    grid.innerHTML = html;
+
+    if (summaryIndicator) {
+      summaryIndicator.textContent = `In gara: ${inRaceCount}/${managers.length}`;
+      summaryIndicator.style.color = inRaceCount > 0 ? '#10b981' : '#f87171';
     }
-    const btnCountdown = document.getElementById('btn-start-countdown');
-    const countdownDisplay = document.getElementById('countdown-display');
-    if (btnCountdown) btnCountdown.textContent = '⏱ 3.. 2.. 1..';
-    if (countdownDisplay) countdownDisplay.classList.add('hidden');
+
+    // Click-to-Select listener su ciascuna card del Live Radar
+    grid.querySelectorAll('.radar-card').forEach(card => {
+      const handleSelect = () => {
+        const isClickable = card.getAttribute('data-clickable') === 'true';
+        const managerId = card.getAttribute('data-manager-id');
+        if (!managerId) return;
+
+        if (isClickable) {
+          if (managerSelect) {
+            managerSelect.value = managerId;
+            this.updateBidValidationMessage();
+          }
+        } else {
+          // Feedback se il manager non è idoneo
+          const isFull = card.classList.contains('status-full');
+          const isOut = card.classList.contains('status-out');
+          if (isFull) {
+            this.showToast('⚠️ Questo manager ha già esaurito gli slot per questo ruolo o ha la rosa piena!', 'warning');
+          } else if (isOut) {
+            this.showToast('⚠️ Questo manager non può rilanciare (Offerta Max inferiore al prezzo corrente)!', 'warning');
+          }
+        }
+      };
+
+      card.addEventListener('click', handleSelect);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleSelect();
+        }
+      });
+    });
   }
 
   handleAssignBid() {
@@ -1294,6 +1474,7 @@ class AppController {
       this.renderTeamsBoard();
       this.renderHistory();
       this.renderTierGuideModal();
+      this.renderDeptBudgetWidget();
     } else {
       this.showToast(`Errore: ${result.error}`, 'error');
     }
@@ -1375,6 +1556,7 @@ class AppController {
       this.renderTeamsBoard();
       this.renderHistory();
       this.renderTierGuideModal();
+      this.renderDeptBudgetWidget();
     } else {
       this.showToast(`Errore annullamento: ${res.error}`, 'error');
     }
@@ -2154,6 +2336,540 @@ class AppController {
     });
   }
 
+  // =========================================================================
+  // TARGET BUDGET PER REPARTO CON RIBILANCIAMENTO DINAMICO
+  // =========================================================================
+  calculateDeptBudgetStats(managerId) {
+    const m = this.state.getManager(managerId) || this.state.getAllManagers()[0];
+    if (!m) return null;
+
+    const league = this.state.getLeagueConfig();
+    const slotsConfig = this.state.getSlotsConfig();
+    const budgetPlan = this.state.getBudgetPlan();
+    const initialBudget = league.initialBudget || 500;
+
+    const roles = ['P', 'D', 'C', 'A'];
+    const roleNames = { P: 'Portieri', D: 'Difensori', C: 'Centrocampisti', A: 'Attaccanti' };
+    const roleIcons = { P: '🧤', D: '🛡️', C: '⚙️', A: '⚡' };
+
+    const roleStats = {};
+    let totalTarget = 0;
+    let totalSpent = m.spent || 0;
+    const availableTesoretto = [];
+    const activeDeficits = [];
+
+    roles.forEach(r => {
+      const planRole = (budgetPlan.roles && budgetPlan.roles[r]) || { pct: 25, targetCredits: Math.round(initialBudget * 0.25) };
+      const targetCredits = planRole.targetCredits !== undefined ? planRole.targetCredits : Math.round(initialBudget * (planRole.pct / 100));
+      totalTarget += targetCredits;
+
+      const totalSlots = slotsConfig[r] || 0;
+      const rosterPlayers = (m.roster || []).filter(p => p.ruolo === r);
+      const boughtSlots = rosterPlayers.length;
+      const freeSlots = Math.max(0, totalSlots - boughtSlots);
+      const spentCredits = rosterPlayers.reduce((acc, p) => acc + (p.prezzo_acquisto || 0), 0);
+      const remCredits = targetCredits - spentCredits;
+
+      // Delta Economico (Attivo / Passivo)
+      let delta = 0;
+      if (freeSlots === 0) {
+        // Reparto completato: differenza secca tra budget target e spesa effettiva
+        delta = targetCredits - spentCredits;
+      } else if (boughtSlots > 0 && totalSlots > 0) {
+        // Reparto in corso: spesa teorica proporzionale per gli slot già presi meno spesa reale
+        const expectedForBought = (targetCredits / totalSlots) * boughtSlots;
+        delta = Math.round(expectedForBought - spentCredits);
+      }
+
+      // Spesa Media Residua per Slot Libero
+      const avgRemainingPerSlot = freeSlots > 0 ? Math.max(0, Math.round((remCredits / freeSlots) * 10) / 10) : 0;
+
+      // Stati di completezza, sforamento e tesoretto
+      const isComplete = (freeSlots === 0);
+      const isOverBudget = (remCredits < freeSlots || spentCredits > targetCredits);
+      const isDeficit = (remCredits < 0);
+
+      if (isComplete && remCredits > 0) {
+        availableTesoretto.push({
+          role: r,
+          roleName: roleNames[r],
+          amount: remCredits
+        });
+      }
+
+      if (isOverBudget) {
+        activeDeficits.push({
+          role: r,
+          roleName: roleNames[r],
+          amount: Math.max(0, spentCredits - targetCredits, freeSlots - remCredits)
+        });
+      }
+
+      roleStats[r] = {
+        role: r,
+        roleName: roleNames[r],
+        roleIcon: roleIcons[r],
+        targetPct: planRole.pct,
+        targetCredits,
+        totalSlots,
+        boughtSlots,
+        freeSlots,
+        spentCredits,
+        remCredits,
+        delta,
+        avgRemainingPerSlot,
+        isComplete,
+        isOverBudget,
+        isDeficit
+      };
+    });
+
+    return {
+      manager: m,
+      totalTarget,
+      totalSpent,
+      roles: roleStats,
+      availableTesoretto,
+      activeDeficits,
+      compensationRole: budgetPlan.compensationRole || 'A',
+      tesorettoTarget: budgetPlan.tesorettoTarget || 'A'
+    };
+  }
+
+  renderDeptBudgetWidget() {
+    const widgetBar = document.getElementById('dept-budget-widget-bar');
+    if (!widgetBar) return;
+
+    const userManagerId = this.state.getUserManagerId();
+    const stats = this.calculateDeptBudgetStats(userManagerId);
+    if (!stats) return;
+
+    // Popola select manager nel widget
+    const mgrSelect = document.getElementById('dept-widget-manager-select');
+    if (mgrSelect) {
+      const managers = this.state.getAllManagers();
+      let optHtml = '';
+      managers.forEach(m => {
+        const isSel = (m.id === userManagerId) ? 'selected' : '';
+        optHtml += `<option value="${m.id}" ${isSel}>${m.name}</option>`;
+      });
+      mgrSelect.innerHTML = optHtml;
+    }
+
+    // Aggiorna totale spesi e target
+    const totalSpentElem = document.getElementById('dept-widget-total-spent');
+    const totalTargetElem = document.getElementById('dept-widget-total-target');
+    if (totalSpentElem) totalSpentElem.textContent = stats.totalSpent;
+    if (totalTargetElem) totalTargetElem.textContent = stats.totalTarget;
+
+    // Gestione Banner Dinamico: Tesoretto & Allarme Sforamento
+    const alertContainer = document.getElementById('dept-widget-alert-container');
+    if (alertContainer) {
+      let alertHtml = '';
+
+      // 1. Tesoretto disponibile
+      if (stats.availableTesoretto.length > 0) {
+        stats.availableTesoretto.forEach(t => {
+          const targetRole = stats.tesorettoTarget || 'A';
+          const targetRoleName = targetRole === 'A' ? 'Attaccanti' : 'Centrocampisti';
+          alertHtml += `
+            <div class="dept-alert-banner banner-tesoretto">
+              <span>💰 <strong>Tesoretto generato in ${t.roleName}</strong>: +${t.amount} cr disponibili. Vuoi spostarli automaticamente sul budget dell'${targetRoleName}?</span>
+              <button type="button" class="btn-banner-action" onclick="window.app.transferTesoretto('${t.role}', '${targetRole}', ${t.amount})">
+                ⚡ Sposta +${t.amount} cr su ${targetRoleName}
+              </button>
+            </div>
+          `;
+        });
+      }
+
+      // 2. Allarme Sforamento / Deficit
+      if (stats.activeDeficits.length > 0) {
+        stats.activeDeficits.forEach(d => {
+          const compRole = stats.compensationRole || 'A';
+          const compRoleName = compRole === 'A' ? 'Attacco' : 'Centrocampo';
+          alertHtml += `
+            <div class="dept-alert-banner banner-deficit">
+              <span>⚠️ <strong>Allarme Sforamento ${d.roleName}</strong>: -${d.amount} cr. Compensati attingendo dal budget di ${compRoleName} per garantire 1 cr a slot.</span>
+              <button type="button" class="btn-banner-action" onclick="window.app.rebalanceDeficit('${d.role}', '${compRole}', ${d.amount})">
+                🔄 Ribilancia Deficit
+              </button>
+            </div>
+          `;
+        });
+      }
+
+      if (alertHtml) {
+        alertContainer.innerHTML = alertHtml;
+        alertContainer.classList.remove('hidden');
+      } else {
+        alertContainer.innerHTML = '';
+        alertContainer.classList.add('hidden');
+      }
+    }
+
+    // Renderizza le 4 Card dei Reparti
+    const cardsGrid = document.getElementById('dept-widget-cards-grid');
+    if (cardsGrid) {
+      let gridHtml = '';
+      const roles = ['P', 'D', 'C', 'A'];
+
+      roles.forEach(r => {
+        const item = stats.roles[r];
+        const progressPct = item.targetCredits > 0
+          ? Math.min(100, Math.round((item.spentCredits / item.targetCredits) * 100))
+          : 0;
+
+        let deltaClass = 'delta-even';
+        let deltaText = 'In Target';
+        if (item.delta > 0) {
+          deltaClass = 'delta-saved';
+          deltaText = `+${item.delta} cr (Risparmiati)`;
+        } else if (item.delta < 0) {
+          deltaClass = 'delta-over';
+          deltaText = `${item.delta} cr (Over-budget)`;
+        }
+
+        const isOver = item.isOverBudget;
+        const fillClass = isOver ? 'over-budget' : '';
+
+        const avgSlotText = item.isComplete
+          ? 'Reparto Completo'
+          : `${item.avgRemainingPerSlot} cr / slot`;
+
+        gridHtml += `
+          <div class="dept-role-card role-${r.toLowerCase()}" title="${item.roleName}: spesi ${item.spentCredits} cr su ${item.targetCredits} cr allocati (${item.targetPct}%)">
+            <div class="dept-role-top">
+              <span class="dept-role-name">${item.roleIcon} ${r} (${item.roleName})</span>
+              <span class="dept-role-delta ${deltaClass}">${deltaText}</span>
+            </div>
+
+            <div class="dept-progress-wrap">
+              <div class="dept-progress-track">
+                <div class="dept-progress-fill ${fillClass}" style="width: ${progressPct}%"></div>
+              </div>
+              <div class="dept-progress-labels">
+                <span class="dept-spent-txt">Spesi: <strong>${item.spentCredits}</strong> / ${item.targetCredits} cr</span>
+                <span class="dept-slots-txt">${item.boughtSlots}/${item.totalSlots} slot</span>
+              </div>
+            </div>
+
+            <div class="dept-avg-slot-box ${item.isComplete ? 'is-complete' : ''}">
+              <span>Spesa Media Residua:</span>
+              <span class="avg-val">${avgSlotText}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      cardsGrid.innerHTML = gridHtml;
+    }
+  }
+
+  renderBudgetPlanSettings() {
+    const card = document.getElementById('settings-card-budget-plan');
+    if (!card) return;
+
+    const league = this.state.getLeagueConfig();
+    const initialBudget = league.initialBudget || 500;
+    const plan = this.state.getBudgetPlan();
+    const userManagerId = this.state.getUserManagerId();
+
+    // Popola select squadra di riferimento
+    const mgrSelect = document.getElementById('setting-budget-user-manager');
+    if (mgrSelect) {
+      const managers = this.state.getAllManagers();
+      let optHtml = '';
+      managers.forEach(m => {
+        const isSel = (m.id === userManagerId) ? 'selected' : '';
+        optHtml += `<option value="${m.id}" ${isSel}>${m.name}</option>`;
+      });
+      mgrSelect.innerHTML = optHtml;
+    }
+
+    // Popola destinazioni ribilanciamento
+    const tesorettoSelect = document.getElementById('setting-tesoretto-target');
+    if (tesorettoSelect) tesorettoSelect.value = plan.tesorettoTarget || 'A';
+    const deficitSelect = document.getElementById('setting-deficit-source');
+    if (deficitSelect) deficitSelect.value = plan.compensationRole || 'A';
+
+    // Popola campi ruoli P, D, C, A
+    const roles = ['P', 'D', 'C', 'A'];
+    roles.forEach(r => {
+      const roleData = (plan.roles && plan.roles[r]) || { pct: 25, targetCredits: Math.round(initialBudget * 0.25) };
+      const pctInput = document.getElementById(`plan-pct-${r}`);
+      const crInput = document.getElementById(`plan-cr-${r}`);
+      const crDisplay = document.getElementById(`plan-cr-display-${r}`);
+
+      const targetCr = roleData.targetCredits !== undefined ? roleData.targetCredits : Math.round(initialBudget * (roleData.pct / 100));
+
+      if (pctInput) pctInput.value = roleData.pct;
+      if (crInput) crInput.value = targetCr;
+      if (crDisplay) crDisplay.textContent = `${targetCr} cr`;
+    });
+
+    this.attachBudgetPlanInputListeners();
+    this.updateBudgetPlanValidationUI();
+  }
+
+  attachBudgetPlanInputListeners() {
+    const roles = ['P', 'D', 'C', 'A'];
+    const league = this.state.getLeagueConfig();
+    const initialBudget = league.initialBudget || 500;
+
+    roles.forEach(r => {
+      const pctInput = document.getElementById(`plan-pct-${r}`);
+      const crInput = document.getElementById(`plan-cr-${r}`);
+      const crDisplay = document.getElementById(`plan-cr-display-${r}`);
+
+      if (pctInput && !pctInput.dataset.listenerAttached) {
+        pctInput.dataset.listenerAttached = 'true';
+        pctInput.addEventListener('input', () => {
+          const pctVal = parseFloat(pctInput.value) || 0;
+          const calculatedCr = Math.round(initialBudget * (pctVal / 100));
+          if (crInput) crInput.value = calculatedCr;
+          if (crDisplay) crDisplay.textContent = `${calculatedCr} cr`;
+          this.updateBudgetPlanValidationUI();
+        });
+      }
+
+      if (crInput && !crInput.dataset.listenerAttached) {
+        crInput.dataset.listenerAttached = 'true';
+        crInput.addEventListener('input', () => {
+          const crVal = parseFloat(crInput.value) || 0;
+          const calculatedPct = Math.round((crVal / initialBudget) * 100);
+          if (pctInput) pctInput.value = calculatedPct;
+          if (crDisplay) crDisplay.textContent = `${crVal} cr`;
+          this.updateBudgetPlanValidationUI();
+        });
+      }
+    });
+  }
+
+  updateBudgetPlanValidationUI() {
+    const roles = ['P', 'D', 'C', 'A'];
+    let totalPct = 0;
+    let totalCr = 0;
+
+    roles.forEach(r => {
+      const pctInput = document.getElementById(`plan-pct-${r}`);
+      const crInput = document.getElementById(`plan-cr-${r}`);
+      totalPct += parseFloat(pctInput ? pctInput.value : 0) || 0;
+      totalCr += parseFloat(crInput ? crInput.value : 0) || 0;
+    });
+
+    const league = this.state.getLeagueConfig();
+    const initialBudget = league.initialBudget || 500;
+
+    const bar = document.getElementById('plan-validation-bar');
+    const msg = document.getElementById('plan-validation-msg');
+    const totalPctElem = document.getElementById('plan-total-pct');
+    const totalCrElem = document.getElementById('plan-total-cr');
+    const statusBadge = document.getElementById('budget-plan-status-badge');
+
+    if (totalPctElem) totalPctElem.textContent = `${totalPct}%`;
+    if (totalCrElem) totalCrElem.textContent = `${totalCr}`;
+
+    const isBalanced = (Math.round(totalPct) === 100) || (totalCr === initialBudget);
+
+    if (isBalanced) {
+      if (bar) { bar.className = 'plan-validation-bar valid'; }
+      if (msg) { msg.textContent = '✅ Bilanciato al 100%'; }
+      if (statusBadge) {
+        statusBadge.className = 'badge-plan-status valid';
+        statusBadge.textContent = 'Bilanciato (100%) ✅';
+      }
+    } else {
+      const diffPct = Math.round(100 - totalPct);
+      const diffCr = initialBudget - totalCr;
+      const isUnder = totalPct < 100;
+
+      if (bar) { bar.className = 'plan-validation-bar invalid'; }
+      if (msg) {
+        msg.textContent = isUnder
+          ? `⚠️ Mancano ${Math.abs(diffPct)}% (${Math.abs(diffCr)} cr per raggiungere ${initialBudget} cr)`
+          : `⛔ Sforamento di ${Math.abs(diffPct)}% (${Math.abs(diffCr)} cr oltre ${initialBudget} cr)`;
+      }
+      if (statusBadge) {
+        statusBadge.className = 'badge-plan-status invalid';
+        statusBadge.textContent = isUnder ? `Mancano ${Math.abs(diffPct)}% ⚠️` : `Sforamento ${Math.abs(diffPct)}% ⛔`;
+      }
+    }
+  }
+
+  applyBudgetPreset(preset) {
+    const league = this.state.getLeagueConfig();
+    const initialBudget = league.initialBudget || 500;
+
+    let presets = {
+      'standard': { P: 8, D: 12, C: 28, A: 52 },
+      'heavy-attack': { P: 7, D: 10, C: 23, A: 60 },
+      'balanced': { P: 10, D: 15, C: 30, A: 45 }
+    };
+
+    const selPreset = presets[preset] || presets.standard;
+
+    ['P', 'D', 'C', 'A'].forEach(r => {
+      const pct = selPreset[r];
+      const cr = Math.round(initialBudget * (pct / 100));
+
+      const pctInput = document.getElementById(`plan-pct-${r}`);
+      const crInput = document.getElementById(`plan-cr-${r}`);
+      const crDisplay = document.getElementById(`plan-cr-display-${r}`);
+
+      if (pctInput) pctInput.value = pct;
+      if (crInput) crInput.value = cr;
+      if (crDisplay) crDisplay.textContent = `${cr} cr`;
+    });
+
+    this.updateBudgetPlanValidationUI();
+    this.showToast(`Applicato preset: ${preset}`, 'info');
+  }
+
+  saveBudgetPlanSettings() {
+    const league = this.state.getLeagueConfig();
+    const initialBudget = league.initialBudget || 500;
+
+    const userMgrSelect = document.getElementById('setting-budget-user-manager');
+    const userManagerId = (userMgrSelect && userMgrSelect.value) || this.state.getUserManagerId();
+
+    const tesorettoSelect = document.getElementById('setting-tesoretto-target');
+    const tesorettoTarget = (tesorettoSelect && tesorettoSelect.value) || 'A';
+
+    const deficitSelect = document.getElementById('setting-deficit-source');
+    const compensationRole = (deficitSelect && deficitSelect.value) || 'A';
+
+    const newRoles = {};
+    let totalPct = 0;
+
+    ['P', 'D', 'C', 'A'].forEach(r => {
+      const pctInput = document.getElementById(`plan-pct-${r}`);
+      const crInput = document.getElementById(`plan-cr-${r}`);
+
+      const pct = parseFloat(pctInput ? pctInput.value : 0) || 0;
+      const cr = parseInt(crInput ? crInput.value : 0, 10) || Math.round(initialBudget * (pct / 100));
+
+      totalPct += pct;
+      newRoles[r] = { pct, targetCredits: cr };
+    });
+
+    const plan = {
+      userManagerId,
+      tesorettoTarget,
+      compensationRole,
+      roles: newRoles
+    };
+
+    this.state.setBudgetPlan(plan);
+    this.renderDeptBudgetWidget();
+    this.renderBudgetPlanSettings();
+
+    if (Math.round(totalPct) !== 100) {
+      this.showToast(`⚠️ Attenzione: la somma delle percentuali è ${totalPct}%, ma il piano è stato salvato.`, 'warning');
+    } else {
+      this.showToast('🎉 Piano Target Budget per Reparto salvato con successo!', 'success');
+    }
+  }
+
+  transferTesoretto(fromRole, toRole, amount) {
+    if (!amount || amount <= 0) return;
+
+    const plan = this.state.getBudgetPlan();
+    if (!plan || !plan.roles) return;
+
+    const league = this.state.getLeagueConfig();
+    const initialBudget = league.initialBudget || 500;
+
+    const fromTarget = plan.roles[fromRole].targetCredits || Math.round(initialBudget * (plan.roles[fromRole].pct / 100));
+    const toTarget = plan.roles[toRole].targetCredits || Math.round(initialBudget * (plan.roles[toRole].pct / 100));
+
+    // Trasferimento crediti
+    plan.roles[fromRole].targetCredits = Math.max(0, fromTarget - amount);
+    plan.roles[fromRole].pct = Math.round((plan.roles[fromRole].targetCredits / initialBudget) * 100);
+
+    plan.roles[toRole].targetCredits = toTarget + amount;
+    plan.roles[toRole].pct = Math.round((plan.roles[toRole].targetCredits / initialBudget) * 100);
+
+    this.state.setBudgetPlan(plan);
+    this.renderDeptBudgetWidget();
+    this.renderBudgetPlanSettings();
+
+    const roleNames = { P: 'Portieri', D: 'Difensori', C: 'Centrocampisti', A: 'Attaccanti' };
+    this.showToast(`🎉 Tesoretto trasferito! +${amount} cr spostati da ${roleNames[fromRole]} a ${roleNames[toRole]}!`, 'success');
+    if (window.soundEngine) window.soundEngine.playSuccess();
+  }
+
+  rebalanceDeficit(deficitRole, compensationRole, amount) {
+    if (!amount || amount <= 0) return;
+
+    const plan = this.state.getBudgetPlan();
+    if (!plan || !plan.roles) return;
+
+    const league = this.state.getLeagueConfig();
+    const initialBudget = league.initialBudget || 500;
+
+    const compTarget = plan.roles[compensationRole].targetCredits || Math.round(initialBudget * (plan.roles[compensationRole].pct / 100));
+    const defTarget = plan.roles[deficitRole].targetCredits || Math.round(initialBudget * (plan.roles[deficitRole].pct / 100));
+
+    // Trasferimento crediti da compensationRole a deficitRole
+    const actualTransfer = Math.min(compTarget - 1, amount);
+    plan.roles[compensationRole].targetCredits = Math.max(1, compTarget - actualTransfer);
+    plan.roles[compensationRole].pct = Math.round((plan.roles[compensationRole].targetCredits / initialBudget) * 100);
+
+    plan.roles[deficitRole].targetCredits = defTarget + actualTransfer;
+    plan.roles[deficitRole].pct = Math.round((plan.roles[deficitRole].targetCredits / initialBudget) * 100);
+
+    this.state.setBudgetPlan(plan);
+    this.renderDeptBudgetWidget();
+    this.renderBudgetPlanSettings();
+
+    const roleNames = { P: 'Portieri', D: 'Difensori', C: 'Centrocampisti', A: 'Attaccanti' };
+    this.showToast(`🔄 Deficit ribilanciato: attinti ${actualTransfer} cr da ${roleNames[compensationRole]} per coprire ${roleNames[deficitRole]}!`, 'info');
+  }
+
+  updateSecretDeptBudget(player, currentPrice) {
+    const box = document.getElementById('secret-dept-budget-box');
+    if (!box || !player) return;
+
+    const userManagerId = this.state.getUserManagerId();
+    const stats = this.calculateDeptBudgetStats(userManagerId);
+    if (!stats || !stats.roles || !stats.roles[player.ruolo]) return;
+
+    const roleStat = stats.roles[player.ruolo];
+    const roleIndicator = document.getElementById('secret-dept-role');
+    const remElem = document.getElementById('secret-dept-rem');
+    const targetElem = document.getElementById('secret-dept-target');
+    const maxBidElem = document.getElementById('secret-dept-max-bid');
+    const overWarnElem = document.getElementById('secret-dept-overbudget-warn');
+
+    if (roleIndicator) roleIndicator.textContent = player.ruolo;
+    if (remElem) remElem.textContent = roleStat.remCredits;
+    if (targetElem) targetElem.textContent = roleStat.targetCredits;
+
+    // Calcolo max consigliato su questo slot per restare a target:
+    // Deve lasciare almeno 1 credito per ciascuno dei rimanenti (freeSlots - 1)
+    let maxAdvised = 0;
+    if (roleStat.freeSlots > 1) {
+      maxAdvised = Math.max(0, roleStat.remCredits - (roleStat.freeSlots - 1));
+    } else if (roleStat.freeSlots === 1) {
+      maxAdvised = Math.max(0, roleStat.remCredits);
+    }
+
+    if (maxBidElem) maxBidElem.textContent = `${maxAdvised} cr`;
+
+    if (overWarnElem) {
+      if (currentPrice > maxAdvised && maxAdvised > 0) {
+        overWarnElem.textContent = `⚠️ L'offerta di ${currentPrice} cr supera il max consigliato per restare a target (${maxAdvised} cr)!`;
+        overWarnElem.classList.remove('hidden');
+      } else if (roleStat.remCredits <= 0) {
+        overWarnElem.textContent = `⚠️ Budget target per ${roleStat.roleName} già esaurito o in deficit!`;
+        overWarnElem.classList.remove('hidden');
+      } else {
+        overWarnElem.classList.add('hidden');
+      }
+    }
+  }
+
   async confirmResetAuction() {
     const confirmed1 = await this.showConfirmModal(
       'Azzeramento Asta',
@@ -2175,6 +2891,8 @@ class AppController {
     this.renderTeamsBoard();
     this.renderHistory();
     this.renderSettings();
+    this.renderDeptBudgetWidget();
+    this.renderBudgetPlanSettings();
     this.renderTierGuideModal();
     this.showToast('Asta azzerata con successo.', 'info');
   }
