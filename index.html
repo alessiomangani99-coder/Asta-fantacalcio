@@ -711,12 +711,24 @@
 
             <div class="settings-card" style="border-color: rgba(239, 68, 68, 0.3);">
               <h3 class="settings-card-title" style="color: #f87171;">Zona Pericolo</h3>
-              <p style="font-size: 0.85rem; color: var(--text-secondary);">
-                Azzera tutte le assegnazioni, i crediti spesi e le rose delle squadre per iniziare una nuova asta da zero mantenendo il listone calciatori caricato.
-              </p>
-              <button id="btn-reset-auction" class="btn-reset-danger">
-                ⚠️ Azzera Asta e Svuota Rose
-              </button>
+              
+              <div style="margin-bottom: 1.25rem;">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.6rem; line-height: 1.45;">
+                  <strong>Azzera Asta (Nuova Sessione)</strong>: Riparte da zero mantenendo in memoria tutti i calciatori attualmente presenti (inclusi quelli caricati dall'ultimo CSV o aggiunti a mano). Azzera crediti spesi, rose dei manager e cronologia chiamate.
+                </p>
+                <button id="btn-reset-auction" class="btn-reset-danger">
+                  ⚠️ Azzera Asta (Nuova Sessione)
+                </button>
+              </div>
+
+              <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1.25rem;">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.6rem; line-height: 1.45;">
+                  <strong>Ripristina Listone Originale</strong>: Ricarica il listone iniziale di fabbrica eliminando tutti i file CSV e i calciatori caricati successivamente. Richiede conferma esplicita.
+                </p>
+                <button id="btn-restore-default-listone" class="btn-reset-warning">
+                  🔄 Ripristina Listone Originale
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -726,169 +738,266 @@
     <!-- ==================================================================
          MODALE BATTITORE (LIVE BIDDING MODAL)
          ================================================================== -->
+    <!-- ==================================================================
+         MODALE BATTITORE (CONTROL ROOM PANORAMICA A 3 PANNELLI)
+         ================================================================== -->
     <div id="modal-battitore" class="modal-overlay hidden">
-      <div class="modal-dialog modal-box">
-        <div class="modal-header">
-          <div class="modal-header-title">
-            <span>🔨</span> Battitore d'Asta Live
+      <div class="modal-dialog control-room-dialog">
+        <!-- Header Cockpit Panoramico -->
+        <div class="control-room-header">
+          <div class="control-room-header-left">
+            <span class="control-room-logo">⚡</span>
+            <div class="control-room-title-block">
+              <h2 class="control-room-title">Control Room Panoramica</h2>
+              <span class="control-room-subtitle">Cockpit Live d'Asta</span>
+            </div>
+            <div class="control-room-player-pill">
+              <span id="modal-player-role" class="role-pill role-P">P</span>
+              <span id="modal-player-name" class="header-player-name">Svilar</span>
+              <span id="modal-player-team" class="team-badge">Roma</span>
+            </div>
           </div>
           <button id="btn-close-modal" class="btn-close-modal" title="Chiudi (Esc)">✕</button>
         </div>
 
-        <div class="modal-body">
-          <!-- Scheda del Giocatore Chiamato (Dati Pubblici + Popover Dati Segreti) -->
-          <div class="called-player-card">
-            <div class="called-player-top">
-              <div class="called-player-main">
-                <span id="modal-player-role" class="role-pill role-P">P</span>
-                <div>
-                  <h2 id="modal-player-name" class="called-player-name">Svilar</h2>
-                  <span id="modal-player-team" class="team-badge">Roma</span>
-                </div>
+        <div class="control-room-body">
+          <!-- ============================================================
+               1. COLONNA SINISTRA: DASHBOARD COMPLETA AVVERSARI (RIQUADRO GIALLO)
+               ============================================================ -->
+          <div id="control-col-left" class="control-col control-col-left">
+            <div class="col-panel-header radar-col-header">
+              <div class="col-header-title">
+                <span class="col-icon">📡</span> Radar Avversari
               </div>
-
-              <!-- Micro-Pulsante Discreto per Dati Segreti Personali -->
-              <div class="secret-intel-trigger-container">
-                <button type="button" id="btn-secret-intel" class="btn-stealth-secret" title="Mostra/Nascondi le tue valutazioni strategiche segrete">
-                  🔒 Dati Segreti
-                </button>
-
-                <!-- Popover Segreto a Scomparsa Istantanea (PRIVACY SHIELD) -->
-                <div id="popover-secret-intel" class="secret-intel-popover hidden">
-                  <div class="secret-popover-header">
-                    <span>🔒 Dati Personali Riservati</span>
-                    <button type="button" id="btn-close-secret-popover" class="btn-close-secret" title="Chiudi (Esc)">✕</button>
-                  </div>
-                  <div class="secret-popover-body">
-                    <div class="secret-data-row highlight-target">
-                      <span class="s-label">Prezzo Max Imposto:</span>
-                      <span id="secret-max-price" class="s-val text-warning font-bold">55 cr</span>
-                    </div>
-                    <div class="secret-data-row">
-                      <span class="s-label">Titolarità:</span>
-                      <span id="secret-titolarita" class="s-val font-semibold">100%</span>
-                    </div>
-                    <div class="secret-data-row">
-                      <span class="s-label">Integrità Fisica:</span>
-                      <span id="secret-integrita" class="s-val font-semibold">100%</span>
-                    </div>
-                    <div class="secret-data-row">
-                      <span class="s-label">Budget % Consigliato:</span>
-                      <span id="secret-budget-pct" class="s-val">12%</span>
-                    </div>
-                    <div class="secret-data-row">
-                      <span class="s-label">Fascia:</span>
-                      <span id="secret-fascia" class="s-val">Portieri Top</span>
-                    </div>
-                  </div>
-                  <div id="secret-overbid-warn" class="secret-overbid-warn hidden">
-                    ⚠️ Attenzione: l'offerta corrente ha superato il tuo Max Imposto!
-                  </div>
-
-                  <!-- Blocco Rendimento Reale Certificato (Dati Storici Serie A) -->
-                  <div id="secret-historical-stats-box" class="secret-historical-stats-box">
-                    <div class="secret-stats-header">
-                      <div class="stats-header-left">
-                        <span class="stats-header-icon">📈</span>
-                        <span class="stats-header-title">Rendimento Reale Certificato</span>
-                      </div>
-                      <div id="secret-stats-badges" class="secret-stats-badges"></div>
-                    </div>
-                    <div id="secret-stats-content" class="secret-stats-content">
-                      <!-- Generato dinamicamente in JS -->
-                    </div>
-                  </div>
-
-                  <!-- Indicatore Contestuale Target Budget per Reparto -->
-                  <div id="secret-dept-budget-box" class="secret-dept-budget-box">
-                    <div class="secret-dept-budget-header">
-                      <span>📊 Target Budget Ruolo (<span id="secret-dept-role">P</span>)</span>
-                    </div>
-                    <div class="secret-dept-budget-info">
-                      Budget rimasto: <strong id="secret-dept-rem">0</strong> cr su <span id="secret-dept-target">0</span> allocati.
-                      <div id="secret-dept-advice" class="secret-dept-advice">
-                        Puoi spendere max <strong id="secret-dept-max-bid">0</strong> cr su questo giocatore per restare a target.
-                      </div>
-                    </div>
-                    <div id="secret-dept-overbudget-warn" class="secret-dept-overbudget-warn hidden">
-                      ⚠️ L'offerta supera il max consigliato per restare a target!
-                    </div>
-                  </div>
-
-                  <!-- Suggeritore Dinamico Incroci Calendario (SEGRETO - Collocato esclusivamente qui dentro) -->
-                  <div id="modal-calendar-recommender" class="modal-recommender-box hidden">
-                    <div class="rec-header">
-                      <div>
-                        <span class="rec-header-title">💡 Incroci Calendario Consigliati (<span id="rec-role-name">Portieri</span>):</span>
-                        <div id="rec-header-sub" class="rec-header-sub">Migliori partner complementari</div>
-                      </div>
-                      <button type="button" id="btn-modal-open-focus" class="btn-focus-shortcut" title="Apri alternanze per questa squadra">
-                        📅 Vai a Incroci
-                      </button>
-                    </div>
-                    <div id="rec-partners-container" class="rec-partners-grid">
-                      <!-- Card generate dinamicamente da calendarEngine -->
-                    </div>
-                  </div>
-                </div>
+              <div class="radar-header-badges">
+                <span id="live-radar-role-indicator" class="live-radar-role-badge">Ruolo: -</span>
+                <span id="live-radar-summary" class="live-radar-summary">In gara: -</span>
               </div>
             </div>
-
-            <!-- Barra Pubblica: Prezzo Base d'Asta sempre a 0 cr -->
-            <div class="called-player-public-bar">
-              <span class="public-label">Base d'asta: <strong style="color: #60a5fa; font-family: var(--font-display);">0 crediti</strong></span>
+            <div class="radar-col-subheader">
+              Crediti, offerta max reale e saturazione slot. Clicca su un rivale per selezionarlo acquirente.
+            </div>
+            <div id="live-radar-grid" class="opponents-radar-scroll" role="list" aria-label="Radar Completo Avversari">
+              <!-- Card manager generate dinamicamente da JS -->
             </div>
           </div>
 
-          <!-- Sezione Assegnazione & Offerta -->
-          <div class="bidding-section">
-            <div class="form-field-group">
-              <label class="field-label" for="bid-manager-select">Manager Acquirente</label>
-              <select id="bid-manager-select" class="bid-select">
-                <option value="">-- Seleziona il Manager Acquirente --</option>
-              </select>
-            </div>
+          <!-- ============================================================
+               2. COLONNA CENTRALE: BATTITORE D'ASTA LIVE
+               ============================================================ -->
+          <div id="control-col-center" class="control-col control-col-center">
+            <div class="center-scrollable-content">
+              <!-- Scheda del Giocatore Chiamato -->
+              <div class="called-player-card">
+                <div class="called-player-top">
+                  <div class="called-player-main">
+                    <span id="modal-player-role-center" class="role-pill role-P">P</span>
+                    <div>
+                      <h2 id="modal-player-name-center" class="called-player-name">Svilar</h2>
+                      <span id="modal-player-team-center" class="team-badge">Roma</span>
+                    </div>
+                  </div>
 
-            <div class="form-field-group">
-              <label class="field-label">Prezzo d'Asta Offerto (Crediti)</label>
-              <div class="bid-input-container">
-                <button type="button" id="btn-decrement" class="btn-increment" data-val="-1" title="Riduci di 1">-1</button>
-                <input type="number" id="bid-price-input" class="bid-price-input" min="0" value="0">
-                <div class="quick-increments">
-                  <button type="button" id="btn-reset-zero" class="btn-quota-base" title="Azzera offerta a 0">Azzera (0)</button>
-                  <button type="button" class="btn-increment" data-val="1">+1</button>
-                  <button type="button" class="btn-increment" data-val="5">+5</button>
-                  <button type="button" class="btn-increment" data-val="10">+10</button>
-                  <button type="button" class="btn-increment" data-val="20">+20</button>
+                  <!-- Micro-Pulsante Discreto per Dati Segreti Personali -->
+                  <div class="secret-intel-trigger-container">
+                    <button type="button" id="btn-secret-intel" class="btn-stealth-secret" title="Mostra/Nascondi le tue valutazioni strategiche segrete">
+                      🔒 Dati Segreti
+                    </button>
+
+                    <!-- Popover Segreto a Scomparsa Istantanea (PRIVACY SHIELD) -->
+                    <div id="popover-secret-intel" class="secret-intel-popover hidden">
+                      <div class="secret-popover-header">
+                        <span>🔒 Dati Personali Riservati</span>
+                        <button type="button" id="btn-close-secret-popover" class="btn-close-secret" title="Chiudi (Esc)">✕</button>
+                      </div>
+                      <div class="secret-popover-body">
+                        <div class="secret-data-row highlight-target">
+                          <span class="s-label">Prezzo Max Imposto:</span>
+                          <span id="secret-max-price" class="s-val text-warning font-bold">55 cr</span>
+                        </div>
+                        <div class="secret-data-row">
+                          <span class="s-label">Titolarità:</span>
+                          <span id="secret-titolarita" class="s-val font-semibold">100%</span>
+                        </div>
+                        <div class="secret-data-row">
+                          <span class="s-label">Integrità Fisica:</span>
+                          <span id="secret-integrita" class="s-val font-semibold">100%</span>
+                        </div>
+                        <div class="secret-data-row">
+                          <span class="s-label">Budget % Consigliato:</span>
+                          <span id="secret-budget-pct" class="s-val">12%</span>
+                        </div>
+                        <div class="secret-data-row">
+                          <span class="s-label">Fascia:</span>
+                          <span id="secret-fascia" class="s-val">Portieri Top</span>
+                        </div>
+                      </div>
+                      <div id="secret-overbid-warn" class="secret-overbid-warn hidden">
+                        ⚠️ Attenzione: l'offerta corrente ha superato il tuo Max Imposto!
+                      </div>
+
+                      <!-- Blocco Rendimento Reale Certificato (Dati Storici Serie A) -->
+                      <div id="secret-historical-stats-box" class="secret-historical-stats-box">
+                        <div class="secret-stats-header">
+                          <div class="stats-header-left">
+                            <span class="stats-header-icon">📈</span>
+                            <span class="stats-header-title">Rendimento Reale Certificato</span>
+                          </div>
+                          <div id="secret-stats-badges" class="secret-stats-badges"></div>
+                        </div>
+                        <div id="secret-stats-content" class="secret-stats-content">
+                          <!-- Generato dinamicamente in JS -->
+                        </div>
+                      </div>
+
+                      <!-- Indicatore Contestuale Target Budget per Reparto -->
+                      <div id="secret-dept-budget-box" class="secret-dept-budget-box">
+                        <div class="secret-dept-budget-header">
+                          <span>📊 Target Budget Ruolo (<span id="secret-dept-role">P</span>)</span>
+                        </div>
+                        <div class="secret-dept-budget-info">
+                          Budget rimasto: <strong id="secret-dept-rem">0</strong> cr su <span id="secret-dept-target">0</span> allocati.
+                          <div id="secret-dept-advice" class="secret-dept-advice">
+                            Puoi spendere max <strong id="secret-dept-max-bid">0</strong> cr su questo giocatore per restare a target.
+                          </div>
+                        </div>
+                        <div id="secret-dept-overbudget-warn" class="secret-dept-overbudget-warn hidden">
+                          ⚠️ L'offerta supera il max consigliato per restare a target!
+                        </div>
+                      </div>
+
+                      <!-- Suggeritore Dinamico Incroci Calendario (SEGRETO) -->
+                      <div id="modal-calendar-recommender" class="modal-recommender-box hidden">
+                        <div class="rec-header">
+                          <div>
+                            <span class="rec-header-title">💡 Incroci Calendario Consigliati (<span id="rec-role-name">Portieri</span>):</span>
+                            <div id="rec-header-sub" class="rec-header-sub">Migliori partner complementari</div>
+                          </div>
+                          <button type="button" id="btn-modal-open-focus" class="btn-focus-shortcut" title="Apri alternanze per questa squadra">
+                            📅 Vai a Incroci
+                          </button>
+                        </div>
+                        <div id="rec-partners-container" class="rec-partners-grid">
+                          <!-- Card generate dinamicamente da calendarEngine -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Barra Pubblica: Prezzo Base d'Asta sempre a 0 cr -->
+                <div class="called-player-public-bar">
+                  <span class="public-label">Base d'asta: <strong style="color: #60a5fa; font-family: var(--font-display);">0 crediti</strong></span>
+                </div>
+              </div>
+
+              <!-- Sezione Assegnazione & Offerta -->
+              <div class="bidding-section">
+                <div class="form-field-group">
+                  <label class="field-label" for="bid-manager-select">Manager Acquirente</label>
+                  <select id="bid-manager-select" class="bid-select">
+                    <option value="">-- Seleziona il Manager Acquirente --</option>
+                  </select>
+                </div>
+
+                <div class="form-field-group">
+                  <label class="field-label">Prezzo d'Asta Offerto (Crediti)</label>
+                  <div class="bid-input-container">
+                    <button type="button" id="btn-decrement" class="btn-increment" data-val="-1" title="Riduci di 1">-1</button>
+                    <input type="number" id="bid-price-input" class="bid-price-input" min="0" value="0">
+                    <div class="quick-increments">
+                      <button type="button" id="btn-reset-zero" class="btn-quota-base" title="Azzera offerta a 0">Azzera (0)</button>
+                      <button type="button" class="btn-increment" data-val="1">+1</button>
+                      <button type="button" class="btn-increment" data-val="5">+5</button>
+                      <button type="button" class="btn-increment" data-val="10">+10</button>
+                      <button type="button" class="btn-increment" data-val="20">+20</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Live Radar Partecipanti (Crediti in Tempo Reale & Click-to-Select) -->
-            <div class="live-radar-section">
-              <div class="live-radar-header">
-                <div class="live-radar-header-left">
-                  <span class="live-radar-title">📡 Live Radar Partecipanti</span>
-                  <span id="live-radar-role-indicator" class="live-radar-role-badge">Ruolo: -</span>
+            <!-- Pulsanti di Azione Footer Centrale -->
+            <div class="center-col-actions">
+              <button type="button" id="btn-cancel-call" class="btn-cancel-call" title="Chiudi la chiamata e lascia il giocatore svincolato">
+                ❌ Annulla Chiamata
+              </button>
+              <button type="button" id="btn-confirm-bid" class="btn-confirm-bid">
+                🔨 Assegna / Conferma Acquisto
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================================================
+               3. COLONNA DESTRA: CAMPETTO TATTICO MANUALE & MIA SQUADRA (RIQUADRO ROSSO)
+               ============================================================ -->
+          <div id="control-col-right" class="control-col control-col-right">
+            <!-- Header Pannello Tattico -->
+            <div class="col-panel-header tactical-col-header">
+              <div class="col-header-title">
+                <span class="col-icon">🛡️</span> Campetto & Mia Squadra
+              </div>
+              <span id="tactical-team-name" class="tactical-team-badge">Mia Rosa</span>
+            </div>
+
+            <!-- Riepilogo Finanziario Personale (in cima) -->
+            <div class="my-team-financial-summary">
+              <div class="fin-summary-item">
+                <span class="fin-label">Crediti Residui:</span>
+                <strong id="tactical-user-credits" class="fin-val text-accent">500 cr</strong>
+              </div>
+              <div class="fin-summary-item">
+                <span class="fin-label">Slot Completati:</span>
+                <strong id="tactical-user-slots" class="fin-val">0/25</strong>
+              </div>
+              <div class="fin-summary-item fin-role-plan">
+                <span class="fin-label">Budget Ruolo (<span id="tactical-current-role">P</span>):</span>
+                <strong id="tactical-role-rem-budget" class="fin-val text-success">40 cr rimasti</strong>
+              </div>
+            </div>
+
+            <!-- Selettore Manuale del Modulo -->
+            <div class="formation-selector-bar">
+              <span class="formation-label">Modulo Tattico:</span>
+              <div class="formation-btn-group" id="formation-btn-group">
+                <button type="button" class="btn-formation" data-formation="3-4-3">3-4-3</button>
+                <button type="button" class="btn-formation active" data-formation="4-3-3">4-3-3</button>
+                <button type="button" class="btn-formation" data-formation="4-4-2">4-4-2</button>
+                <button type="button" class="btn-formation" data-formation="3-5-2">3-5-2</button>
+              </div>
+            </div>
+
+            <!-- Campetto Verde Stilizzato -->
+            <div class="tactical-pitch-wrapper">
+              <div id="tactical-pitch" class="tactical-pitch">
+                <!-- Linee campo e cerchio di centrocampo -->
+                <div class="pitch-markings">
+                  <div class="pitch-half-line"></div>
+                  <div class="pitch-center-circle"></div>
+                  <div class="pitch-penalty-area-top"></div>
+                  <div class="pitch-penalty-area-bottom"></div>
                 </div>
-                <div class="live-radar-header-right">
-                  <span id="live-radar-summary" class="live-radar-summary">In gara: -</span>
+
+                <!-- 4 linee tattiche (A in alto, C, D, P in basso) -->
+                <div class="pitch-lines-container">
+                  <div id="pitch-line-A" class="pitch-line pitch-line-attackers"></div>
+                  <div id="pitch-line-C" class="pitch-line pitch-line-midfielders"></div>
+                  <div id="pitch-line-D" class="pitch-line pitch-line-defenders"></div>
+                  <div id="pitch-line-P" class="pitch-line pitch-line-goalkeeper"></div>
                 </div>
               </div>
-              <div id="live-radar-grid" class="live-radar-grid" role="list" aria-label="Radar Partecipanti e Disponibilità Crediti">
-                <!-- Card manager generate dinamicamente da JS -->
+            </div>
+
+            <!-- Panchina & Esuberi Titolari (sotto il campetto) -->
+            <div class="tactical-bench-section">
+              <div class="bench-header">
+                <span class="bench-title">🪑 Panchina / Esuberi Titolari (<span id="tactical-bench-count">0</span>)</span>
+              </div>
+              <div id="tactical-bench-list" class="tactical-bench-list">
+                <!-- Calciatori in panchina generati dinamicamente da JS -->
               </div>
             </div>
           </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" id="btn-cancel-call" class="btn-cancel-call" title="Chiudi la chiamata e lascia il giocatore svincolato">
-            ❌ Annulla Chiamata (Nessun Acquisto)
-          </button>
-          <button type="button" id="btn-confirm-bid" class="btn-confirm-bid">
-            🔨 Assegna / Conferma Acquisto
-          </button>
         </div>
       </div>
     </div>

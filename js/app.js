@@ -89,7 +89,36 @@ class StateManager {
     }
   }
 
-  resetAll(keepPlayers = true) {
+  resetAuction() {
+    // Mantieni in memoria tutti i calciatori attualmente presenti (inclusi CSV o inseriti a mano)
+    if (Array.isArray(this.data.players)) {
+      this.data.players = this.data.players.map(p => ({
+        ...p,
+        stato: 'libero',
+        proprietario_id: null,
+        proprietario: null,
+        prezzo_acquisto: null,
+        costo: null
+      }));
+    }
+
+    // Svuota lo storico delle chiamate
+    this.data.history = [];
+
+    // Ripristina i crediti e le rose di tutti i manager
+    if (Array.isArray(this.data.managers)) {
+      this.data.managers.forEach(m => {
+        m.spent = 0;
+        m.roster = [];
+        m.squad = [];
+      });
+    }
+
+    // Salva il nuovo stato su localStorage
+    this.save();
+  }
+
+  restoreDefaultListone(defaultPlayers) {
     const defaultLeague = {
       name: 'Lega Fantacalcio 2026/2027',
       initialBudget: 500,
@@ -108,25 +137,42 @@ class StateManager {
       { id: 'mgr_8', name: 'Bayer Leverduren', spent: 0, roster: [] }
     ];
 
-    let players = this.data.players || [];
-    if (keepPlayers) {
-      players = players.map(p => ({
-        ...p,
-        stato: 'libero',
-        proprietario_id: null,
-        prezzo_acquisto: null
-      }));
+    const players = (defaultPlayers || []).map(p => ({
+      ...p,
+      stato: 'libero',
+      proprietario_id: null,
+      proprietario: null,
+      prezzo_acquisto: null,
+      costo: null
+    }));
+
+    this.data.players = players;
+    this.data.history = [];
+
+    if (Array.isArray(this.data.managers) && this.data.managers.length > 0) {
+      this.data.managers.forEach(m => {
+        m.spent = 0;
+        m.roster = [];
+        m.squad = [];
+      });
     } else {
-      players = [];
+      this.data.managers = defaultManagers;
     }
 
-    this.data = {
-      league: defaultLeague,
-      managers: defaultManagers,
-      players: players,
-      history: []
-    };
+    if (!this.data.league) {
+      this.data.league = defaultLeague;
+    }
+
     this.save();
+  }
+
+  resetAll(keepPlayers = true) {
+    if (keepPlayers) {
+      this.resetAuction();
+    } else {
+      this.data.players = [];
+      this.resetAuction();
+    }
   }
 
   getLeagueConfig() {
@@ -268,6 +314,11 @@ class AppController {
     // Stato Battitore in corso
     this.currentAuctionPlayer = null;
 
+    // Modulo Tattico Campetto Manuale (persiste su localStorage)
+    this.tacticalFormation = '4-3-3';
+    try {
+      this.tacticalFormation = localStorage.getItem('fanta_tactical_formation') || '4-3-3';
+    } catch (e) {}
   }
 
   async init() {
@@ -453,6 +504,21 @@ class AppController {
       managerSelect.addEventListener('change', () => this.updateBidValidationMessage());
     }
 
+    // Selettore Modulo Tattico Manuale
+    document.querySelectorAll('.btn-formation').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const form = btn.getAttribute('data-formation');
+        if (!form) return;
+        this.tacticalFormation = form;
+        try {
+          localStorage.setItem('fanta_tactical_formation', form);
+        } catch (e) {}
+        document.querySelectorAll('.btn-formation').forEach(b => {
+          b.classList.toggle('active', b.getAttribute('data-formation') === form);
+        });
+        this.renderTacticalPitch();
+      });
+    });
 
     // Tasto Conferma Assegnazione
     const btnConfirmBid = document.getElementById('btn-confirm-bid');
@@ -505,10 +571,16 @@ class AppController {
       btnAddManager.addEventListener('click', () => this.handleAddManager());
     }
 
-    // Tasto Reset Asta
+    // Tasto Reset Asta (Nuova Sessione)
     const btnResetAuction = document.getElementById('btn-reset-auction');
     if (btnResetAuction) {
       btnResetAuction.addEventListener('click', () => this.confirmResetAuction());
+    }
+
+    // Tasto Ripristina Listone Originale di Fabbrica
+    const btnRestoreListone = document.getElementById('btn-restore-default-listone');
+    if (btnRestoreListone) {
+      btnRestoreListone.addEventListener('click', () => this.confirmRestoreDefaultListone());
     }
 
     // Toggle Comprimi/Espandi Widget Target Budget Reparti
@@ -1140,7 +1212,7 @@ class AppController {
 
     this.currentAuctionPlayer = player;
 
-    // Popola dettagli giocatore nel modale
+    // Popola dettagli giocatore nel modale (Header e Colonna Centrale)
     const roleBadge = document.getElementById('modal-player-role');
     if (roleBadge) {
       roleBadge.textContent = player.ruolo;
@@ -1152,6 +1224,18 @@ class AppController {
 
     const teamElem = document.getElementById('modal-player-team');
     if (teamElem) teamElem.textContent = player.squadra;
+
+    const roleBadgeCenter = document.getElementById('modal-player-role-center');
+    if (roleBadgeCenter) {
+      roleBadgeCenter.textContent = player.ruolo;
+      roleBadgeCenter.className = `role-pill role-${player.ruolo}`;
+    }
+
+    const nameElemCenter = document.getElementById('modal-player-name-center');
+    if (nameElemCenter) nameElemCenter.textContent = player.nome;
+
+    const teamElemCenter = document.getElementById('modal-player-team-center');
+    if (teamElemCenter) teamElemCenter.textContent = player.squadra;
 
     // Popola dati segreti riservati nel popover discreto
     const secretMaxElem = document.getElementById('secret-max-price');
@@ -1264,8 +1348,9 @@ class AppController {
     }
 
     this.updateBidValidationMessage();
+    this.renderTacticalPitch();
 
-    // Mostra modale
+    // Mostra modale Control Room
     const modal = document.getElementById('modal-battitore');
     if (modal) modal.classList.remove('hidden');
   }
@@ -1306,8 +1391,9 @@ class AppController {
     // Aggiorna indicatore contestuale Target Budget di Reparto nei dati segreti
     this.updateSecretDeptBudget(this.currentAuctionPlayer, price);
 
-    // Aggiorna dinamicamente il pannello "Live Radar Partecipanti"
+    // Aggiorna dinamicamente il pannello "Live Radar Partecipanti" e il "Campetto Tattico"
     this.renderLiveRadar();
+    this.renderTacticalPitch();
   }
 
   // =========================================================================
@@ -1325,9 +1411,11 @@ class AppController {
     const player = this.currentAuctionPlayer;
     const currentPrice = priceInput ? (parseInt(priceInput.value, 10) || 0) : 0;
     const selectedManagerId = managerSelect ? managerSelect.value : '';
+    const userManagerId = this.state.getUserManagerId();
 
     if (roleIndicator) {
       roleIndicator.textContent = `Ruolo ${player.ruolo}`;
+      roleIndicator.className = `live-radar-role-badge role-pill role-${player.ruolo}`;
     }
 
     const managers = this.state.getAllManagers();
@@ -1342,10 +1430,9 @@ class AppController {
       const remainingCredits = this.state.getManagerRemainingCredits(m.id);
       const maxBid = this.auction.calculateMaxBid(m.id);
 
-      const roleCount = counts[player.ruolo] || 0;
-      const roleTotal = slotsConfig[player.ruolo] || 0;
       const isRoleFull = freeSlots[player.ruolo] <= 0;
       const isTeamFull = freeSlots.total <= 0;
+      const isMyTeam = (m.id === userManagerId);
 
       // Determinazione dello stato rispetto all'offerta corrente
       let statusClass = '';
@@ -1358,17 +1445,17 @@ class AppController {
       if (isTeamFull || isRoleFull) {
         // STATO 3: Slot Pieni (Disabilitato / Grigio scuro)
         statusClass = 'status-full';
-        badgeHtml = `<span class="radar-badge">${isTeamFull ? 'ROSA PIENA' : 'PIENO'}</span>`;
+        badgeHtml = `<span class="radar-badge">${isTeamFull ? 'ROSA PIENA' : 'RUOLO PIENO'}</span>`;
         isClickable = false;
       } else if (maxBid < requiredBid) {
-        // STATO 2: Manager Fuori Budget (Opacità ridotta al 40%, Testo Rosso/Grigio)
+        // STATO 2: Manager Fuori Budget (Opacità al 40%, Testo Rosso/Grigio)
         statusClass = 'status-out';
-        badgeHtml = `<span class="radar-badge">OUT (Max: ${maxBid} cr)</span>`;
+        badgeHtml = `<span class="radar-badge">OUT BUDGET (${maxBid} cr)</span>`;
         isClickable = false;
       } else {
         // STATO 1: Manager Attivo / In Gara (Bordo o Badge Verde)
         statusClass = 'status-active';
-        badgeHtml = `<span class="radar-badge">IN GARA</span>`;
+        badgeHtml = `<span class="radar-badge">🟢 IN GARA</span>`;
         isClickable = true;
         inRaceCount++;
       }
@@ -1377,25 +1464,29 @@ class AppController {
       const selectedClass = isSelected ? 'is-selected' : '';
 
       html += `
-        <div class="radar-card ${statusClass} ${selectedClass}" 
+        <div class="radar-opponent-card ${statusClass} ${selectedClass}" 
              data-manager-id="${m.id}" 
              data-clickable="${isClickable}"
              tabindex="0"
              role="button"
              aria-pressed="${isSelected}"
-             title="${m.name}: Residui ${remainingCredits} cr, Max Offerta ${maxBid} cr, Slot ${player.ruolo} ${roleCount}/${roleTotal}">
-          <div class="radar-card-top">
-            <span class="radar-manager-name">${m.name}</span>
+             title="${m.name}: Residui ${remainingCredits} cr, Max Offerta ${maxBid} cr. Clicca per selezionare.">
+          <div class="radar-opponent-top">
+            <div class="radar-opponent-name-box">
+              <span class="radar-opponent-name">${m.name}</span>
+              ${isMyTeam ? '<span class="radar-my-team-tag">TU</span>' : ''}
+            </div>
             ${badgeHtml}
           </div>
-          <div class="radar-card-body">
-            <div class="radar-credits-info">
-              <span class="radar-val-res">Residui: <strong>${remainingCredits}</strong> cr</span>
-              <span class="radar-val-max">Max: ${maxBid} cr</span>
-            </div>
-            <span class="radar-slot-badge" title="Slot occupati per il ruolo ${player.ruolo}">
-              Slot ${player.ruolo}: ${roleCount}/${roleTotal}
-            </span>
+          <div class="radar-opponent-finances">
+            <span class="radar-val-res">Residui: <strong>${remainingCredits}</strong> cr</span>
+            <span class="radar-val-max">Offerta Max: <strong>${maxBid}</strong> cr</span>
+          </div>
+          <div class="radar-slots-row">
+            <span class="role-slot-pill ${player.ruolo === 'P' ? 'active-role-highlight' : ''} ${counts.P >= slotsConfig.P ? 'slot-full' : ''}">P: ${counts.P}/${slotsConfig.P}</span>
+            <span class="role-slot-pill ${player.ruolo === 'D' ? 'active-role-highlight' : ''} ${counts.D >= slotsConfig.D ? 'slot-full' : ''}">D: ${counts.D}/${slotsConfig.D}</span>
+            <span class="role-slot-pill ${player.ruolo === 'C' ? 'active-role-highlight' : ''} ${counts.C >= slotsConfig.C ? 'slot-full' : ''}">C: ${counts.C}/${slotsConfig.C}</span>
+            <span class="role-slot-pill ${player.ruolo === 'A' ? 'active-role-highlight' : ''} ${counts.A >= slotsConfig.A ? 'slot-full' : ''}">A: ${counts.A}/${slotsConfig.A}</span>
           </div>
         </div>
       `;
@@ -1404,12 +1495,12 @@ class AppController {
     grid.innerHTML = html;
 
     if (summaryIndicator) {
-      summaryIndicator.textContent = `In gara: ${inRaceCount}/${managers.length}`;
+      summaryIndicator.textContent = `In corsa: ${inRaceCount}/${managers.length}`;
       summaryIndicator.style.color = inRaceCount > 0 ? '#10b981' : '#f87171';
     }
 
-    // Click-to-Select listener su ciascuna card del Live Radar
-    grid.querySelectorAll('.radar-card').forEach(card => {
+    // Click-to-Select listener su ciascuna card del Radar Avversari
+    grid.querySelectorAll('.radar-opponent-card').forEach(card => {
       const handleSelect = () => {
         const isClickable = card.getAttribute('data-clickable') === 'true';
         const managerId = card.getAttribute('data-manager-id');
@@ -1440,6 +1531,139 @@ class AppController {
         }
       });
     });
+  }
+
+  // =========================================================================
+  // CAMPETTO TATTICO MANUALE & MIA SQUADRA (COLONNA DESTRA CONTROL ROOM)
+  // =========================================================================
+  renderTacticalPitch() {
+    const pitch = document.getElementById('tactical-pitch');
+    if (!pitch) return;
+
+    // Formazioni supportate: 3-4-3, 4-3-3, 4-4-2, 3-5-2
+    const formationsMap = {
+      '3-4-3': { P: 1, D: 3, C: 4, A: 3 },
+      '4-3-3': { P: 1, D: 4, C: 3, A: 3 },
+      '4-4-2': { P: 1, D: 4, C: 4, A: 2 },
+      '3-5-2': { P: 1, D: 3, C: 5, A: 2 }
+    };
+
+    const formationConfig = formationsMap[this.tacticalFormation] || formationsMap['4-3-3'];
+
+    // Aggiorna stato attivo dei bottoni modulo (comportamento rigorosamente manuale)
+    document.querySelectorAll('.btn-formation').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-formation') === this.tacticalFormation);
+    });
+
+    // Identifica la squadra dell'utente
+    const userMgrId = this.state.getUserManagerId();
+    const userMgr = this.state.getManager(userMgrId) || (this.state.getAllManagers() ? this.state.getAllManagers()[0] : null);
+
+    const teamBadge = document.getElementById('tactical-team-name');
+    if (teamBadge && userMgr) {
+      teamBadge.textContent = userMgr.name;
+    }
+
+    // 1. Riepilogo Finanziario Personale
+    const userRemaining = userMgr ? this.state.getManagerRemainingCredits(userMgr.id) : 0;
+    const userRoster = userMgr ? (userMgr.roster || []) : [];
+    const slotsConfig = this.state.getSlotsConfig();
+
+    const currentRole = this.currentAuctionPlayer ? this.currentAuctionPlayer.ruolo : 'P';
+    const budgetPlan = this.state.getBudgetPlan();
+    const roleTarget = budgetPlan?.roles?.[currentRole]?.targetCredits || 0;
+    const roleSpent = userRoster.filter(p => p.ruolo === currentRole).reduce((acc, p) => acc + (p.prezzo_acquisto || 0), 0);
+    const roleRemPlanned = Math.max(0, roleTarget - roleSpent);
+
+    const credElem = document.getElementById('tactical-user-credits');
+    if (credElem) credElem.textContent = `${userRemaining} cr`;
+
+    const slotsElem = document.getElementById('tactical-user-slots');
+    if (slotsElem) slotsElem.textContent = `${userRoster.length}/${slotsConfig.total}`;
+
+    const roleTagElem = document.getElementById('tactical-current-role');
+    if (roleTagElem) roleTagElem.textContent = currentRole;
+
+    const remBudgetElem = document.getElementById('tactical-role-rem-budget');
+    if (remBudgetElem) remBudgetElem.textContent = `${roleRemPlanned} cr rimasti`;
+
+    // 2. Ripartizione Titolari e Panchina
+    const playersByRole = {
+      P: userRoster.filter(p => p.ruolo === 'P'),
+      D: userRoster.filter(p => p.ruolo === 'D'),
+      C: userRoster.filter(p => p.ruolo === 'C'),
+      A: userRoster.filter(p => p.ruolo === 'A')
+    };
+
+    const starters = {
+      P: playersByRole.P.slice(0, formationConfig.P),
+      D: playersByRole.D.slice(0, formationConfig.D),
+      C: playersByRole.C.slice(0, formationConfig.C),
+      A: playersByRole.A.slice(0, formationConfig.A)
+    };
+
+    const bench = [
+      ...playersByRole.P.slice(formationConfig.P),
+      ...playersByRole.D.slice(formationConfig.D),
+      ...playersByRole.C.slice(formationConfig.C),
+      ...playersByRole.A.slice(formationConfig.A)
+    ];
+
+    // Helper per renderizzare una linea del campetto
+    const renderLine = (containerId, role, requiredCount, currentStarters) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      let lineHtml = '';
+      for (let i = 0; i < requiredCount; i++) {
+        const player = currentStarters[i];
+        if (player) {
+          lineHtml += `
+            <div class="pitch-slot occupied" title="${player.nome} (${player.squadra || '-'}): ${player.prezzo_acquisto} cr">
+              <div class="pitch-badge-circle role-${role}">${role}</div>
+              <span class="pitch-player-name">${player.nome}</span>
+              <span class="pitch-player-price">${player.prezzo_acquisto} cr</span>
+            </div>
+          `;
+        } else {
+          lineHtml += `
+            <div class="pitch-slot free" title="Posto da titolare libero per il ruolo ${role}">
+              <span class="pitch-free-text">+ ${role} Libero</span>
+            </div>
+          `;
+        }
+      }
+      container.innerHTML = lineHtml;
+    };
+
+    // Disposizione: A in alto, C, D, P in basso
+    renderLine('pitch-line-A', 'A', formationConfig.A, starters.A);
+    renderLine('pitch-line-C', 'C', formationConfig.C, starters.C);
+    renderLine('pitch-line-D', 'D', formationConfig.D, starters.D);
+    renderLine('pitch-line-P', 'P', formationConfig.P, starters.P);
+
+    // 3. Panchina (Esuberi Titolari)
+    const benchContainer = document.getElementById('tactical-bench-list');
+    const benchCountElem = document.getElementById('tactical-bench-count');
+    if (benchCountElem) benchCountElem.textContent = bench.length;
+
+    if (benchContainer) {
+      if (bench.length === 0) {
+        benchContainer.innerHTML = `<span class="bench-empty-msg">Nessun panchinaro (tutti i tuoi giocatori sono negli 11 titolari o rosa ancora da completare).</span>`;
+      } else {
+        let benchHtml = '';
+        bench.forEach(p => {
+          benchHtml += `
+            <div class="bench-player-chip" title="${p.nome} (${p.squadra || '-'}) - Pagato ${p.prezzo_acquisto} cr">
+              <span class="role-pill role-${p.ruolo} bench-role-tag">${p.ruolo}</span>
+              <span style="font-weight:600;">${p.nome}</span>
+              <span class="bench-price">(${p.prezzo_acquisto} cr)</span>
+            </div>
+          `;
+        });
+        benchContainer.innerHTML = benchHtml;
+      }
+    }
   }
 
   // POPOLA BLOCCO RENDIMENTO REALE CERTIFICATO (DATI SEGRETI)
@@ -3017,21 +3241,15 @@ class AppController {
   }
 
   async confirmResetAuction() {
-    const confirmed1 = await this.showConfirmModal(
-      'Azzeramento Asta',
-      'ATTENZIONE: Sei sicuro di voler azzerare l\'asta?<br>Tutti i crediti spesi e le rose verranno cancellati.<br>I calciatori rimarranno nel listone ma torneranno liberi.',
+    const confirmed = await this.showConfirmModal(
+      'Azzera Asta (Nuova Sessione)',
+      'ATTENZIONE: Sei sicuro di voler azzerare l\'asta per una nuova sessione?<br><br>• I crediti spesi e le rose di tutti i manager verranno azzerati.<br>• Lo storico delle chiamate verrà svuotato.<br>• <strong>Tutti i calciatori attualmente presenti (inclusi quelli caricati dall\'ultimo CSV o aggiunti a mano) verranno MANTENUTI</strong> e torneranno liberi.',
       '⚠️'
     );
-    if (!confirmed1) return;
+    if (!confirmed) return;
 
-    const confirmed2 = await this.showConfirmModal(
-      'Conferma Definitiva',
-      'Confermi definitivamente il reset totale dell\'asta in corso?',
-      '🚨'
-    );
-    if (!confirmed2) return;
-
-    this.state.resetAll(true);
+    this.currentAuctionPlayer = null;
+    this.state.resetAuction();
     this.renderHeaderStats();
     this.renderAuctionList();
     this.renderTeamsBoard();
@@ -3040,7 +3258,46 @@ class AppController {
     this.renderDeptBudgetWidget();
     this.renderBudgetPlanSettings();
     this.renderTierGuideModal();
-    this.showToast('Asta azzerata con successo.', 'info');
+    if (typeof this.renderCalendarSection === 'function') {
+      this.renderCalendarSection();
+    }
+    this.showToast('Asta azzerata con successo per una nuova sessione. Listone calciatori preservato!', 'info');
+  }
+
+  async confirmRestoreDefaultListone() {
+    const confirmed = await this.showConfirmModal(
+      'Ripristina Listone Originale',
+      'ATTENZIONE: Questa operazione eliminerà il listone attuale!<br><br>• <strong>Tutti i calciatori caricati da file CSV o modificati a mano verranno ELIMINATI DEFINITIVAMENTE</strong>.<br>• Verrà ricaricato il listone iniziale di fabbrica.<br>• I crediti spesi, le rose e lo storico dell\'asta verranno azzerati.<br><br>Confermi di voler procedere?',
+      '🚨'
+    );
+    if (!confirmed) return;
+
+    let defaultPlayers = await ListoneParser.loadDefaultListone();
+    if ((!defaultPlayers || defaultPlayers.length === 0) && window.DEFAULT_PLAYERS && window.DEFAULT_PLAYERS.length > 0) {
+      defaultPlayers = JSON.parse(JSON.stringify(window.DEFAULT_PLAYERS));
+    }
+
+    if (!defaultPlayers || defaultPlayers.length === 0) {
+      this.showToast('Errore: impossibile caricare il listone originale di fabbrica.', 'error');
+      return;
+    }
+
+    this.currentAuctionPlayer = null;
+    this.state.restoreDefaultListone(defaultPlayers);
+
+    this.populateTeamFilter();
+    this.renderHeaderStats();
+    this.renderAuctionList();
+    this.renderTeamsBoard();
+    this.renderHistory();
+    this.renderSettings();
+    this.renderDeptBudgetWidget();
+    this.renderBudgetPlanSettings();
+    this.renderTierGuideModal();
+    if (typeof this.renderCalendarSection === 'function') {
+      this.renderCalendarSection();
+    }
+    this.showToast(`Listone originale ripristinato con successo (${defaultPlayers.length} calciatori).`, 'success');
   }
 }
 
