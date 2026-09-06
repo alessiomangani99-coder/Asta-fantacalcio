@@ -3804,3 +3804,933 @@
     flex: none;
   }
 }
+
+/* ==========================================================================
+   TIMER MANUALE D'ASTA NEL BATTITORE
+   ========================================================================== */
+.auction-timer-container {
+  padding: 12px 18px;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.95) 0%, rgba(13, 19, 32, 0.98) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.auction-timer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.auction-timer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.auction-timer-icon {
+  font-size: 1.1rem;
+}
+
+.auction-timer-heading {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.auction-timer-status-badge {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.auction-timer-status-badge.status-idle {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.auction-timer-status-badge.status-running {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.auction-timer-status-badge.status-paused {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.auction-timer-status-badge.status-warning {
+  background: rgba(245, 158, 11, 0.25);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+  animation: timerStatusPulse 0.6s infinite alternate;
+}
+
+.auction-timer-status-badge.status-expired {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  border: 1px solid #ef4444;
+  animation: timerStatusBlink 0.4s infinite alternate;
+}
+
+@keyframes timerStatusPulse {
+  from { opacity: 0.7; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1.03); }
+}
+
+@keyframes timerStatusBlink {
+  from { opacity: 0.5; background: rgba(239, 68, 68, 0.15); }
+  to { opacity: 1; background: rgba(239, 68, 68, 0.4); }
+}
+
+.auction-timer-presets {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 3px 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-timer-preset {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-timer-preset:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.btn-timer-preset.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #60a5fa;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.25);
+}
+
+.btn-timer-mute {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+}
+
+.btn-timer-mute:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-timer-mute.muted {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+/* Riga Display Grafico & Tasti */
+.auction-timer-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.auction-timer-digits-box {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.auction-timer-val {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #f8fafc;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.auction-timer-val.val-yellow {
+  color: #fbbf24;
+  text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+}
+
+.auction-timer-val.val-red {
+  color: #f87171;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  animation: timerDigitBlink 0.35s infinite alternate;
+}
+
+@keyframes timerDigitBlink {
+  from { opacity: 0.7; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1.02); }
+}
+
+.auction-timer-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-timer-action {
+  font-family: var(--font-display);
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.18s ease;
+}
+
+.btn-timer-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  min-width: 125px;
+}
+
+.btn-timer-primary:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-timer-primary:active {
+  transform: translateY(1px);
+}
+
+.btn-timer-primary.is-running {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+}
+
+.btn-timer-primary.is-running:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.5);
+}
+
+.btn-timer-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  font-size: 0.84rem;
+}
+
+.btn-timer-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Barra Orizzontale Dinamica */
+.auction-timer-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.auction-timer-bar {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.05s linear, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.auction-timer-bar.bar-green {
+  background: linear-gradient(90deg, #10b981, #059669);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.auction-timer-bar.bar-yellow {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+}
+
+.auction-timer-bar.bar-red {
+  background: linear-gradient(90deg, #f87171, #ef4444);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.8);
+  animation: timerBarRedPulse 0.35s infinite alternate;
+}
+
+@keyframes timerBarRedPulse {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.3); }
+}
+
+/* Banner Notifica Aggiudicato / Scaduto */
+.auction-timer-expired-banner {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.25) 0%, rgba(185, 28, 28, 0.35) 50%, rgba(239, 68, 68, 0.25) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  border-radius: 6px;
+  padding: 6px 10px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.84rem;
+  letter-spacing: 0.8px;
+  color: #fecaca;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+  animation: timerBannerFlash 0.5s infinite alternate;
+}
+
+@keyframes timerBannerFlash {
+  from { opacity: 0.75; transform: scale(0.99); }
+  to { opacity: 1; transform: scale(1.01); }
+}
+
+/* ==========================================================================
+   MODALE CHIAMA A SORTE TRA I LIBERI (RANDOM PER RUOLO E FASCIA)
+   ========================================================================== */
+.random-picker-modal-dialog {
+  max-width: 680px;
+  background: radial-gradient(circle at top, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.85), 0 0 35px rgba(139, 92, 246, 0.2);
+}
+
+.random-picker-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  overflow-y: auto;
+  max-height: calc(88vh - 130px);
+}
+
+.random-section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.random-block-title {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.random-tiers-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.random-block-subtitle {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+/* Griglia Ruoli Grandi */
+.random-role-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.btn-random-role {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-random-role .role-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.btn-random-role .role-name {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.btn-random-role:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.btn-random-role.role-P.active {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+}
+.btn-random-role.role-P.active .role-name { color: #fbbf24; }
+
+.btn-random-role.role-D.active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+}
+.btn-random-role.role-D.active .role-name { color: #34d399; }
+
+.btn-random-role.role-C.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.35);
+}
+.btn-random-role.role-C.active .role-name { color: #60a5fa; }
+
+.btn-random-role.role-A.active {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+}
+.btn-random-role.role-A.active .role-name { color: #f87171; }
+
+.btn-random-role.role-ALL {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  padding: 8px 12px;
+  gap: 8px;
+}
+
+.btn-random-role.role-ALL.active {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.35);
+}
+.btn-random-role.role-ALL.active .role-name { color: #a78bfa; }
+
+/* Pillole Fascia */
+.random-tier-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.btn-random-tier {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-random-tier:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+.btn-random-tier.active {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.6);
+  color: #c4b5fd;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+}
+
+/* Contatore Banner */
+.random-counter-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.counter-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: counterPulse 1.2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes counterPulse {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+.random-pool-count-text {
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+
+.random-pool-count-text strong {
+  font-family: var(--font-display);
+  color: #38bdf8;
+  font-size: 0.95rem;
+}
+
+/* ==========================================================================
+   PALCOSCENICO A SINGOLO SLOT (NO CAROSELLO, NO CARD SOVRAPPOSTE)
+   ========================================================================== */
+.random-single-slot-stage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.random-single-card {
+  width: 100%;
+  min-height: 195px;
+  background: radial-gradient(circle at 50% 20%, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+  border: 2px solid rgba(139, 92, 246, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(139, 92, 246, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.random-single-card.is-shuffling {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 35px rgba(139, 92, 246, 0.5), inset 0 0 20px rgba(139, 92, 246, 0.2);
+  transform: scale(1.01);
+}
+
+.random-single-card.is-won {
+  border-color: #10b981;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 35px rgba(16, 185, 129, 0.35);
+  animation: singleCardWonPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes singleCardWonPop {
+  0% { transform: scale(0.96); opacity: 0.8; }
+  60% { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Ribbon di Stato */
+.random-slot-status-ribbon {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 16px;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.random-slot-status-ribbon.is-spinning {
+  background: linear-gradient(90deg, #7c3aed, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.4);
+}
+
+.random-slot-status-ribbon.is-extracted {
+  background: linear-gradient(90deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 0 2px 15px rgba(16, 185, 129, 0.45);
+}
+
+/* Corpo Card */
+.random-slot-card-body {
+  width: 100%;
+  padding: 18px 24px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.random-slot-role-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.random-slot-role-container .role-pill {
+  width: 46px;
+  height: 46px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s ease;
+}
+
+/* Nome Calciatore a Caratteri Cubitali Centrato */
+.random-slot-name-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.random-slot-player-name {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 95%;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.25), 0 2px 10px rgba(0, 0, 0, 0.7);
+  margin: 0;
+  transition: all 0.1s ease;
+}
+
+.random-single-card.is-shuffling .random-slot-player-name {
+  filter: blur(0.4px);
+  color: #e2e8f0;
+}
+
+/* Dettagli Squadra e Fascia */
+.random-slot-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.random-slot-fascia-pill {
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  letter-spacing: 0.3px;
+}
+
+.random-slot-extra-pill {
+  font-size: 0.76rem;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .random-slot-player-name {
+    font-size: 1.7rem;
+  }
+}
+
+/* Tasto Centrale Estrazione */
+.random-draw-action-container {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-execute-draw {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.btn-execute-draw:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+  filter: brightness(1.1);
+}
+
+.btn-execute-draw:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-execute-draw:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Footer & Tasto "Avvia Asta Subito" in risalto */
+.random-picker-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem 1.5rem;
+  background: var(--bg-surface-elevated);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.btn-start-auction-instant {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.btn-start-auction-instant:hover:not(:disabled) {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.6);
+  transform: translateY(-1px);
+}
+
+.btn-start-auction-instant:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-start-auction-instant:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(0.7);
+  box-shadow: none;
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .random-role-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .extracted-hero-body {
+    flex-direction: column;
+    text-align: center;
+  }
+  .extracted-sub-meta {
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   PULSANTE TV HEADER & FILTRO RUOLI TABELLONE ROSE
+   ========================================================================== */
+.btn-header-tv {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(139, 92, 246, 0.22) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  color: #c4b5fd;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+}
+
+.btn-header-tv:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.45) 0%, rgba(139, 92, 246, 0.45) 100%);
+  border-color: #a78bfa;
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-header-tv .btn-icon {
+  font-size: 1.1rem;
+  filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.5));
+}
+
+/* Barra Filtro Rapido per Ruolo nel Tabellone Squadre */
+.teams-role-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1.4rem;
+  margin-bottom: 1.5rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.teams-role-filter-label {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.teams-role-filter-label::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  box-shadow: 0 0 8px var(--accent-blue);
+}
+
+.teams-role-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btn-teams-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 9px;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.btn-teams-role:hover {
+  background: var(--bg-surface-hover);
+  color: #ffffff;
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.btn-teams-role.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #93c5fd;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.35);
+}
+
+.btn-teams-role.role-filter-P.active {
+  background: rgba(234, 179, 8, 0.2);
+  border-color: #eab308;
+  color: #fef08a;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.35);
+}
+
+.btn-teams-role.role-filter-D.active {
+  background: rgba(59, 130, 246, 0.22);
+  border-color: #3b82f6;
+  color: #93c5fd;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.35);
+}
+
+.btn-teams-role.role-filter-C.active {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+  color: #86efac;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.35);
+}
+
+.btn-teams-role.role-filter-A.active {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #fca5a5;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
+}
+
+@media (max-width: 768px) {
+  .teams-role-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .teams-role-filter-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .btn-teams-role[data-team-role="ALL"] {
+    grid-column: span 2;
+  }
+}
+
+

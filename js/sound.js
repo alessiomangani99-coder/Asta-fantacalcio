@@ -159,6 +159,72 @@ class SoundEngine {
       console.warn('Errore audio:', e);
     }
   }
+
+  // Beep acustico per gli ultimi secondi del countdown (3.. 2.. 1..)
+  playTimerBeep(sec = 3) {
+    if (this.muted) return;
+    try {
+      this._initContext();
+      if (!this.audioCtx) return;
+
+      const now = this.audioCtx.currentTime;
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+
+      // Frequenze crescenti per creare suspense: 3s -> 740Hz, 2s -> 880Hz, 1s -> 1050Hz
+      let freq = 880;
+      if (sec === 3) freq = 740;
+      else if (sec === 2) freq = 880;
+      else if (sec === 1) freq = 1046.5;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch (e) {
+      console.warn('Errore audio beep:', e);
+    }
+  }
+
+  // Suono di tempo scaduto / Aggiudicato allo 0s (colpo martelletto + doppio gong risonante)
+  playTimerExpired() {
+    if (this.muted) return;
+    try {
+      this._initContext();
+      if (!this.audioCtx) return;
+
+      // Colpo martelletto
+      this.playGavel();
+
+      // Rintocco risonante doppio
+      const now = this.audioCtx.currentTime;
+      [440, 330].forEach((freq, i) => {
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + i * 0.12);
+
+        gain.gain.setValueAtTime(0.28, now + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.45);
+
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        osc.start(now + i * 0.12);
+        osc.stop(now + i * 0.12 + 0.46);
+      });
+    } catch (e) {
+      console.warn('Errore audio timer scaduto:', e);
+    }
+  }
 }
 
 window.soundEngine = new SoundEngine();

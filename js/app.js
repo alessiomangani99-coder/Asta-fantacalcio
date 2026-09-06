@@ -319,6 +319,39 @@ class AppController {
     try {
       this.tacticalFormation = localStorage.getItem('fanta_tactical_formation') || '4-3-3';
     } catch (e) {}
+
+    // Stato Modale Estrazione Casuale (Random per Ruolo e Fascia)
+    this.randomPickerRole = 'ALL';
+    this.randomPickerTiers = new Set(['all']);
+    this.lastExtractedPlayer = null;
+    this.isRouletteSpinning = false;
+    this.rouletteIntervalId = null;
+
+    // Stato Timer Manuale Battitore
+    this.auctionTimer = {
+      presetSeconds: 8,
+      remainingMs: 8000,
+      isRunning: false,
+      isPaused: false,
+      intervalId: null,
+      lastTickSecond: null,
+      lastTimestamp: null,
+      muted: false
+    };
+
+    // Filtro Ruolo nel Tabellone Squadre e Rose
+    this.teamsBoardRoleFilter = 'ALL';
+
+    // Canale Broadcast & Sincronizzazione Schermo Pubblico TV (Offline Dual Screen)
+    this.syncChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('fanta_asta_sync') : null;
+    if (this.syncChannel) {
+      this.syncChannel.onmessage = (e) => this.handleSyncMessage(e.data);
+    }
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'fanta_asta_tv_sync_req' && e.newValue) {
+        this.sendFullStateSyncToTv();
+      }
+    });
   }
 
   async init() {
@@ -402,10 +435,10 @@ class AppController {
       });
     }
 
-    // Tasto Random Call ("Chiama a caso")
+    // Tasto Random Call ("Chiama a sorte tra i liberi")
     const btnRandomCall = document.getElementById('btn-random-call');
     if (btnRandomCall) {
-      btnRandomCall.addEventListener('click', () => this.callRandomPlayer());
+      btnRandomCall.addEventListener('click', () => this.openRandomPickerModal());
     }
 
     // Tasto Undo Globale nell'header
@@ -413,6 +446,24 @@ class AppController {
     if (btnGlobalUndo) {
       btnGlobalUndo.addEventListener('click', () => this.handleUndo());
     }
+
+    // Tasto Schermo TV Pubblico nell'header
+    const btnOpenTv = document.getElementById('btn-open-tv');
+    if (btnOpenTv) {
+      btnOpenTv.addEventListener('click', () => {
+        window.open('tv.html', 'FantaAstaTV', 'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no');
+      });
+    }
+
+    // Filtro Ruolo nel Tabellone Squadre e Rose
+    document.querySelectorAll('.btn-teams-role').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-teams-role').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.teamsBoardRoleFilter = btn.getAttribute('data-team-role') || 'ALL';
+        this.renderTeamsBoard();
+      });
+    });
 
     // Tasto Toggle Audio nell'header
     const btnToggleAudio = document.getElementById('btn-toggle-audio');
@@ -491,6 +542,9 @@ class AppController {
         const current = parseInt(input.value, 10) || 0;
         input.value = Math.max(0, current + val);
         this.updateBidValidationMessage();
+        if (val > 0) {
+          this.onBidIncremented();
+        }
       });
     });
 
@@ -735,6 +789,63 @@ class AppController {
       });
     }
 
+    // Eventi Modale Chiama a Sorte tra i Liberi (Random per Ruolo e Fascia)
+    const btnCloseRandomPicker = document.getElementById('btn-close-random-picker');
+    if (btnCloseRandomPicker) {
+      btnCloseRandomPicker.addEventListener('click', () => this.closeRandomPickerModal());
+    }
+    const btnCloseRandomFooter = document.getElementById('btn-close-random-footer');
+    if (btnCloseRandomFooter) {
+      btnCloseRandomFooter.addEventListener('click', () => this.closeRandomPickerModal());
+    }
+
+    document.querySelectorAll('.btn-random-role').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const role = btn.getAttribute('data-random-role');
+        this.setRandomRole(role);
+      });
+    });
+
+    document.querySelectorAll('.btn-random-tier').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tier = btn.getAttribute('data-tier-key');
+        this.toggleRandomTier(tier);
+      });
+    });
+
+    const btnExecuteDraw = document.getElementById('btn-execute-draw');
+    if (btnExecuteDraw) {
+      btnExecuteDraw.addEventListener('click', () => this.drawRandomPlayer());
+    }
+
+    const btnStartAuctionInstant = document.getElementById('btn-start-auction-instant');
+    if (btnStartAuctionInstant) {
+      btnStartAuctionInstant.addEventListener('click', () => this.startAuctionFromRandom());
+    }
+
+    // Eventi Timer Manuale Battitore
+    document.querySelectorAll('.btn-timer-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sec = parseInt(btn.getAttribute('data-preset'), 10);
+        if (sec) this.setTimerPreset(sec);
+      });
+    });
+
+    const btnTimerStartPause = document.getElementById('btn-timer-start-pause');
+    if (btnTimerStartPause) {
+      btnTimerStartPause.addEventListener('click', () => this.toggleAuctionTimer());
+    }
+
+    const btnTimerReset = document.getElementById('btn-timer-reset');
+    if (btnTimerReset) {
+      btnTimerReset.addEventListener('click', () => this.resetAuctionTimer());
+    }
+
+    const btnTimerMute = document.getElementById('btn-timer-mute');
+    if (btnTimerMute) {
+      btnTimerMute.addEventListener('click', () => this.toggleTimerMute());
+    }
+
     // Scorciatoie da tastiera
     document.addEventListener('keydown', (e) => {
       // Se il popover segreto è aperto, ESC chiude prima quello
@@ -745,6 +856,15 @@ class AppController {
           popover.classList.add('hidden');
           const btnSec = document.getElementById('btn-secret-intel');
           if (btnSec) btnSec.classList.remove('active');
+          return;
+        }
+      }
+
+      // Se il modale Chiama a Sorte è aperto, ESC lo chiude
+      const modalRandom = document.getElementById('modal-random-picker');
+      if (modalRandom && !modalRandom.classList.contains('hidden')) {
+        if (e.key === 'Escape') {
+          this.closeRandomPickerModal();
           return;
         }
       }
@@ -766,6 +886,13 @@ class AppController {
           // Se siamo in un input diverso, conferma
           e.preventDefault();
           this.handleAssignBid();
+        } else if (e.key === 't' || e.key === 'T' || e.code === 'Space') {
+          // Scorciatoia Timer d'Asta: T o Spazio (se non si sta digitando in campi di testo)
+          const isTyping = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable);
+          if (!isTyping) {
+            e.preventDefault();
+            this.toggleAuctionTimer();
+          }
         }
       }
     });
@@ -1045,6 +1172,21 @@ class AppController {
         return (b.prezzo_acquisto || 0) - (a.prezzo_acquisto || 0);
       });
 
+      // Filtro per Ruolo nel Tabellone Rose
+      const activeFilter = this.teamsBoardRoleFilter || 'ALL';
+      const displayRoster = activeFilter === 'ALL'
+        ? sortedRoster
+        : sortedRoster.filter(p => p.ruolo === activeFilter);
+
+      const roleLabels = { P: 'Portieri', D: 'Difensori', C: 'Centrocampisti', A: 'Attaccanti' };
+      const roleTargetSlots = slotsConfig[activeFilter] || counts[activeFilter] || 0;
+      const rosterHeaderText = activeFilter === 'ALL'
+        ? `Rosa Calciatori (${roster.length}/${slotsConfig.total})`
+        : `Rosa ${roleLabels[activeFilter] || activeFilter} (${displayRoster.length}/${roleTargetSlots})`;
+      const emptyRosterText = activeFilter === 'ALL'
+        ? 'Nessun acquisto ancora effettuato.'
+        : `Nessun ${roleLabels[activeFilter] ? roleLabels[activeFilter].toLowerCase() : 'calciatore'} in rosa.`;
+
       html += `
         <div class="manager-card" id="card-${m.id}">
           <div class="manager-card-header">
@@ -1093,11 +1235,11 @@ class AppController {
           </div>
 
           <div class="manager-roster-section">
-            <div class="roster-header">Rosa Calciatori (${roster.length})</div>
+            <div class="roster-header">${rosterHeaderText}</div>
             <div class="roster-list-scroll">
-              ${sortedRoster.length === 0
-                ? `<div class="roster-empty">Nessun acquisto ancora effettuato.</div>`
-                : sortedRoster.map(p => `
+              ${displayRoster.length === 0
+                ? `<div class="roster-empty">${emptyRosterText}</div>`
+                : displayRoster.map(p => `
                     <div class="roster-player-item">
                       <span class="role-mini-pill role-${p.ruolo}">${p.ruolo}</span>
                       <span class="r-name">${p.nome}</span>
@@ -1350,12 +1492,35 @@ class AppController {
     this.updateBidValidationMessage();
     this.renderTacticalPitch();
 
+    // Inizializza il timer d'asta sul preset predefinito (8s) e fermo (avvio solo manuale)
+    this.resetAuctionTimer(8);
+
     // Mostra modale Control Room
     const modal = document.getElementById('modal-battitore');
     if (modal) modal.classList.remove('hidden');
+
+    // Notifica Schermo TV Pubblico dell'apertura asta
+    const selectedManager = managerSelect && managerSelect.value ? this.state.getManager(managerSelect.value) : null;
+    this.broadcastSync('AUCTION_START', {
+      player: {
+        id: player.id,
+        nome: player.nome,
+        ruolo: player.ruolo,
+        squadra: player.squadra
+      },
+      currentBid: 0,
+      manager: selectedManager ? { id: selectedManager.id, name: selectedManager.name } : null,
+      timer: {
+        presetSeconds: this.auctionTimer.presetSeconds,
+        remainingMs: this.auctionTimer.remainingMs,
+        isRunning: false,
+        isPaused: false
+      }
+    });
   }
 
   closeAuctionModal() {
+    this.resetAuctionTimer();
     const modal = document.getElementById('modal-battitore');
     if (modal) modal.classList.add('hidden');
     const popoverSecret = document.getElementById('popover-secret-intel');
@@ -1363,6 +1528,13 @@ class AppController {
     const btnSecret = document.getElementById('btn-secret-intel');
     if (btnSecret) btnSecret.classList.remove('active');
     this.currentAuctionPlayer = null;
+
+    // Notifica Schermo TV Pubblico della chiusura asta
+    this.broadcastSync('AUCTION_CLOSE', {
+      managers: this.getCleanManagersForTv(),
+      league: this.state.getLeagueConfig(),
+      slotsConfig: this.state.getSlotsConfig()
+    });
   }
 
   updateBidValidationMessage() {
@@ -1394,6 +1566,14 @@ class AppController {
     // Aggiorna dinamicamente il pannello "Live Radar Partecipanti" e il "Campetto Tattico"
     this.renderLiveRadar();
     this.renderTacticalPitch();
+
+    // Notifica Schermo TV Pubblico della nuova offerta / manager
+    const managerSelect = document.getElementById('bid-manager-select');
+    const selectedManager = managerSelect && managerSelect.value ? this.state.getManager(managerSelect.value) : null;
+    this.broadcastSync('BID_UPDATE', {
+      currentBid: price,
+      manager: selectedManager ? { id: selectedManager.id, name: selectedManager.name } : null
+    });
   }
 
   // =========================================================================
@@ -1838,6 +2018,25 @@ class AppController {
 
     if (result.success) {
       this.showToast(`🎉 ${result.player.nome} assegnato a ${result.manager.name} per ${result.price} cr!`, 'success');
+      
+      // Notifica Schermo TV Pubblico dell'assegnazione
+      this.broadcastSync('AUCTION_SOLD', {
+        player: {
+          id: result.player.id,
+          nome: result.player.nome,
+          ruolo: result.player.ruolo,
+          squadra: result.player.squadra
+        },
+        manager: {
+          id: result.manager.id,
+          name: result.manager.name
+        },
+        price: result.price,
+        managers: this.getCleanManagersForTv(),
+        league: this.state.getLeagueConfig(),
+        slotsConfig: this.state.getSlotsConfig()
+      });
+
       this.closeAuctionModal();
       this.renderHeaderStats();
       this.renderAuctionList();
@@ -1896,6 +2095,11 @@ class AppController {
     const result = this.auction.releasePlayer(playerId);
     if (result.success) {
       this.showToast(`Svincolato ${player.nome} (${result.refundPrice} cr riaccreditati a ${result.managerName}).`, 'info');
+      this.broadcastSync('ROSTER_UPDATE', {
+        managers: this.getCleanManagersForTv(),
+        league: this.state.getLeagueConfig(),
+        slotsConfig: this.state.getSlotsConfig()
+      });
       this.renderHeaderStats();
       this.renderAuctionList();
       this.renderTeamsBoard();
@@ -1921,6 +2125,11 @@ class AppController {
     const res = this.auction.undoLastAction();
     if (res.success) {
       this.showToast(`↩️ ${res.message}`, 'info');
+      this.broadcastSync('ROSTER_UPDATE', {
+        managers: this.getCleanManagersForTv(),
+        league: this.state.getLeagueConfig(),
+        slotsConfig: this.state.getSlotsConfig()
+      });
       this.renderHeaderStats();
       this.renderAuctionList();
       this.renderTeamsBoard();
@@ -1933,14 +2142,715 @@ class AppController {
   }
 
   callRandomPlayer() {
-    const unassigned = this.getFilteredPlayers().filter(p => p.stato === 'libero');
-    if (unassigned.length === 0) {
-      this.showToast('Nessun giocatore libero trovato con i filtri attuali!', 'warning');
+    this.openRandomPickerModal();
+  }
+
+  // =========================================================================
+  // MODALE CHIAMA A SORTE TRA I LIBERI (ESTRAZIONE CASUALE PER RUOLO E FASCIA)
+  // =========================================================================
+  openRandomPickerModal() {
+    const modal = document.getElementById('modal-random-picker');
+    if (!modal) return;
+
+    // Se nella tabella principale c'è un filtro ruolo attivo, sincronizzalo per comodità
+    if (this.filters.role && this.filters.role !== 'ALL') {
+      this.randomPickerRole = this.filters.role;
+    }
+
+    this.updateRandomRoleButtons();
+    this.updateRandomTierPills();
+    this.updateRandomAvailableCounter();
+
+    const card = document.getElementById('random-single-card');
+    const ribbon = document.getElementById('random-slot-status-ribbon');
+    const statusText = document.getElementById('random-slot-status-text');
+    const btnInstant = document.getElementById('btn-start-auction-instant');
+
+    if (this.lastExtractedPlayer && (!this.lastExtractedPlayer.proprietario_id && this.lastExtractedPlayer.stato !== 'acquistato')) {
+      this.showExtractedPlayerResult(this.lastExtractedPlayer, false);
+    } else {
+      if (card) {
+        card.classList.remove('is-shuffling', 'is-won');
+      }
+      if (ribbon) {
+        ribbon.className = 'random-slot-status-ribbon';
+      }
+      if (statusText) {
+        statusText.textContent = '🎲 PRONTO PER L\'ESTRAZIONE';
+      }
+
+      let roleIcon = '🎲';
+      let roleLetter = 'ALL';
+      if (this.randomPickerRole === 'P') { roleIcon = '🧤'; roleLetter = 'P'; }
+      else if (this.randomPickerRole === 'D') { roleIcon = '🛡️'; roleLetter = 'D'; }
+      else if (this.randomPickerRole === 'C') { roleIcon = '⚙️'; roleLetter = 'C'; }
+      else if (this.randomPickerRole === 'A') { roleIcon = '⚡'; roleLetter = 'A'; }
+
+      const rolePill = document.getElementById('random-slot-role-pill');
+      if (rolePill) {
+        rolePill.textContent = roleIcon;
+        rolePill.className = `role-pill role-${roleLetter}`;
+      }
+
+      const nameElem = document.getElementById('random-slot-player-name');
+      if (nameElem) {
+        nameElem.textContent = '-- Premi Estrai Calciatore --';
+      }
+
+      const teamElem = document.getElementById('random-slot-team');
+      if (teamElem) teamElem.textContent = 'Tutte le Squadre';
+
+      const fasciaElem = document.getElementById('random-slot-fascia');
+      if (fasciaElem) fasciaElem.textContent = 'Qualsiasi Fascia';
+
+      const extraElem = document.getElementById('random-slot-extra');
+      if (extraElem) extraElem.classList.add('hidden');
+
+      if (btnInstant) btnInstant.disabled = true;
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  closeRandomPickerModal() {
+    if (this.isRouletteSpinning && this.rouletteIntervalId) {
+      clearInterval(this.rouletteIntervalId);
+      this.rouletteIntervalId = null;
+      this.isRouletteSpinning = false;
+      const btnDraw = document.getElementById('btn-execute-draw');
+      if (btnDraw) btnDraw.disabled = false;
+    }
+    const modal = document.getElementById('modal-random-picker');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  setRandomRole(role) {
+    if (!role) return;
+    this.randomPickerRole = role;
+    this.updateRandomRoleButtons();
+    this.updateRandomAvailableCounter();
+
+    // Se non c'è un giocatore estratto valido per il nuovo ruolo, resetta la card
+    if (!this.lastExtractedPlayer || (this.randomPickerRole !== 'ALL' && String(this.lastExtractedPlayer.ruolo).toUpperCase() !== this.randomPickerRole)) {
+      const card = document.getElementById('random-single-card');
+      const ribbon = document.getElementById('random-slot-status-ribbon');
+      const statusText = document.getElementById('random-slot-status-text');
+      const btnInstant = document.getElementById('btn-start-auction-instant');
+
+      if (card) card.classList.remove('is-shuffling', 'is-won');
+      if (ribbon) ribbon.className = 'random-slot-status-ribbon';
+      if (statusText) statusText.textContent = '🎲 PRONTO PER L\'ESTRAZIONE';
+
+      let roleIcon = '🎲';
+      let roleLetter = 'ALL';
+      if (this.randomPickerRole === 'P') { roleIcon = '🧤'; roleLetter = 'P'; }
+      else if (this.randomPickerRole === 'D') { roleIcon = '🛡️'; roleLetter = 'D'; }
+      else if (this.randomPickerRole === 'C') { roleIcon = '⚙️'; roleLetter = 'C'; }
+      else if (this.randomPickerRole === 'A') { roleIcon = '⚡'; roleLetter = 'A'; }
+
+      const rolePill = document.getElementById('random-slot-role-pill');
+      if (rolePill) {
+        rolePill.textContent = roleIcon;
+        rolePill.className = `role-pill role-${roleLetter}`;
+      }
+
+      const nameElem = document.getElementById('random-slot-player-name');
+      if (nameElem) nameElem.textContent = '-- Premi Estrai Calciatore --';
+
+      const teamElem = document.getElementById('random-slot-team');
+      if (teamElem) teamElem.textContent = 'Tutte le Squadre';
+
+      const fasciaElem = document.getElementById('random-slot-fascia');
+      if (fasciaElem) fasciaElem.textContent = 'Qualsiasi Fascia';
+
+      const extraElem = document.getElementById('random-slot-extra');
+      if (extraElem) extraElem.classList.add('hidden');
+
+      if (btnInstant) btnInstant.disabled = true;
+    }
+  }
+
+  updateRandomRoleButtons() {
+    document.querySelectorAll('.btn-random-role').forEach(btn => {
+      const r = btn.getAttribute('data-random-role');
+      btn.classList.toggle('active', r === this.randomPickerRole);
+    });
+
+    // Aggiorna etichetta del tasto centrale
+    const btnDraw = document.getElementById('btn-execute-draw');
+    if (btnDraw) {
+      let roleLabel = 'Calciatore';
+      if (this.randomPickerRole === 'P') roleLabel = 'Portiere';
+      else if (this.randomPickerRole === 'D') roleLabel = 'Difensore';
+      else if (this.randomPickerRole === 'C') roleLabel = 'Centrocampista';
+      else if (this.randomPickerRole === 'A') roleLabel = 'Attaccante';
+      btnDraw.innerHTML = `🎲 Estrai ${roleLabel} a Sorte`;
+    }
+  }
+
+  toggleRandomTier(tierKey) {
+    if (!tierKey) return;
+    if (tierKey === 'all') {
+      this.randomPickerTiers = new Set(['all']);
+    } else {
+      this.randomPickerTiers.delete('all');
+      if (this.randomPickerTiers.has(tierKey)) {
+        this.randomPickerTiers.delete(tierKey);
+        if (this.randomPickerTiers.size === 0) {
+          this.randomPickerTiers.add('all');
+        }
+      } else {
+        this.randomPickerTiers.add(tierKey);
+      }
+    }
+    this.updateRandomTierPills();
+    this.updateRandomAvailableCounter();
+  }
+
+  updateRandomTierPills() {
+    document.querySelectorAll('.btn-random-tier').forEach(btn => {
+      const k = btn.getAttribute('data-tier-key');
+      btn.classList.toggle('active', this.randomPickerTiers.has(k));
+    });
+  }
+
+  getRandomEligiblePlayers() {
+    const all = this.state.getAllPlayers();
+    return all.filter(p => {
+      // Solo giocatori liberi
+      const isFree = (!p.proprietario_id && p.stato !== 'acquistato');
+      if (!isFree) return false;
+
+      // Filtro Ruolo
+      if (this.randomPickerRole && this.randomPickerRole !== 'ALL') {
+        if (String(p.ruolo || '').toUpperCase() !== this.randomPickerRole) {
+          return false;
+        }
+      }
+
+      // Filtro Fascia
+      if (this.randomPickerTiers && !this.randomPickerTiers.has('all')) {
+        const info = this.getCanonicalTierInfo(p.fascia);
+        if (!this.randomPickerTiers.has(info.key)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  updateRandomAvailableCounter() {
+    const pool = this.getRandomEligiblePlayers();
+    const countVal = document.getElementById('random-pool-count-val');
+    const labelElem = document.getElementById('random-pool-count-label');
+    const btnDraw = document.getElementById('btn-execute-draw');
+
+    let roleText = 'Calciatori';
+    if (this.randomPickerRole === 'P') roleText = 'Portieri';
+    else if (this.randomPickerRole === 'D') roleText = 'Difensori';
+    else if (this.randomPickerRole === 'C') roleText = 'Centrocampisti';
+    else if (this.randomPickerRole === 'A') roleText = 'Attaccanti';
+
+    if (labelElem) {
+      labelElem.innerHTML = `${roleText} liberi disponibili: <strong id="random-pool-count-val">${pool.length}</strong>`;
+    } else if (countVal) {
+      countVal.textContent = pool.length;
+    }
+
+    if (btnDraw) {
+      btnDraw.disabled = pool.length === 0;
+      if (pool.length === 0) {
+        btnDraw.title = 'Nessun calciatore disponibile con i filtri selezionati';
+      } else {
+        btnDraw.title = 'Clicca per estrarre a sorte con animazione suspense';
+      }
+    }
+  }
+
+  drawRandomPlayer() {
+    if (this.isRouletteSpinning) return;
+
+    const pool = this.getRandomEligiblePlayers();
+    if (pool.length === 0) {
+      this.showToast('Nessun calciatore libero disponibile per i filtri selezionati!', 'warning');
       return;
     }
-    const randomIndex = Math.floor(Math.random() * unassigned.length);
-    const chosen = unassigned[randomIndex];
-    this.openAuctionModal(chosen.id);
+
+    this.isRouletteSpinning = true;
+
+    // Disabilita tasti durante lo spin
+    const btnDraw = document.getElementById('btn-execute-draw');
+    const btnInstant = document.getElementById('btn-start-auction-instant');
+    if (btnDraw) btnDraw.disabled = true;
+    if (btnInstant) btnInstant.disabled = true;
+
+    const card = document.getElementById('random-single-card');
+    const ribbon = document.getElementById('random-slot-status-ribbon');
+    const statusText = document.getElementById('random-slot-status-text');
+
+    if (card) {
+      card.classList.remove('is-won');
+      card.classList.add('is-shuffling');
+    }
+    if (ribbon) {
+      ribbon.className = 'random-slot-status-ribbon is-spinning';
+    }
+    if (statusText) {
+      statusText.textContent = '⚡ ESTRAZIONE IN CORSO...';
+    }
+
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
+
+    let ticks = 0;
+    const maxTicks = 16; // ~1 secondo a 60ms
+
+    this.rouletteIntervalId = setInterval(() => {
+      ticks++;
+      const randomCandidate = pool[Math.floor(Math.random() * pool.length)];
+
+      const nameElem = document.getElementById('random-slot-player-name');
+      const teamElem = document.getElementById('random-slot-team');
+      const roleElem = document.getElementById('random-slot-role-pill');
+      const fasciaElem = document.getElementById('random-slot-fascia');
+      const extraElem = document.getElementById('random-slot-extra');
+
+      if (nameElem) nameElem.textContent = randomCandidate.nome;
+      if (teamElem) teamElem.textContent = randomCandidate.squadra;
+      if (fasciaElem) fasciaElem.textContent = randomCandidate.fascia || 'Generale';
+      if (roleElem) {
+        roleElem.textContent = randomCandidate.ruolo;
+        roleElem.className = `role-pill role-${randomCandidate.ruolo}`;
+      }
+      if (extraElem) extraElem.classList.add('hidden');
+
+      if (window.soundEngine) {
+        window.soundEngine.playTick();
+      }
+
+      if (ticks >= maxTicks) {
+        clearInterval(this.rouletteIntervalId);
+        this.rouletteIntervalId = null;
+        this.isRouletteSpinning = false;
+
+        this.showExtractedPlayerResult(chosen, true);
+
+        if (btnDraw) {
+          btnDraw.disabled = false;
+          let roleLabel = 'Calciatore';
+          if (this.randomPickerRole === 'P') roleLabel = 'Portiere';
+          else if (this.randomPickerRole === 'D') roleLabel = 'Difensore';
+          else if (this.randomPickerRole === 'C') roleLabel = 'Centrocampista';
+          else if (this.randomPickerRole === 'A') roleLabel = 'Attaccante';
+          btnDraw.innerHTML = `🎲 Estrai un Altro ${roleLabel}`;
+        }
+      }
+    }, 60);
+  }
+
+  showExtractedPlayerResult(player, playAudio = true) {
+    this.lastExtractedPlayer = player;
+
+    const card = document.getElementById('random-single-card');
+    const ribbon = document.getElementById('random-slot-status-ribbon');
+    const statusText = document.getElementById('random-slot-status-text');
+
+    if (card) {
+      card.classList.remove('is-shuffling');
+      card.classList.add('is-won');
+    }
+    if (ribbon) {
+      ribbon.className = 'random-slot-status-ribbon is-extracted';
+    }
+    if (statusText) {
+      statusText.textContent = '⭐ CALCIATORE ESTRATTO A SORTE';
+    }
+
+    const rolePill = document.getElementById('random-slot-role-pill');
+    if (rolePill) {
+      rolePill.textContent = player.ruolo;
+      rolePill.className = `role-pill role-${player.ruolo}`;
+    }
+
+    const nameElem = document.getElementById('random-slot-player-name');
+    if (nameElem) nameElem.textContent = player.nome;
+
+    const teamElem = document.getElementById('random-slot-team');
+    if (teamElem) teamElem.textContent = player.squadra;
+
+    const fasciaElem = document.getElementById('random-slot-fascia');
+    if (fasciaElem) fasciaElem.textContent = player.fascia || 'Generale';
+
+    const extraElem = document.getElementById('random-slot-extra');
+    if (extraElem) {
+      if (player.prezzo_massimo_imposto) {
+        extraElem.textContent = `Max: ${player.prezzo_massimo_imposto} cr`;
+        extraElem.classList.remove('hidden');
+      } else {
+        extraElem.classList.add('hidden');
+      }
+    }
+
+    const btnInstant = document.getElementById('btn-start-auction-instant');
+    if (btnInstant) btnInstant.disabled = false;
+
+    if (playAudio && window.soundEngine) {
+      window.soundEngine.playSuccess();
+    }
+  }
+
+  startAuctionFromRandom() {
+    if (!this.lastExtractedPlayer) return;
+    const playerId = this.lastExtractedPlayer.id;
+    this.closeRandomPickerModal();
+    this.openAuctionModal(playerId);
+  }
+
+  // =========================================================================
+  // TIMER MANUALE BATTITORE D'ASTA
+  // =========================================================================
+  setTimerPreset(seconds) {
+    this.auctionTimer.presetSeconds = seconds;
+    document.querySelectorAll('.btn-timer-preset').forEach(b => {
+      b.classList.toggle('active', parseInt(b.getAttribute('data-preset'), 10) === seconds);
+    });
+    this.resetAuctionTimer(seconds);
+  }
+
+  toggleAuctionTimer() {
+    if (this.auctionTimer.isRunning) {
+      this.pauseAuctionTimer();
+    } else {
+      this.startAuctionTimer();
+    }
+  }
+
+  startAuctionTimer() {
+    if (this.auctionTimer.isRunning) return;
+
+    if (this.auctionTimer.remainingMs <= 0) {
+      this.auctionTimer.remainingMs = this.auctionTimer.presetSeconds * 1000;
+    }
+
+    this.auctionTimer.isRunning = true;
+    this.auctionTimer.isPaused = false;
+    this.auctionTimer.lastTickSecond = Math.ceil(this.auctionTimer.remainingMs / 1000);
+    this.auctionTimer.lastTimestamp = performance.now();
+
+    const iconElem = document.getElementById('btn-timer-icon');
+    const labelElem = document.getElementById('btn-timer-label');
+    const btnMain = document.getElementById('btn-timer-start-pause');
+    const statusBadge = document.getElementById('auction-timer-status');
+    const bannerExpired = document.getElementById('auction-timer-expired-banner');
+
+    if (iconElem) iconElem.textContent = '⏸';
+    if (labelElem) labelElem.textContent = 'Pausa';
+    if (btnMain) btnMain.classList.add('is-running');
+    if (bannerExpired) bannerExpired.classList.add('hidden');
+
+    if (statusBadge) {
+      statusBadge.textContent = 'IN CORSO';
+      statusBadge.className = 'auction-timer-status-badge status-running';
+    }
+
+    if (this.auctionTimer.intervalId) clearInterval(this.auctionTimer.intervalId);
+
+    // Notifica Schermo TV Pubblico dell'avvio timer
+    this.broadcastSync('TIMER_START', {
+      remainingMs: this.auctionTimer.remainingMs,
+      presetSeconds: this.auctionTimer.presetSeconds
+    });
+
+    this.auctionTimer.intervalId = setInterval(() => {
+      const now = performance.now();
+      const delta = now - this.auctionTimer.lastTimestamp;
+      this.auctionTimer.lastTimestamp = now;
+
+      this.auctionTimer.remainingMs = Math.max(0, this.auctionTimer.remainingMs - delta);
+
+      // Beep per gli ultimi 3 secondi su passaggio di secondo
+      const currentSec = Math.ceil(this.auctionTimer.remainingMs / 1000);
+      if (currentSec !== this.auctionTimer.lastTickSecond) {
+        this.auctionTimer.lastTickSecond = currentSec;
+        if (currentSec === 3 || currentSec === 2 || currentSec === 1) {
+          if (!this.auctionTimer.muted && window.soundEngine) {
+            window.soundEngine.playTimerBeep(currentSec);
+          }
+        }
+        // Sincronizzazione Schermo TV ad ogni passaggio di secondo
+        this.broadcastSync('TIMER_TICK', {
+          remainingMs: this.auctionTimer.remainingMs,
+          presetSeconds: this.auctionTimer.presetSeconds
+        });
+      }
+
+      this.renderAuctionTimer();
+
+      if (this.auctionTimer.remainingMs <= 0) {
+        this.onAuctionTimerExpired();
+      }
+    }, 50);
+  }
+
+  pauseAuctionTimer() {
+    if (!this.auctionTimer.isRunning) return;
+
+    if (this.auctionTimer.intervalId) {
+      clearInterval(this.auctionTimer.intervalId);
+      this.auctionTimer.intervalId = null;
+    }
+
+    this.auctionTimer.isRunning = false;
+    this.auctionTimer.isPaused = true;
+
+    // Notifica Schermo TV Pubblico della pausa timer
+    this.broadcastSync('TIMER_PAUSE', {
+      remainingMs: this.auctionTimer.remainingMs,
+      presetSeconds: this.auctionTimer.presetSeconds
+    });
+
+    const iconElem = document.getElementById('btn-timer-icon');
+    const labelElem = document.getElementById('btn-timer-label');
+    const btnMain = document.getElementById('btn-timer-start-pause');
+    const statusBadge = document.getElementById('auction-timer-status');
+
+    if (iconElem) iconElem.textContent = '▶';
+    if (labelElem) labelElem.textContent = 'Riprendi';
+    if (btnMain) btnMain.classList.remove('is-running');
+
+    if (statusBadge) {
+      statusBadge.textContent = 'IN PAUSA';
+      statusBadge.className = 'auction-timer-status-badge status-paused';
+    }
+  }
+
+  resetAuctionTimer(targetSec = null) {
+    if (this.auctionTimer.intervalId) {
+      clearInterval(this.auctionTimer.intervalId);
+      this.auctionTimer.intervalId = null;
+    }
+
+    this.auctionTimer.isRunning = false;
+    this.auctionTimer.isPaused = false;
+
+    if (targetSec !== null) {
+      this.auctionTimer.presetSeconds = targetSec;
+      document.querySelectorAll('.btn-timer-preset').forEach(b => {
+        b.classList.toggle('active', parseInt(b.getAttribute('data-preset'), 10) === targetSec);
+      });
+    }
+
+    this.auctionTimer.remainingMs = this.auctionTimer.presetSeconds * 1000;
+    this.auctionTimer.lastTickSecond = null;
+
+    // Notifica Schermo TV Pubblico del reset timer
+    this.broadcastSync('TIMER_RESET', {
+      remainingMs: this.auctionTimer.remainingMs,
+      presetSeconds: this.auctionTimer.presetSeconds
+    });
+
+    const iconElem = document.getElementById('btn-timer-icon');
+    const labelElem = document.getElementById('btn-timer-label');
+    const btnMain = document.getElementById('btn-timer-start-pause');
+    const statusBadge = document.getElementById('auction-timer-status');
+    const bannerExpired = document.getElementById('auction-timer-expired-banner');
+
+    if (iconElem) iconElem.textContent = '▶';
+    if (labelElem) labelElem.textContent = 'Avvia Timer';
+    if (btnMain) btnMain.classList.remove('is-running');
+    if (bannerExpired) bannerExpired.classList.add('hidden');
+
+    if (statusBadge) {
+      statusBadge.textContent = 'PRONTO';
+      statusBadge.className = 'auction-timer-status-badge status-idle';
+    }
+
+    this.renderAuctionTimer();
+  }
+
+  onAuctionTimerExpired() {
+    if (this.auctionTimer.intervalId) {
+      clearInterval(this.auctionTimer.intervalId);
+      this.auctionTimer.intervalId = null;
+    }
+
+    this.auctionTimer.isRunning = false;
+    this.auctionTimer.isPaused = false;
+    this.auctionTimer.remainingMs = 0;
+
+    // Notifica Schermo TV Pubblico della scadenza timer (Aggiudicato!)
+    this.broadcastSync('TIMER_EXPIRED', {
+      remainingMs: 0,
+      presetSeconds: this.auctionTimer.presetSeconds
+    });
+
+    const iconElem = document.getElementById('btn-timer-icon');
+    const labelElem = document.getElementById('btn-timer-label');
+    const btnMain = document.getElementById('btn-timer-start-pause');
+    const bannerExpired = document.getElementById('auction-timer-expired-banner');
+
+    if (iconElem) iconElem.textContent = '↺';
+    if (labelElem) labelElem.textContent = 'Reset';
+    if (btnMain) btnMain.classList.remove('is-running');
+    if (bannerExpired) bannerExpired.classList.remove('hidden');
+
+    if (!this.auctionTimer.muted && window.soundEngine) {
+      window.soundEngine.playTimerExpired();
+    }
+
+    this.renderAuctionTimer();
+  }
+
+  renderAuctionTimer() {
+    const sec = Math.ceil(this.auctionTimer.remainingMs / 1000);
+    const digitsElem = document.getElementById('auction-timer-val');
+    const barElem = document.getElementById('auction-timer-bar');
+    const statusBadge = document.getElementById('auction-timer-status');
+
+    if (digitsElem) {
+      digitsElem.textContent = String(sec).padStart(2, '0') + 's';
+    }
+
+    const totalMs = this.auctionTimer.presetSeconds * 1000;
+    const pct = Math.max(0, Math.min(100, (this.auctionTimer.remainingMs / totalMs) * 100));
+
+    if (barElem) {
+      barElem.style.width = pct + '%';
+    }
+
+    // Gestione colori dinamici in base ai secondi rimasti
+    if (sec > 3) {
+      if (barElem) barElem.className = 'auction-timer-bar bar-green';
+      if (digitsElem) digitsElem.className = 'auction-timer-val';
+      if (statusBadge && this.auctionTimer.isRunning) {
+        statusBadge.textContent = 'IN CORSO';
+        statusBadge.className = 'auction-timer-status-badge status-running';
+      }
+    } else if (sec === 3 || sec === 2) {
+      if (barElem) barElem.className = 'auction-timer-bar bar-yellow';
+      if (digitsElem) digitsElem.className = 'auction-timer-val val-yellow';
+      if (statusBadge && this.auctionTimer.isRunning) {
+        statusBadge.textContent = 'ULTIMI SECONDI!';
+        statusBadge.className = 'auction-timer-status-badge status-warning';
+      }
+    } else {
+      // <= 1 secondo e 0s
+      if (barElem) barElem.className = 'auction-timer-bar bar-red';
+      if (digitsElem) digitsElem.className = 'auction-timer-val val-red';
+      if (statusBadge) {
+        statusBadge.textContent = 'AGGIUDICATO!';
+        statusBadge.className = 'auction-timer-status-badge status-expired';
+      }
+    }
+  }
+
+  toggleTimerMute() {
+    this.auctionTimer.muted = !this.auctionTimer.muted;
+    const btn = document.getElementById('btn-timer-mute');
+    if (btn) {
+      btn.textContent = this.auctionTimer.muted ? '🔇' : '🔊';
+      btn.classList.toggle('muted', this.auctionTimer.muted);
+      btn.title = this.auctionTimer.muted ? 'Attiva audio timer' : 'Disattiva audio timer';
+    }
+  }
+
+  onBidIncremented() {
+    // Sui rilanci (+1, +5, +10, +20): interrompe il timer e reimposta sul default 8s
+    this.resetAuctionTimer(8);
+  }
+
+  // =========================================================================
+  // METODI SINCRONIZZAZIONE SCHERMO TV PUBBLICO (DUAL SCREEN OFFLINE)
+  // =========================================================================
+  broadcastSync(type, payload = {}) {
+    const message = {
+      type,
+      payload,
+      timestamp: Date.now()
+    };
+
+    if (this.syncChannel) {
+      try {
+        this.syncChannel.postMessage(message);
+      } catch (e) {
+        console.warn('BroadcastChannel sync error:', e);
+      }
+    }
+
+    try {
+      localStorage.setItem('fanta_asta_tv_sync', JSON.stringify(message));
+    } catch (e) {
+      console.warn('localStorage TV sync error:', e);
+    }
+  }
+
+  handleSyncMessage(msg) {
+    if (!msg || !msg.type) return;
+    if (msg.type === 'REQUEST_SYNC') {
+      this.sendFullStateSyncToTv();
+    }
+  }
+
+  getCleanManagersForTv() {
+    const managers = this.state.getAllManagers();
+    const league = this.state.getLeagueConfig();
+    const slotsConfig = this.state.getSlotsConfig();
+    return managers.map(m => {
+      const roster = (m.roster || []).map(p => ({
+        id: p.id,
+        nome: p.nome,
+        ruolo: p.ruolo,
+        squadra: p.squadra,
+        prezzo_acquisto: p.prezzo_acquisto
+      }));
+      const spent = m.spent || 0;
+      const remaining = (league.initialBudget || 500) - spent;
+      const maxBid = this.auction.calculateMaxBid(m.id);
+      const freeSlots = this.auction.getManagerFreeSlots(m.id);
+      const counts = this.auction.getManagerRosterCounts(m.id);
+      return {
+        id: m.id,
+        name: m.name,
+        spent,
+        remaining,
+        maxBid,
+        totalSlots: slotsConfig.total,
+        roster,
+        counts,
+        freeSlots
+      };
+    });
+  }
+
+  sendFullStateSyncToTv() {
+    const isAuctionActive = !!this.currentAuctionPlayer;
+    const managerSelect = document.getElementById('bid-manager-select');
+    const priceInput = document.getElementById('bid-price-input');
+
+    const selectedManager = managerSelect && managerSelect.value ? this.state.getManager(managerSelect.value) : null;
+    const currentPrice = priceInput ? (parseInt(priceInput.value, 10) || 0) : 0;
+
+    this.broadcastSync('STATE_SYNC', {
+      league: this.state.getLeagueConfig(),
+      slotsConfig: this.state.getSlotsConfig(),
+      managers: this.getCleanManagersForTv(),
+      auction: isAuctionActive ? {
+        player: {
+          id: this.currentAuctionPlayer.id,
+          nome: this.currentAuctionPlayer.nome,
+          ruolo: this.currentAuctionPlayer.ruolo,
+          squadra: this.currentAuctionPlayer.squadra
+        },
+        currentBid: currentPrice,
+        manager: selectedManager ? { id: selectedManager.id, name: selectedManager.name } : null,
+        timer: {
+          presetSeconds: this.auctionTimer.presetSeconds,
+          remainingMs: this.auctionTimer.remainingMs,
+          isRunning: this.auctionTimer.isRunning,
+          isPaused: this.auctionTimer.isPaused
+        }
+      } : null
+    });
   }
 
   // =========================================================================

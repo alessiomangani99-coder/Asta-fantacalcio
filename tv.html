@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schermo Pubblico TV | Asta Fantacalcio Live</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --bg-surface: #0f172a;
+      --bg-card: #162036;
+      --bg-card-hover: #1e2c4a;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(99, 102, 241, 0.35);
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      --role-p: #f59e0b;
+      --role-p-glow: rgba(245, 158, 11, 0.3);
+      --role-d: #3b82f6;
+      --role-d-glow: rgba(59, 130, 246, 0.3);
+      --role-c: #10b981;
+      --role-c-glow: rgba(16, 185, 129, 0.3);
+      --role-a: #ef4444;
+      --role-a-glow: rgba(239, 68, 68, 0.3);
+
+      --color-gold: #fbbf24;
+      --color-emerald: #10b981;
+      --color-red: #f43f5e;
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.09) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.06) 0%, transparent 45%);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Bar */
+    .tv-header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.75rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .tv-brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .tv-brand-badge {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 0.95rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 8px;
+      letter-spacing: 0.05em;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+    }
+
+    .tv-league-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+
+    .tv-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    .tv-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulseDot 2s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .tv-header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .tv-clock {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .tv-btn-control {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s;
+    }
+
+    .tv-btn-control:hover {
+      background: var(--bg-card-hover);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Banner Audio Unlock */
+    .tv-audio-banner {
+      background: linear-gradient(90deg, #4338ca 0%, #6366f1 100%);
+      color: #ffffff;
+      padding: 0.65rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+      transition: opacity 0.3s;
+    }
+
+    .tv-audio-banner.hidden {
+      display: none;
+    }
+
+    .tv-audio-banner:hover {
+      filter: brightness(1.1);
+    }
+
+    /* Main Container */
+    .tv-main {
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================================
+       VIEW 1: STANDBY / TABELLONE PUBBLICO ROSE
+       ========================================================================= */
+    #tv-standby-view {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .standby-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 1rem;
+    }
+
+    .standby-title {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .standby-subtitle {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .tv-teams-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .tv-team-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .tv-team-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+
+    .tv-team-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .tv-team-name {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .tv-team-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text-muted);
+    }
+
+    .tv-stats-pills {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.6rem;
+      background: var(--bg-card);
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .tv-stat-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tv-stat-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+    }
+
+    .tv-stat-val {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-top: 0.15rem;
+    }
+
+    .tv-stat-val.credits-green {
+      color: #34d399;
+      text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
+    }
+
+    .tv-roles-counts {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .tv-role-pill {
+      flex: 1;
+      padding: 0.35rem 0.5rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+    }
+
+    .tv-role-pill.p { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+    .tv-role-pill.d { color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); }
+    .tv-role-pill.c { color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+    .tv-role-pill.a { color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+
+    .tv-roster-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-height: 240px;
+      overflow-y: auto;
+      padding-right: 0.3rem;
+    }
+
+    .tv-roster-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .tv-roster-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .tv-roster-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.35rem 0.6rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .tv-roster-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tv-r-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .tv-mini-badge {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .tv-mini-badge.P { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .tv-mini-badge.D { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+    .tv-mini-badge.C { background: rgba(16, 185, 129, 0.2); color: #86efac; }
+    .tv-mini-badge.A { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+
+    .tv-r-name {
+      font-weight: 700;
+      color: #e2e8f0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tv-r-team {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .tv-r-price {
+      font-family: var(--font-display);
+      font-weight: 800;
+      color: #fbbf24;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .tv-roster-empty {
+      text-align: center;
+      padding: 1.5rem 0;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    /* =========================================================================
+       VIEW 2: LIVE BIDDING COCKPIT (BATTITORE A TUTTO SCHERMO)
+       ========================================================================= */
+    #tv-bidding-view {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+      min-height: calc(100vh - 120px);
+      position: relative;
+    }
+
+    .tv-bidding-hero {
+      width: 100%;
+      max-width: 1200px;
+      background: radial-gradient(circle at 50% 30%, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px;
+      padding: 3.5rem 3rem;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(99, 102, 241, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .tv-bidding-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #10b981 100%);
+    }
+
+    .tv-role-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1.8rem;
+      border-radius: 9999px;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .tv-role-banner.P { background: rgba(245, 158, 11, 0.2); border: 2px solid #f59e0b; color: #fbbf24; box-shadow: 0 0 25px rgba(245, 158, 11, 0.35); }
+    .tv-role-banner.D { background: rgba(59, 130, 246, 0.2); border: 2px solid #3b82f6; color: #93c5fd; box-shadow: 0 0 25px rgba(59, 130, 246, 0.35); }
+    .tv-role-banner.C { background: rgba(16, 185, 129, 0.2); border: 2px solid #10b981; color: #86efac; box-shadow: 0 0 25px rgba(16, 185, 129, 0.35); }
+    .tv-role-banner.A { background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; color: #fca5a5; box-shadow: 0 0 25px rgba(239, 68, 68, 0.35); }
+
+    .tv-player-name {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 6.5vw, 5.5rem);
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+      margin-bottom: 0.5rem;
+      max-width: 95%;
+      word-break: break-word;
+    }
+
+    .tv-player-team {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Box Prezzo & Manager Bidding */
+    .tv-bid-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 2rem;
+      width: 100%;
+      max-width: 900px;
+      margin-bottom: 2.5rem;
+    }
+
+    .tv-bid-box {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .tv-bid-label {
+      font-size: 0.9rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+
+    .tv-bid-price-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .tv-bid-price {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 7vw, 5rem);
+      font-weight: 900;
+      color: #fbbf24;
+      line-height: 1;
+      text-shadow: 0 0 30px rgba(251, 191, 36, 0.45);
+    }
+
+    .tv-bid-currency {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #f59e0b;
+    }
+
+    .tv-manager-box {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .tv-manager-name {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    .tv-manager-sub {
+      font-size: 0.95rem;
+      color: #34d399;
+      font-weight: 700;
+      margin-top: 0.4rem;
+    }
+
+    /* TV Timer Section */
+    .tv-timer-container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .tv-timer-display-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .tv-timer-digits {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 6.5vw, 5rem);
+      font-weight: 900;
+      color: #34d399;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      text-shadow: 0 0 25px rgba(52, 211, 153, 0.5);
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+
+    .tv-timer-digits.warning {
+      color: #fbbf24;
+      text-shadow: 0 0 25px rgba(251, 191, 36, 0.5);
+    }
+
+    .tv-timer-digits.danger {
+      color: #ef4444;
+      text-shadow: 0 0 35px rgba(239, 68, 68, 0.8);
+      animation: pulseDangerDigits 0.5s infinite alternate;
+    }
+
+    @keyframes pulseDangerDigits {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.08); }
+    }
+
+    .tv-timer-status-tag {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 900;
+      padding: 0.4rem 1.2rem;
+      border-radius: 9999px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      color: #34d399;
+    }
+
+    .tv-timer-status-tag.paused {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: #f59e0b;
+      color: #fbbf24;
+    }
+
+    .tv-timer-status-tag.expired {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: #ef4444;
+      color: #fca5a5;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+      animation: flashTag 0.6s infinite alternate;
+    }
+
+    @keyframes flashTag {
+      0% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    /* Barra del Timer TV */
+    .tv-timer-bar-wrap {
+      width: 100%;
+      height: 18px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .tv-timer-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+      border-radius: 9999px;
+      transition: width 0.08s linear, background 0.3s;
+    }
+
+    .tv-timer-bar-fill.bar-warning {
+      background: linear-gradient(90deg, #d97706 0%, #fbbf24 100%);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+    }
+
+    .tv-timer-bar-fill.bar-danger {
+      background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.85);
+    }
+
+    /* Banner "AGGIUDICATO!" gigante */
+    .tv-expired-banner {
+      margin-top: 1rem;
+      padding: 1rem 3rem;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(185, 28, 28, 0.35) 100%);
+      border: 2px solid #ef4444;
+      border-radius: 16px;
+      box-shadow: 0 0 35px rgba(239, 68, 68, 0.6);
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #ffffff;
+      text-transform: uppercase;
+      animation: pulseGavel 0.6s infinite alternate;
+    }
+
+    @keyframes pulseGavel {
+      0% { transform: scale(1); box-shadow: 0 0 25px rgba(239, 68, 68, 0.5); }
+      100% { transform: scale(1.04); box-shadow: 0 0 45px rgba(239, 68, 68, 0.9); }
+    }
+
+    /* Modal / Overlay Celebrazione Assegnazione (AUCTION_SOLD) */
+    .tv-sold-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 11, 20, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .tv-sold-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .tv-sold-card {
+      background: radial-gradient(circle at 50% 20%, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.98) 100%);
+      border: 3px solid #10b981;
+      box-shadow: 0 0 60px rgba(16, 185, 129, 0.4), 0 25px 50px rgba(0, 0, 0, 0.8);
+      border-radius: 28px;
+      padding: 3.5rem 4rem;
+      max-width: 850px;
+      width: 100%;
+      transform: scale(0.9);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .tv-sold-overlay.active .tv-sold-card {
+      transform: scale(1);
+    }
+
+    .tv-sold-icon {
+      font-size: 5rem;
+      margin-bottom: 1rem;
+      animation: bounceTrophy 1s infinite alternate;
+    }
+
+    @keyframes bounceTrophy {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-12px); }
+    }
+
+    .tv-sold-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      color: #34d399;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .tv-sold-player {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+    }
+
+    .tv-sold-meta {
+      font-size: 1.35rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    .tv-sold-badge-mgr {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.25rem 2.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .tv-sold-mgr-name {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .tv-sold-price {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #fbbf24;
+      text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Banner Click to Unlock Web Audio API on TV -->
+  <div id="tv-audio-banner" class="tv-audio-banner">
+    <span>🔊 <strong>Abilita Audio TV</strong>: Clicca qui per attivare i rintocchi sonori del timer (3.. 2.. 1.. e Aggiudicato!)</span>
+  </div>
+
+  <!-- Header TV -->
+  <header class="tv-header">
+    <div class="tv-brand">
+      <div class="tv-brand-badge">📺 TV LIVE</div>
+      <div class="tv-league-title" id="tv-league-title">Lega Fantacalcio 2026/2027</div>
+      <div class="tv-status-badge">
+        <span class="tv-status-dot"></span>
+        <span id="tv-status-text">Connesso al Battitore</span>
+      </div>
+    </div>
+
+    <div class="tv-header-right">
+      <button id="tv-btn-audio" class="tv-btn-control" title="Muto / Attiva Audio">
+        <span id="tv-audio-icon">🔊</span>
+        <span id="tv-audio-label">Audio TV</span>
+      </button>
+      <button id="tv-btn-fullscreen" class="tv-btn-control" title="Attiva Schermo Intero">
+        <span>⛶</span>
+        <span>Schermo Intero</span>
+      </button>
+      <div class="tv-clock" id="tv-clock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- Container Principale -->
+  <main class="tv-main">
+
+    <!-- VIEW 1: STANDBY / TABELLONE PUBBLICO DELLE ROSE -->
+    <section id="tv-standby-view">
+      <div class="standby-topbar">
+        <div>
+          <h1 class="standby-title">
+            <span>📋 Tabellone Ufficiale Squadre e Crediti</span>
+          </h1>
+          <div class="standby-subtitle">In attesa della prossima chiamata all'asta da parte del battitore</div>
+        </div>
+      </div>
+
+      <div class="tv-teams-grid" id="tv-teams-grid">
+        <!-- Generato dinamicamente -->
+      </div>
+    </section>
+
+    <!-- VIEW 2: LIVE BIDDING COCKPIT (BATTITORE A TUTTO SCHERMO) -->
+    <section id="tv-bidding-view" class="hidden">
+      <div class="tv-bidding-hero" id="tv-bidding-hero">
+        
+        <div id="tv-role-banner" class="tv-role-banner P">
+          <span id="tv-role-icon">🧤</span>
+          <span id="tv-role-text">PORTIERE</span>
+        </div>
+
+        <h1 class="tv-player-name" id="tv-player-name">CALCIATORE</h1>
+        <div class="tv-player-team" id="tv-player-team">SQUADRA SERIE A</div>
+
+        <div class="tv-bid-grid">
+          <div class="tv-bid-box">
+            <span class="tv-bid-label">Offerta Attuale</span>
+            <div class="tv-bid-price-wrap">
+              <span class="tv-bid-price" id="tv-bid-price">0</span>
+              <span class="tv-bid-currency">CR</span>
+            </div>
+          </div>
+
+          <div class="tv-manager-box">
+            <span class="tv-bid-label">Miglior Offerente</span>
+            <div class="tv-manager-name" id="tv-manager-name">In attesa di offerta...</div>
+            <div class="tv-manager-sub" id="tv-manager-sub">Battitore Aperto</div>
+          </div>
+        </div>
+
+        <div class="tv-timer-container">
+          <div class="tv-timer-display-row">
+            <div class="tv-timer-digits" id="tv-timer-digits">08s</div>
+            <div class="tv-timer-status-tag" id="tv-timer-tag">PRONTO</div>
+          </div>
+
+          <div class="tv-timer-bar-wrap">
+            <div class="tv-timer-bar-fill" id="tv-timer-bar"></div>
+          </div>
+
+          <div class="tv-expired-banner hidden" id="tv-expired-banner">
+            🔨 AGGIUDICATO!
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Overlay Celebrazione Assegnazione Calciatore (AUCTION_SOLD) -->
+  <div class="tv-sold-overlay" id="tv-sold-overlay">
+    <div class="tv-sold-card">
+      <div class="tv-sold-icon">🎉</div>
+      <div class="tv-sold-title">Calciatore Aggiudicato!</div>
+      <div class="tv-sold-player" id="tv-sold-player-name">GIOCATORE</div>
+      <div class="tv-sold-meta" id="tv-sold-player-meta">PORTIERE • SQUADRA</div>
+      <div class="tv-sold-badge-mgr">
+        <span class="tv-sold-mgr-name" id="tv-sold-manager-name">Manager</span>
+        <span class="tv-sold-price" id="tv-sold-price">0 cr</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Schermo Pubblico TV & Proiettore (tv.html)
+     * Engine autonomo di rendering, Web Audio API TV e sincronizzazione offline.
+     */
+    class TVController {
+      constructor() {
+        this.channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('fanta_asta_sync') : null;
+        this.audioCtx = null;
+        this.audioUnlocked = false;
+        this.isMuted = false;
+
+        this.league = { name: 'Lega Fantacalcio 2026/2027', initialBudget: 500, slots: { P: 3, D: 8, C: 8, A: 6 } };
+        this.managers = [];
+        this.currentAuction = null;
+
+        // Timer locale TV sincronizzato
+        this.timer = {
+          presetSeconds: 8,
+          remainingMs: 8000,
+          isRunning: false,
+          isPaused: false,
+          lastSec: null,
+          animFrameId: null,
+          lastTimestamp: null
+        };
+
+        this.soldTimeoutId = null;
+      }
+
+      init() {
+        this.initClock();
+        this.bindEvents();
+        this.initSync();
+        this.loadFallbackState();
+        this.requestSyncFromApp();
+      }
+
+      initClock() {
+        const update = () => {
+          const el = document.getElementById('tv-clock');
+          if (el) {
+            const now = new Date();
+            el.textContent = now.toTimeString().split(' ')[0];
+          }
+        };
+        update();
+        setInterval(update, 1000);
+      }
+
+      bindEvents() {
+        // Unlock Audio banner
+        const banner = document.getElementById('tv-audio-banner');
+        if (banner) {
+          banner.addEventListener('click', () => {
+            this.unlockAudio();
+          });
+        }
+
+        // Mute / Unmute
+        const btnAudio = document.getElementById('tv-btn-audio');
+        if (btnAudio) {
+          btnAudio.addEventListener('click', () => {
+            if (!this.audioUnlocked) {
+              this.unlockAudio();
+              return;
+            }
+            this.isMuted = !this.isMuted;
+            const icon = document.getElementById('tv-audio-icon');
+            const label = document.getElementById('tv-audio-label');
+            if (icon) icon.textContent = this.isMuted ? '🔇' : '🔊';
+            if (label) label.textContent = this.isMuted ? 'Muto' : 'Audio TV';
+          });
+        }
+
+        // Fullscreen Toggle
+        const btnFullscreen = document.getElementById('tv-btn-fullscreen');
+        if (btnFullscreen) {
+          btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+              document.exitFullscreen().catch(() => {});
+            }
+          });
+        }
+      }
+
+      unlockAudio() {
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!this.audioCtx && AudioContextClass) {
+            this.audioCtx = new AudioContextClass();
+          }
+          if (this.audioCtx && this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+          }
+          this.audioUnlocked = true;
+          const banner = document.getElementById('tv-audio-banner');
+          if (banner) banner.classList.add('hidden');
+          this.playBeepTone(880, 0.15, 'sine'); // Chime di conferma
+        } catch (e) {
+          console.warn('TV Audio Context unlock error:', e);
+        }
+      }
+
+      playBeepTone(freq, duration, type = 'sine') {
+        if (this.isMuted || !this.audioCtx) return;
+        try {
+          if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+          }
+          const osc = this.audioCtx.createOscillator();
+          const gain = this.audioCtx.createGain();
+
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+
+          gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.audioCtx.destination);
+
+          osc.start();
+          osc.stop(this.audioCtx.currentTime + duration);
+        } catch (e) {}
+      }
+
+      playGavelSound() {
+        if (this.isMuted || !this.audioCtx) return;
+        try {
+          if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+          }
+          // Doppio colpo percussivo di martelletto
+          const now = this.audioCtx.currentTime;
+          [now, now + 0.12].forEach((t) => {
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(140, t);
+            osc.frequency.exponentialRampToValueAtTime(35, t + 0.18);
+
+            gain.gain.setValueAtTime(0.65, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+
+            osc.start(t);
+            osc.stop(t + 0.18);
+          });
+        } catch (e) {}
+      }
+
+      initSync() {
+        // 1. BroadcastChannel
+        if (this.channel) {
+          this.channel.onmessage = (event) => {
+            this.handleSyncMessage(event.data);
+          };
+        }
+
+        // 2. LocalStorage storage event fallback
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'fanta_asta_tv_sync' && e.newValue) {
+            try {
+              const msg = JSON.parse(e.newValue);
+              this.handleSyncMessage(msg);
+            } catch (err) {}
+          }
+        });
+      }
+
+      requestSyncFromApp() {
+        const req = { type: 'REQUEST_SYNC', timestamp: Date.now() };
+        if (this.channel) {
+          try { this.channel.postMessage(req); } catch (e) {}
+        }
+        try {
+          localStorage.setItem('fanta_asta_tv_sync_req', JSON.stringify(req));
+        } catch (e) {}
+      }
+
+      loadFallbackState() {
+        try {
+          const raw = localStorage.getItem('ASTA_FANTACALCIO_26_27_V1');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed.league) this.league = parsed.league;
+            if (Array.isArray(parsed.managers)) {
+              this.managers = parsed.managers.map(m => ({
+                id: m.id,
+                name: m.name,
+                spent: m.spent || 0,
+                remaining: (this.league.initialBudget || 500) - (m.spent || 0),
+                totalSlots: (this.league.slots ? (this.league.slots.P + this.league.slots.D + this.league.slots.C + this.league.slots.A) : 25),
+                roster: (m.roster || []).map(p => ({
+                  id: p.id,
+                  nome: p.nome,
+                  ruolo: p.ruolo,
+                  squadra: p.squadra,
+                  prezzo_acquisto: p.prezzo_acquisto
+                })),
+                counts: {
+                  P: (m.roster || []).filter(p => p.ruolo === 'P').length,
+                  D: (m.roster || []).filter(p => p.ruolo === 'D').length,
+                  C: (m.roster || []).filter(p => p.ruolo === 'C').length,
+                  A: (m.roster || []).filter(p => p.ruolo === 'A').length
+                }
+              }));
+              this.renderStandbyBoard();
+            }
+          }
+        } catch (e) {}
+      }
+
+      handleSyncMessage(msg) {
+        if (!msg || !msg.type) return;
+
+        switch (msg.type) {
+          case 'STATE_SYNC':
+            if (msg.payload.league) this.league = msg.payload.league;
+            if (msg.payload.managers) this.managers = msg.payload.managers;
+            this.updateHeaderTitle();
+            if (msg.payload.auction) {
+              this.currentAuction = msg.payload.auction;
+              this.showBiddingView();
+            } else {
+              this.currentAuction = null;
+              this.showStandbyView();
+            }
+            break;
+
+          case 'ROSTER_UPDATE':
+            if (msg.payload.managers) this.managers = msg.payload.managers;
+            if (msg.payload.league) this.league = msg.payload.league;
+            this.renderStandbyBoard();
+            break;
+
+          case 'AUCTION_START':
+            this.currentAuction = msg.payload;
+            this.showBiddingView();
+            break;
+
+          case 'BID_UPDATE':
+            if (this.currentAuction) {
+              this.currentAuction.currentBid = msg.payload.currentBid;
+              this.currentAuction.manager = msg.payload.manager;
+              this.updateBidDisplay();
+            }
+            break;
+
+          case 'TIMER_START':
+            this.startLocalTimer(msg.payload.remainingMs, msg.payload.presetSeconds);
+            break;
+
+          case 'TIMER_PAUSE':
+            this.pauseLocalTimer(msg.payload.remainingMs);
+            break;
+
+          case 'TIMER_RESET':
+            this.resetLocalTimer(msg.payload.remainingMs, msg.payload.presetSeconds);
+            break;
+
+          case 'TIMER_TICK':
+            this.syncTimerTick(msg.payload.remainingMs);
+            break;
+
+          case 'TIMER_EXPIRED':
+            this.onTimerExpired();
+            break;
+
+          case 'AUCTION_SOLD':
+            if (msg.payload.managers) this.managers = msg.payload.managers;
+            this.showSoldOverlay(msg.payload);
+            break;
+
+          case 'AUCTION_CLOSE':
+            if (msg.payload.managers) this.managers = msg.payload.managers;
+            this.currentAuction = null;
+            this.stopLocalTimer();
+            this.showStandbyView();
+            break;
+        }
+      }
+
+      updateHeaderTitle() {
+        const titleEl = document.getElementById('tv-league-title');
+        if (titleEl && this.league && this.league.name) {
+          titleEl.textContent = this.league.name;
+        }
+      }
+
+      showStandbyView() {
+        const standby = document.getElementById('tv-standby-view');
+        const bidding = document.getElementById('tv-bidding-view');
+        if (standby) standby.classList.remove('hidden');
+        if (bidding) bidding.classList.add('hidden');
+
+        const status = document.getElementById('tv-status-text');
+        if (status) status.textContent = 'In Attesa di Chiamata';
+
+        this.renderStandbyBoard();
+      }
+
+      showBiddingView() {
+        const standby = document.getElementById('tv-standby-view');
+        const bidding = document.getElementById('tv-bidding-view');
+        if (standby) standby.classList.add('hidden');
+        if (bidding) bidding.classList.remove('hidden');
+
+        const status = document.getElementById('tv-status-text');
+        if (status) status.textContent = 'Asta in Corso!';
+
+        const p = this.currentAuction.player;
+        if (!p) return;
+
+        // Ruolo
+        const roleBanner = document.getElementById('tv-role-banner');
+        const roleIcon = document.getElementById('tv-role-icon');
+        const roleText = document.getElementById('tv-role-text');
+        const icons = { P: '🧤', D: '🛡️', C: '⚙️', A: '⚡' };
+        const labels = { P: 'PORTIERE', D: 'DIFENSORE', C: 'CENTROCAMPISTA', A: 'ATTACCANTE' };
+
+        if (roleBanner) {
+          roleBanner.className = `tv-role-banner ${p.ruolo}`;
+        }
+        if (roleIcon) roleIcon.textContent = icons[p.ruolo] || '⚽';
+        if (roleText) roleText.textContent = labels[p.ruolo] || p.ruolo;
+
+        // Nome & Squadra
+        const nameEl = document.getElementById('tv-player-name');
+        const teamEl = document.getElementById('tv-player-team');
+        if (nameEl) nameEl.textContent = p.nome;
+        if (teamEl) teamEl.textContent = p.squadra;
+
+        this.updateBidDisplay();
+
+        // Timer
+        const t = this.currentAuction.timer || { remainingMs: 8000, presetSeconds: 8, isRunning: false };
+        this.resetLocalTimer(t.remainingMs, t.presetSeconds);
+        if (t.isRunning) {
+          this.startLocalTimer(t.remainingMs, t.presetSeconds);
+        }
+      }
+
+      updateBidDisplay() {
+        const priceEl = document.getElementById('tv-bid-price');
+        const mgrNameEl = document.getElementById('tv-manager-name');
+        const mgrSubEl = document.getElementById('tv-manager-sub');
+
+        const price = this.currentAuction ? this.currentAuction.currentBid || 0 : 0;
+        const mgr = this.currentAuction ? this.currentAuction.manager : null;
+
+        if (priceEl) priceEl.textContent = price;
+        if (mgrNameEl) {
+          mgrNameEl.textContent = mgr ? mgr.name : 'In attesa di offerta...';
+        }
+        if (mgrSubEl) {
+          mgrSubEl.textContent = mgr ? 'Offerta Attuale Convalidata' : 'Prezzo Base: 0 cr';
+        }
+      }
+
+      // =======================================================================
+      // TIMER OFFLINE AD ALTA PRECISIONE SU SCHERMO TV
+      // =======================================================================
+      startLocalTimer(remainingMs, presetSec) {
+        this.timer.presetSeconds = presetSec || this.timer.presetSeconds || 8;
+        this.timer.remainingMs = remainingMs !== undefined ? remainingMs : this.timer.presetSeconds * 1000;
+        this.timer.isRunning = true;
+        this.timer.isPaused = false;
+        this.timer.lastSec = Math.ceil(this.timer.remainingMs / 1000);
+        this.timer.lastTimestamp = performance.now();
+
+        const banner = document.getElementById('tv-expired-banner');
+        if (banner) banner.classList.add('hidden');
+
+        this.updateTimerUI();
+
+        if (this.timer.animFrameId) cancelAnimationFrame(this.timer.animFrameId);
+        const tick = () => {
+          if (!this.timer.isRunning) return;
+          const now = performance.now();
+          const delta = now - this.timer.lastTimestamp;
+          this.timer.lastTimestamp = now;
+
+          this.timer.remainingMs = Math.max(0, this.timer.remainingMs - delta);
+          const currentSec = Math.ceil(this.timer.remainingMs / 1000);
+
+          if (currentSec !== this.timer.lastSec) {
+            this.timer.lastSec = currentSec;
+            if (currentSec === 3 || currentSec === 2 || currentSec === 1) {
+              const freqs = { 3: 523.25, 2: 659.25, 1: 783.99 }; // C5, E5, G5
+              this.playBeepTone(freqs[currentSec] || 600, 0.12, 'sine');
+            }
+          }
+
+          this.updateTimerUI();
+
+          if (this.timer.remainingMs <= 0) {
+            this.onTimerExpired();
+          } else {
+            this.timer.animFrameId = requestAnimationFrame(tick);
+          }
+        };
+
+        this.timer.animFrameId = requestAnimationFrame(tick);
+      }
+
+      pauseLocalTimer(remainingMs) {
+        this.timer.isRunning = false;
+        this.timer.isPaused = true;
+        if (remainingMs !== undefined) this.timer.remainingMs = remainingMs;
+        if (this.timer.animFrameId) cancelAnimationFrame(this.timer.animFrameId);
+        this.updateTimerUI();
+      }
+
+      resetLocalTimer(remainingMs, presetSec) {
+        this.timer.isRunning = false;
+        this.timer.isPaused = false;
+        if (this.timer.animFrameId) cancelAnimationFrame(this.timer.animFrameId);
+        if (presetSec) this.timer.presetSeconds = presetSec;
+        this.timer.remainingMs = remainingMs !== undefined ? remainingMs : this.timer.presetSeconds * 1000;
+        this.timer.lastSec = null;
+
+        const banner = document.getElementById('tv-expired-banner');
+        if (banner) banner.classList.add('hidden');
+
+        this.updateTimerUI();
+      }
+
+      stopLocalTimer() {
+        this.timer.isRunning = false;
+        this.timer.isPaused = false;
+        if (this.timer.animFrameId) cancelAnimationFrame(this.timer.animFrameId);
+      }
+
+      syncTimerTick(remainingMs) {
+        if (Math.abs(this.timer.remainingMs - remainingMs) > 250) {
+          this.timer.remainingMs = remainingMs;
+        }
+      }
+
+      onTimerExpired() {
+        this.stopLocalTimer();
+        this.timer.remainingMs = 0;
+        this.updateTimerUI();
+
+        const banner = document.getElementById('tv-expired-banner');
+        if (banner) banner.classList.remove('hidden');
+
+        this.playGavelSound();
+      }
+
+      updateTimerUI() {
+        const sec = Math.ceil(this.timer.remainingMs / 1000);
+        const digitsEl = document.getElementById('tv-timer-digits');
+        const tagEl = document.getElementById('tv-timer-tag');
+        const barEl = document.getElementById('tv-timer-bar');
+
+        if (digitsEl) {
+          digitsEl.textContent = String(sec).padStart(2, '0') + 's';
+        }
+
+        const totalMs = (this.timer.presetSeconds || 8) * 1000;
+        const pct = Math.max(0, Math.min(100, (this.timer.remainingMs / totalMs) * 100));
+
+        if (barEl) {
+          barEl.style.width = pct + '%';
+        }
+
+        if (sec > 3) {
+          if (digitsEl) digitsEl.className = 'tv-timer-digits';
+          if (barEl) barEl.className = 'tv-timer-bar-fill';
+          if (tagEl) {
+            tagEl.textContent = this.timer.isRunning ? 'IN CORSO' : (this.timer.isPaused ? 'IN PAUSA' : 'PRONTO');
+            tagEl.className = `tv-timer-status-tag ${this.timer.isPaused ? 'paused' : ''}`;
+          }
+        } else if (sec === 3 || sec === 2) {
+          if (digitsEl) digitsEl.className = 'tv-timer-digits warning';
+          if (barEl) barEl.className = 'tv-timer-bar-fill bar-warning';
+          if (tagEl) {
+            tagEl.textContent = 'ULTIMI SECONDI!';
+            tagEl.className = 'tv-timer-status-tag paused';
+          }
+        } else {
+          // <= 1s e 0s
+          if (digitsEl) digitsEl.className = 'tv-timer-digits danger';
+          if (barEl) barEl.className = 'tv-timer-bar-fill bar-danger';
+          if (tagEl) {
+            tagEl.textContent = sec === 0 ? 'AGGIUDICATO!' : 'ULTIMO SECONDO!';
+            tagEl.className = 'tv-timer-status-tag expired';
+          }
+        }
+      }
+
+      // =======================================================================
+      // CELEBRAZIONE ASSEGNAZIONE GIOCATORE (AUCTION_SOLD)
+      // =======================================================================
+      showSoldOverlay(payload) {
+        this.stopLocalTimer();
+        const overlay = document.getElementById('tv-sold-overlay');
+        const nameEl = document.getElementById('tv-sold-player-name');
+        const metaEl = document.getElementById('tv-sold-player-meta');
+        const mgrEl = document.getElementById('tv-sold-manager-name');
+        const priceEl = document.getElementById('tv-sold-price');
+
+        const labels = { P: 'Portiere', D: 'Difensore', C: 'Centrocampista', A: 'Attaccante' };
+
+        if (nameEl) nameEl.textContent = payload.player.nome;
+        if (metaEl) metaEl.textContent = `${labels[payload.player.ruolo] || payload.player.ruolo} • ${payload.player.squadra}`;
+        if (mgrEl) mgrEl.textContent = payload.manager.name;
+        if (priceEl) priceEl.textContent = `${payload.price} cr`;
+
+        if (overlay) overlay.classList.add('active');
+
+        // Suono esultanza
+        this.playBeepTone(523.25, 0.1, 'sine');
+        setTimeout(() => this.playBeepTone(659.25, 0.1, 'sine'), 100);
+        setTimeout(() => this.playBeepTone(783.99, 0.1, 'sine'), 200);
+        setTimeout(() => this.playBeepTone(1046.50, 0.35, 'triangle'), 300);
+
+        if (this.soldTimeoutId) clearTimeout(this.soldTimeoutId);
+        this.soldTimeoutId = setTimeout(() => {
+          if (overlay) overlay.classList.remove('active');
+          this.currentAuction = null;
+          this.showStandbyView();
+        }, 4000);
+      }
+
+      // =======================================================================
+      // RENDERING TABELLONE STANDBY UFFICIALE
+      // =======================================================================
+      renderStandbyBoard() {
+        const grid = document.getElementById('tv-teams-grid');
+        if (!grid) return;
+
+        if (!this.managers || this.managers.length === 0) {
+          grid.innerHTML = '<div class="tv-roster-empty">Nessuna squadra caricata nella lega.</div>';
+          return;
+        }
+
+        const roleOrder = { P: 1, D: 2, C: 3, A: 4 };
+
+        let html = '';
+        this.managers.forEach(m => {
+          const roster = m.roster || [];
+          const sorted = [...roster].sort((a, b) => {
+            const diff = (roleOrder[a.ruolo] || 99) - (roleOrder[b.ruolo] || 99);
+            if (diff !== 0) return diff;
+            return (b.prezzo_acquisto || 0) - (a.prezzo_acquisto || 0);
+          });
+
+          const counts = m.counts || {
+            P: roster.filter(p => p.ruolo === 'P').length,
+            D: roster.filter(p => p.ruolo === 'D').length,
+            C: roster.filter(p => p.ruolo === 'C').length,
+            A: roster.filter(p => p.ruolo === 'A').length
+          };
+
+          const totalSlots = m.totalSlots || 25;
+          const remaining = m.remaining !== undefined ? m.remaining : ((this.league.initialBudget || 500) - (m.spent || 0));
+
+          html += `
+            <div class="tv-team-card">
+              <div class="tv-team-header">
+                <div class="tv-team-name">${m.name}</div>
+                <div class="tv-team-badge">${roster.length}/${totalSlots} Acquistati</div>
+              </div>
+
+              <div class="tv-stats-pills">
+                <div class="tv-stat-col">
+                  <span class="tv-stat-label">Crediti Residui</span>
+                  <span class="tv-stat-val credits-green">${remaining} cr</span>
+                </div>
+                <div class="tv-stat-col">
+                  <span class="tv-stat-label">Spesi</span>
+                  <span class="tv-stat-val">${m.spent || 0} cr</span>
+                </div>
+                <div class="tv-stat-col">
+                  <span class="tv-stat-label">Max Offerta</span>
+                  <span class="tv-stat-val">${m.maxBid !== undefined ? m.maxBid : '-'} cr</span>
+                </div>
+              </div>
+
+              <div class="tv-roles-counts">
+                <div class="tv-role-pill p">🧤 P: ${counts.P}</div>
+                <div class="tv-role-pill d">🛡️ D: ${counts.D}</div>
+                <div class="tv-role-pill c">⚙️ C: ${counts.C}</div>
+                <div class="tv-role-pill a">⚡ A: ${counts.A}</div>
+              </div>
+
+              <div class="tv-roster-list">
+                ${sorted.length === 0
+                  ? `<div class="tv-roster-empty">Nessun calciatore acquistato</div>`
+                  : sorted.map(p => `
+                      <div class="tv-roster-item">
+                        <div class="tv-r-left">
+                          <span class="tv-mini-badge ${p.ruolo}">${p.ruolo}</span>
+                          <span class="tv-r-name">${p.nome}</span>
+                          <span class="tv-r-team">(${p.squadra})</span>
+                        </div>
+                        <span class="tv-r-price">${p.prezzo_acquisto} cr</span>
+                      </div>
+                    `).join('')
+                }
+              </div>
+            </div>
+          `;
+        });
+
+        grid.innerHTML = html;
+      }
+    }
+
+    // Inizializzazione all'avvio
+    window.addEventListener('DOMContentLoaded', () => {
+      window.tvApp = new TVController();
+      window.tvApp.init();
+    });
+  </script>
+</body>
+</html>

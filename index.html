@@ -43,6 +43,9 @@
         </div>
 
         <div class="header-actions">
+          <button type="button" id="btn-open-tv" class="btn-header btn-header-tv" title="Apri lo schermo pubblico per TV / Proiettore">
+            📺 Schermo Pubblico TV
+          </button>
           <button id="btn-toggle-audio" class="btn-header" title="Disattiva / Attiva effetti sonori">
             🔊 Audio ON
           </button>
@@ -203,6 +206,28 @@
            TAB 2: TABELLONE SQUADRE & ROSE
            ================================================================== -->
       <section id="tab-teams" class="tab-view hidden">
+        <!-- Barra Filtro Rapido per Ruolo nel Tabellone Squadre -->
+        <div class="teams-role-filter-bar">
+          <span class="teams-role-filter-label">Filtra Calciatori nelle Rose:</span>
+          <div class="teams-role-filter-group" id="teams-role-filter-group">
+            <button type="button" class="btn-teams-role active" data-team-role="ALL">
+              🌐 Tutti i Giocatori
+            </button>
+            <button type="button" class="btn-teams-role role-filter-P" data-team-role="P">
+              🧤 Solo Portieri
+            </button>
+            <button type="button" class="btn-teams-role role-filter-D" data-team-role="D">
+              🛡️ Solo Difensori
+            </button>
+            <button type="button" class="btn-teams-role role-filter-C" data-team-role="C">
+              ⚙️ Solo Centrocampisti
+            </button>
+            <button type="button" class="btn-teams-role role-filter-A" data-team-role="A">
+              ⚡ Solo Attaccanti
+            </button>
+          </div>
+        </div>
+
         <div id="teams-grid" class="teams-grid">
           <!-- Card squadre generate dinamicamente -->
         </div>
@@ -917,6 +942,54 @@
               </div>
             </div>
 
+            <!-- ============================================================
+                 TIMER MANUALE D'ASTA (RIQUADRO BASSO)
+                 ============================================================ -->
+            <div id="auction-timer-container" class="auction-timer-container">
+              <div class="auction-timer-header">
+                <div class="auction-timer-title-group">
+                  <span class="auction-timer-icon">⏱️</span>
+                  <span class="auction-timer-heading">Timer d'Asta</span>
+                  <span id="auction-timer-status" class="auction-timer-status-badge status-idle">PRONTO</span>
+                </div>
+                <div class="auction-timer-presets" role="group" aria-label="Preset Durata Timer">
+                  <button type="button" class="btn-timer-preset" data-preset="5" title="Preset 5 secondi">5s</button>
+                  <button type="button" class="btn-timer-preset active" data-preset="8" title="Preset predefinito 8 secondi">8s (Default)</button>
+                  <button type="button" class="btn-timer-preset" data-preset="10" title="Preset 10 secondi">10s</button>
+                  <button type="button" class="btn-timer-preset" data-preset="15" title="Preset 15 secondi">15s</button>
+                </div>
+                <button type="button" id="btn-timer-mute" class="btn-timer-mute" title="Disattiva/Attiva segnali acustici del timer">
+                  🔊
+                </button>
+              </div>
+
+              <!-- Riga Display Grafico & Controlli Manuali -->
+              <div class="auction-timer-main-row">
+                <div class="auction-timer-digits-box">
+                  <span id="auction-timer-val" class="auction-timer-val">08s</span>
+                </div>
+
+                <div class="auction-timer-controls">
+                  <button type="button" id="btn-timer-start-pause" class="btn-timer-action btn-timer-primary" title="Avvia o metti in pausa il timer (Scorciatoia: T o Spazio)">
+                    <span id="btn-timer-icon">▶</span> <span id="btn-timer-label">Avvia Timer</span>
+                  </button>
+                  <button type="button" id="btn-timer-reset" class="btn-timer-action btn-timer-secondary" title="Reimposta timer">
+                    ↺ Reset
+                  </button>
+                </div>
+              </div>
+
+              <!-- Barra di Avanzamento Orizzontale Dinamica -->
+              <div class="auction-timer-track">
+                <div id="auction-timer-bar" class="auction-timer-bar bar-green" style="width: 100%;"></div>
+              </div>
+
+              <!-- Banner di alert per tempo scaduto / aggiudicato -->
+              <div id="auction-timer-expired-banner" class="auction-timer-expired-banner hidden">
+                ⚡ AGGIUDICATO! / TEMPO SCADUTO
+              </div>
+            </div>
+
             <!-- Pulsanti di Azione Footer Centrale -->
             <div class="center-col-actions">
               <button type="button" id="btn-cancel-call" class="btn-cancel-call" title="Chiudi la chiamata e lascia il giocatore svincolato">
@@ -1034,6 +1107,117 @@
           </div>
           <button type="button" id="btn-footer-close-tier-guide" class="btn-header">
             Chiudi Finestra
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================
+         MODALE CHIAMA A SORTE TRA I LIBERI (ESTRAZIONE CASUALE PER RUOLO)
+         ================================================================== -->
+    <div id="modal-random-picker" class="modal-overlay hidden">
+      <div class="modal-dialog modal-box random-picker-modal-dialog">
+        <!-- Header -->
+        <div class="modal-header">
+          <div class="modal-header-title">
+            <span>🎲</span> <span>Chiama a Sorte tra i Liberi</span>
+          </div>
+          <button type="button" id="btn-close-random-picker" class="btn-close-modal" title="Chiudi (ESC)">✕</button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body random-picker-body">
+          <!-- 1. Selettore Ruolo in Evidenza (4 Grandi Pulsanti + Qualsiasi) -->
+          <div class="random-section-block">
+            <span class="random-block-title">Seleziona Reparto da Estrarre:</span>
+            <div class="random-role-grid" id="random-role-selector">
+              <button type="button" class="btn-random-role role-P" data-random-role="P">
+                <span class="role-icon">🧤</span> <span class="role-name">Portieri</span>
+              </button>
+              <button type="button" class="btn-random-role role-D" data-random-role="D">
+                <span class="role-icon">🛡️</span> <span class="role-name">Difensori</span>
+              </button>
+              <button type="button" class="btn-random-role role-C" data-random-role="C">
+                <span class="role-icon">⚙️</span> <span class="role-name">Centrocampisti</span>
+              </button>
+              <button type="button" class="btn-random-role role-A" data-random-role="A">
+                <span class="role-icon">⚡</span> <span class="role-name">Attaccanti</span>
+              </button>
+              <button type="button" class="btn-random-role role-ALL active" data-random-role="ALL">
+                <span class="role-icon">🎲</span> <span class="role-name">Qualsiasi Ruolo</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Filtro Opzionale per Fascia -->
+          <div class="random-section-block">
+            <div class="random-tiers-header-row">
+              <span class="random-block-title">Filtro Opzionale per Fascia:</span>
+              <span class="random-block-subtitle">Includi o escludi livelli di valore</span>
+            </div>
+            <div class="random-tier-pills-row" id="random-tier-selector">
+              <button type="button" class="btn-random-tier active" data-tier-key="all">
+                ⭐ Tutte le fasce
+              </button>
+              <button type="button" class="btn-random-tier" data-tier-key="top">Top</button>
+              <button type="button" class="btn-random-tier" data-tier-key="semi-top">Semi-Top</button>
+              <button type="button" class="btn-random-tier" data-tier-key="terza">3ª Fascia</button>
+              <button type="button" class="btn-random-tier" data-tier-key="quarta">4ª Fascia</button>
+              <button type="button" class="btn-random-tier" data-tier-key="scommesse">Scommesse</button>
+              <button type="button" class="btn-random-tier" data-tier-key="altri">Altri</button>
+            </div>
+          </div>
+
+          <!-- Contatore Chiaro Giocatori Liberi Disponibili -->
+          <div class="random-counter-banner">
+            <span class="counter-pulse-dot"></span>
+            <span id="random-pool-count-label" class="random-pool-count-text">
+              Calciatori liberi disponibili: <strong id="random-pool-count-val">0</strong>
+            </span>
+          </div>
+
+          <!-- 3. Contenitore a Singolo Slot Fisso & Centrato (NO carosello, NO card doppie/sovrapposte) -->
+          <div class="random-single-slot-stage" id="random-single-slot-stage">
+            <div class="random-single-card" id="random-single-card">
+              <!-- Ribbon di Stato Singola Card -->
+              <div class="random-slot-status-ribbon" id="random-slot-status-ribbon">
+                <span id="random-slot-status-text">🎲 PRONTO PER L'ESTRAZIONE</span>
+              </div>
+
+              <!-- Contenuto Centrale del Giocatore Unico (Occupa tutto lo spazio orizzontale, centrato) -->
+              <div class="random-slot-card-body">
+                <div class="random-slot-role-container">
+                  <span id="random-slot-role-pill" class="role-pill role-ALL">🎲</span>
+                </div>
+
+                <div class="random-slot-name-container">
+                  <h2 id="random-slot-player-name" class="random-slot-player-name">-- Premi Estrai Calciatore --</h2>
+                </div>
+
+                <div class="random-slot-meta-row" id="random-slot-meta-row">
+                  <span id="random-slot-team" class="team-badge">Tutte le Squadre</span>
+                  <span id="random-slot-fascia" class="random-slot-fascia-pill">Qualsiasi Fascia</span>
+                  <span id="random-slot-extra" class="random-slot-extra-pill hidden"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tasto Centrale di Estrazione -->
+          <div class="random-draw-action-container">
+            <button type="button" id="btn-execute-draw" class="btn-execute-draw">
+              🎲 Estrai Calciatore a Sorte
+            </button>
+          </div>
+        </div>
+
+        <!-- Footer con Tasto Avvia Asta Subito -->
+        <div class="modal-footer random-picker-footer">
+          <button type="button" id="btn-close-random-footer" class="btn-header">
+            Chiudi Finestra
+          </button>
+          <button type="button" id="btn-start-auction-instant" class="btn-start-auction-instant" disabled>
+            ⚡ Avvia Asta Subito
           </button>
         </div>
       </div>
