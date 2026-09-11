@@ -1205,6 +1205,11 @@
             const data = snapshot.val();
             if (data && data.active) {
               const prevPrice = this.currentAuction ? (this.currentAuction.currentBid || 0) : 0;
+              const newPrice = data.currentBid || 0;
+              const biddingViewEl = document.getElementById('tv-bidding-view');
+              const isAlreadyBidding = biddingViewEl && !biddingViewEl.classList.contains('hidden');
+              const isSamePlayer = this.currentAuction && this.currentAuction.player && this.currentAuction.player.nome === data.player;
+
               this.currentAuction = {
                 player: {
                   id: 'live_p',
@@ -1212,15 +1217,19 @@
                   ruolo: data.role,
                   squadra: data.team
                 },
-                currentBid: data.currentBid || 0,
+                currentBid: newPrice,
                 manager: (data.highestBidder && data.highestBidder !== 'Nessuno') ? { name: data.highestBidder } : null
               };
 
-              this.showBiddingView();
-              this.updateBidDisplay();
+              if (!isAlreadyBidding || !isSamePlayer) {
+                this.showBiddingView();
+              } else {
+                this.updateBidDisplay();
+              }
 
-              if ((data.currentBid || 0) > prevPrice && prevPrice > 0) {
+              if (newPrice > prevPrice && newPrice > 0) {
                 this.playBeepTone(659.25, 0.12, 'sine');
+                this.startLocalTimer(this.timer.presetSeconds * 1000, this.timer.presetSeconds);
               }
             } else {
               if (this.currentAuction) {
@@ -1318,9 +1327,13 @@
 
           case 'BID_UPDATE':
             if (this.currentAuction) {
+              const oldPrice = this.currentAuction.currentBid || 0;
               this.currentAuction.currentBid = msg.payload.currentBid;
               this.currentAuction.manager = msg.payload.manager;
               this.updateBidDisplay();
+              if (msg.payload.currentBid > oldPrice && msg.payload.currentBid > 0) {
+                this.startLocalTimer(this.timer.presetSeconds * 1000, this.timer.presetSeconds);
+              }
             }
             break;
 

@@ -557,7 +557,13 @@ class AppController {
     const bidPriceInput = document.getElementById('bid-price-input');
     if (bidPriceInput) {
       bidPriceInput.addEventListener('input', () => {
+        const val = parseInt(bidPriceInput.value, 10) || 0;
         this.updateBidValidationMessage();
+        if (val > (this.lastAuctionBidPrice || 0) && val > 0) {
+          this.onBidIncremented();
+        } else {
+          this.lastAuctionBidPrice = val;
+        }
         this.syncCurrentBidToFirebase();
       });
     }
@@ -1462,6 +1468,7 @@ class AppController {
     if (priceInput) {
       priceInput.value = 0;
     }
+    this.lastAuctionBidPrice = 0;
 
     // Suggeritore Dinamico Incroci Calendario nel Battitore (per P e A)
     const recommenderBox = document.getElementById('modal-calendar-recommender');
@@ -2705,6 +2712,32 @@ class AppController {
     this.renderAuctionTimer();
   }
 
+  restartAuctionTimer(targetSec = null) {
+    if (this.auctionTimer.intervalId) {
+      clearInterval(this.auctionTimer.intervalId);
+      this.auctionTimer.intervalId = null;
+    }
+
+    this.auctionTimer.isRunning = false;
+    this.auctionTimer.isPaused = false;
+
+    if (targetSec !== null) {
+      this.auctionTimer.presetSeconds = targetSec;
+      document.querySelectorAll('.btn-timer-preset').forEach(b => {
+        b.classList.toggle('active', parseInt(b.getAttribute('data-preset'), 10) === targetSec);
+      });
+    }
+
+    this.auctionTimer.remainingMs = this.auctionTimer.presetSeconds * 1000;
+    this.auctionTimer.lastTickSecond = null;
+
+    const bannerExpired = document.getElementById('auction-timer-expired-banner');
+    if (bannerExpired) bannerExpired.classList.add('hidden');
+
+    this.renderAuctionTimer();
+    this.startAuctionTimer();
+  }
+
   onAuctionTimerExpired() {
     if (this.auctionTimer.intervalId) {
       clearInterval(this.auctionTimer.intervalId);
@@ -2792,8 +2825,12 @@ class AppController {
   }
 
   onBidIncremented() {
-    // Sui rilanci (+1, +5, +10, +20): interrompe il timer e reimposta sul default 8s
-    this.resetAuctionTimer(8);
+    const input = document.getElementById('bid-price-input');
+    if (input) {
+      this.lastAuctionBidPrice = parseInt(input.value, 10) || 0;
+    }
+    // Sui rilanci (+1, +5, +10, +20 o digitazione): riavvia il timer da capo attivo
+    this.restartAuctionTimer();
   }
 
   // =========================================================================
@@ -2938,11 +2975,17 @@ class AppController {
           const priceInput = document.getElementById('bid-price-input');
           const managerSelect = document.getElementById('bid-manager-select');
           let changed = false;
+          let bidIncreased = false;
+          const oldPrice = priceInput ? (parseInt(priceInput.value, 10) || 0) : 0;
+          const newPrice = cur.currentBid || 0;
 
           // 1. Aggiorna prezzo battuto in tempo reale
-          if (priceInput && parseInt(priceInput.value, 10) !== (cur.currentBid || 0)) {
-            priceInput.value = cur.currentBid || 0;
+          if (priceInput && oldPrice !== newPrice) {
+            priceInput.value = newPrice;
             changed = true;
+            if (newPrice > oldPrice && newPrice > 0) {
+              bidIncreased = true;
+            }
           }
 
           // 2. Seleziona in automatico highestBidder come Manager Acquirente nel menu e nel Radar
@@ -2957,6 +3000,10 @@ class AppController {
 
           if (changed) {
             this.updateBidValidationMessage();
+            if (bidIncreased) {
+              this.lastAuctionBidPrice = newPrice;
+              this.restartAuctionTimer();
+            }
             if (window.soundEngine && cur.currentBid > 0) {
               window.soundEngine.playCoin();
             }
