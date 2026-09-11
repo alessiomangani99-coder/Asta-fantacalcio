@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FantaAsta Controller Live | Smartphone</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Firebase Realtime Database CDN Compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --bg-surface: #0f172a;
+      --bg-card: #152037;
+      --bg-card-subtle: rgba(255, 255, 255, 0.04);
+      --border-subtle: rgba(255, 255, 255, 0.09);
+      --border-focus: #6366f1;
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      --role-p: #f59e0b;
+      --role-p-glow: rgba(245, 158, 11, 0.25);
+      --role-d: #3b82f6;
+      --role-d-glow: rgba(59, 130, 246, 0.25);
+      --role-c: #10b981;
+      --role-c-glow: rgba(16, 185, 129, 0.25);
+      --role-a: #ef4444;
+      --role-a-glow: rgba(239, 68, 68, 0.25);
+
+      --color-green: #10b981;
+      --color-green-glow: rgba(16, 185, 129, 0.35);
+      --color-red: #f43f5e;
+      --color-gold: #fbbf24;
+
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+    }
+
+    /* Container a tutto schermo ergonomico */
+    .mobile-app {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      max-width: 540px;
+      margin: 0 auto;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom)) 16px;
+      position: relative;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ==========================================================================
+       SCHERMATA 1: SELEZIONE MANAGER
+       ========================================================================== */
+    .view-selection {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: flex-start;
+      padding-top: 12px;
+      overflow-y: auto;
+    }
+
+    .selection-brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .selection-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .selection-title {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .selection-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .managers-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+    }
+
+    .btn-manager-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 16px 20px;
+      color: var(--text-primary);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-manager-select:active {
+      transform: scale(0.97);
+      background: #1c2b4a;
+      border-color: #6366f1;
+    }
+
+    .mgr-info-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .mgr-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+      flex-shrink: 0;
+    }
+
+    .mgr-name {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .mgr-sub {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .mgr-tag-credits {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    /* ==========================================================================
+       SCHERMATA 2: CONTROLLER LIVE (ASTA IN CORSO)
+       ========================================================================== */
+    .view-controller {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      height: 100%;
+      overflow: hidden;
+      justify-content: space-between;
+    }
+
+    /* Header Controller */
+    .controller-header {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      flex-shrink: 0;
+      margin-bottom: 12px;
+    }
+
+    .header-team-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .header-team-icon {
+      font-size: 1.4rem;
+    }
+
+    .header-team-text {
+      min-width: 0;
+    }
+
+    .header-team-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-team-slots {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .header-stats-group {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .header-stat-pill {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 4px 10px;
+      text-align: right;
+    }
+
+    .stat-pill-lbl {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      display: block;
+    }
+
+    .stat-pill-num {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--color-green);
+    }
+
+    .stat-pill-num.max-bid {
+      color: var(--color-gold);
+    }
+
+    /* Corpo Centrale Scrollabile / Flessibile */
+    .controller-body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: center;
+      min-height: 0;
+      position: relative;
+    }
+
+    /* STATO INATTIVO (NESSUN GIOCATORE BATTUTO) */
+    .inactive-card {
+      background: var(--bg-card);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 36px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: auto 0;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .radar-pulse-ring {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.12);
+      border: 2px solid rgba(99, 102, 241, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      animation: pulse-ring 2.2s infinite ease-out;
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5);
+      }
+      70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 20px rgba(99, 102, 241, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+      }
+    }
+
+    .inactive-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .inactive-sub {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      max-width: 280px;
+      line-height: 1.4;
+    }
+
+    /* STATO ATTIVO: GIOCATORE SOTTO I FERRI */
+    .active-cockpit {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      justify-content: space-around;
+      padding: 4px 0;
+    }
+
+    /* Scheda Giocatore */
+    .live-player-card {
+      background: linear-gradient(180deg, #18233c, #111a2f);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .player-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .role-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .role-badge.P { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 14px var(--role-p-glow); }
+    .role-badge.D { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 14px var(--role-d-glow); }
+    .role-badge.C { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 14px var(--role-c-glow); }
+    .role-badge.A { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 14px var(--role-a-glow); }
+
+    .player-info-text {
+      min-width: 0;
+    }
+
+    .live-player-name {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .live-player-team {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Box Prezzo Cubitale */
+    .bidding-display-box {
+      background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 22px;
+      padding: 10px 14px;
+      text-align: center;
+      position: relative;
+      box-shadow: inset 0 0 24px rgba(99, 102, 241, 0.12), 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .bid-display-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+
+    .bid-display-price-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+      line-height: 1;
+      margin: 2px 0;
+    }
+
+    .bid-display-number {
+      font-family: var(--font-display);
+      font-size: 3.6rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 2px 14px rgba(255, 255, 255, 0.25);
+    }
+
+    .bid-display-unit {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--color-gold);
+    }
+
+    /* STATO OFFERTA: IN TESTA / NON IN TESTA */
+    .offer-status-box {
+      border-radius: 16px;
+      padding: 10px 14px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    /* Sei in testa (Verde lampeggiante) */
+    .offer-status-box.winning {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.35));
+      border: 2px solid #10b981;
+      color: #34d399;
+      box-shadow: 0 0 20px var(--color-green-glow);
+      animation: winning-pulse 1.4s infinite ease-in-out;
+    }
+
+    @keyframes winning-pulse {
+      0%, 100% {
+        border-color: #10b981;
+        box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+      }
+      50% {
+        border-color: #34d399;
+        box-shadow: 0 0 28px rgba(16, 185, 129, 0.8);
+      }
+    }
+
+    /* Non in testa (Scuro / Rosso) */
+    .offer-status-box.losing {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+    }
+
+    /* Nessuna offerta iniziale */
+    .offer-status-box.neutral {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    /* GRIGLIA 2x2 PULSANTI RILANCIO RAPIDO */
+    .quick-bids-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-quick-bid {
+      background: linear-gradient(145deg, #1f2d4a, #16223b);
+      border: 2px solid rgba(99, 102, 241, 0.35);
+      border-radius: 20px;
+      height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 900;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+      transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.2s ease;
+      touch-action: manipulation;
+    }
+
+    .btn-quick-bid:active:not(:disabled) {
+      transform: scale(0.94);
+      background: #4f46e5;
+      border-color: #818cf8;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.6);
+    }
+
+    .btn-quick-bid:disabled {
+      opacity: 0.28;
+      cursor: not-allowed;
+      border-color: rgba(255, 255, 255, 0.06);
+      background: #111929;
+      color: #64748b;
+      box-shadow: none;
+    }
+
+    .btn-quick-bid.special-20 {
+      border-color: rgba(251, 191, 36, 0.4);
+      color: #fbbf24;
+    }
+
+    .btn-quick-bid.special-20:active:not(:disabled) {
+      background: #b45309;
+      border-color: #fbbf24;
+    }
+
+    /* Avviso Blocco / Saturazione */
+    .bid-block-warning {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      border-radius: 12px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      color: #fca5a5;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Footer Controller */
+    .controller-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-change-team {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .btn-change-team:active {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .conn-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: #10b981;
+      font-weight: 700;
+    }
+
+    .conn-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+
+    .conn-dot.disconnected {
+      background: #f43f5e;
+      box-shadow: 0 0 6px #f43f5e;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mobile-app">
+
+    <!-- ====================================================================
+         SCHERMATA 1: SELEZIONE MANAGER (PRIMO ACCESSO)
+         ==================================================================== -->
+    <section id="screen-selection" class="view-selection hidden">
+      <div class="selection-brand">
+        <div class="selection-badge">⚡ Controller Smartphone</div>
+        <h1 class="selection-title">Asta Fantacalcio<br><span style="color: #6366f1;">Chi sei?</span></h1>
+        <p class="selection-subtitle">Seleziona la tua squadra per visualizzare i crediti e rilanciare in tempo reale con un tocco.</p>
+      </div>
+
+      <div id="managers-list-container" class="managers-grid">
+        <div style="text-align: center; color: var(--text-secondary); padding: 40px 0;">
+          Connessione a Firebase e caricamento partecipanti...
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SCHERMATA 2: CONTROLLER LIVE (ASTA IN CORSO)
+         ==================================================================== -->
+    <section id="screen-controller" class="view-controller hidden">
+      <!-- Header Squadra & Finanze -->
+      <header class="controller-header">
+        <div class="header-team-left">
+          <div class="header-team-icon">🛡️</div>
+          <div class="header-team-text">
+            <div id="my-team-name" class="header-team-name">Mia Squadra</div>
+            <div id="my-team-slots" class="header-team-slots">0/25 Acquistati</div>
+          </div>
+        </div>
+
+        <div class="header-stats-group">
+          <div class="header-stat-pill">
+            <span class="stat-pill-lbl">Crediti</span>
+            <span id="my-team-credits" class="stat-pill-num">500 cr</span>
+          </div>
+          <div class="header-stat-pill">
+            <span class="stat-pill-lbl">Offerta Max</span>
+            <span id="my-team-max-bid" class="stat-pill-num max-bid">476 cr</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Corpo Cockpit -->
+      <div class="controller-body">
+
+        <!-- STATO INATTIVO: ATTESA CHIAMATA -->
+        <div id="state-inactive" class="inactive-card">
+          <div class="radar-pulse-ring">📡</div>
+          <div>
+            <h2 class="inactive-title">In attesa del battitore...</h2>
+            <p class="inactive-sub">Non appena il battitore chiamerà un calciatore, questa schermata si attiverà all'istante per i rilanci.</p>
+          </div>
+        </div>
+
+        <!-- STATO ATTIVO: GIOCATORE SOTTO I FERRI -->
+        <div id="state-active" class="active-cockpit hidden">
+          
+          <!-- Scheda Calciatore -->
+          <div class="live-player-card">
+            <div class="player-meta-left">
+              <div id="live-player-role" class="role-badge P">P</div>
+              <div class="player-info-text">
+                <div id="live-player-name" class="live-player-name">Svilar</div>
+                <div id="live-player-team" class="live-player-team">Roma</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prezzo Attuale Battuto Cubitale -->
+          <div class="bidding-display-box">
+            <span class="bid-display-label">Prezzo Attuale Battuto</span>
+            <div class="bid-display-price-row">
+              <span id="live-bid-number" class="bid-display-number">0</span>
+              <span class="bid-display-unit">CR</span>
+            </div>
+          </div>
+
+          <!-- Stato Offerta (Sei in testa vs Non in testa) -->
+          <div id="offer-status-box" class="offer-status-box neutral">
+            <span id="offer-status-icon">⚪</span>
+            <span id="offer-status-text">In attesa del primo rilancio...</span>
+          </div>
+
+          <!-- Avviso Blocco / Saturazione Ruolo o Budget -->
+          <div id="bid-block-warning" class="bid-block-warning hidden">
+            ⚠️ Slot ruolo saturo o budget insufficiente
+          </div>
+
+          <!-- Griglia 2x2 Pulsanti di Rilancio Rapido -->
+          <div class="quick-bids-grid">
+            <button type="button" class="btn-quick-bid" data-inc="1" id="btn-bid-1">
+              +1
+            </button>
+            <button type="button" class="btn-quick-bid" data-inc="5" id="btn-bid-5">
+              +5
+            </button>
+            <button type="button" class="btn-quick-bid" data-inc="10" id="btn-bid-10">
+              +10
+            </button>
+            <button type="button" class="btn-quick-bid special-20" data-inc="20" id="btn-bid-20">
+              +20
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Footer Controller -->
+      <footer class="controller-footer">
+        <button type="button" id="btn-change-team" class="btn-change-team" title="Cambia la squadra associata a questo telefono">
+          🔄 Cambia Squadra
+        </button>
+        <div class="conn-status-badge">
+          <span id="conn-dot" class="conn-dot"></span>
+          <span id="conn-text">Live RTDB</span>
+        </div>
+      </footer>
+    </section>
+
+  </div>
+
+  <script>
+    /**
+     * Mobile Smartphone Controller per Asta Fantacalcio 2026/2027
+     * Realtime Sync tramite Firebase Realtime Database
+     */
+    class MobileController {
+      constructor() {
+        this.myTeamName = localStorage.getItem('mia_squadra') || null;
+        this.currentAuction = null;
+        this.managersList = [];
+        this.myManagerData = null;
+
+        // Formula Crediti di Riserva:
+        // Offerta Max = Crediti Residui - (Slot Liberi Rimanenti - 1)
+        this.myRemainingCredits = 500;
+        this.myFreeSlotsTotal = 25;
+        this.myMaxBid = 476;
+      }
+
+      init() {
+        this.bindDOMEvents();
+        this.initFirebaseListeners();
+        this.checkInitialScreen();
+      }
+
+      bindDOMEvents() {
+        // Tasto Cambia Squadra
+        const btnChange = document.getElementById('btn-change-team');
+        if (btnChange) {
+          btnChange.addEventListener('click', () => {
+            if (confirm('Vuoi cambiare squadra e tornare alla selezione?')) {
+              localStorage.removeItem('mia_squadra');
+              this.myTeamName = null;
+              this.checkInitialScreen();
+            }
+          });
+        }
+
+        // 4 Pulsanti Rilancio Rapido (+1, +5, +10, +20)
+        document.querySelectorAll('.btn-quick-bid').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const inc = parseInt(btn.getAttribute('data-inc'), 10);
+            if (isNaN(inc) || inc <= 0) return;
+            this.faiRilancio(inc);
+          });
+        });
+      }
+
+      checkInitialScreen() {
+        this.myTeamName = localStorage.getItem('mia_squadra');
+        const screenSelection = document.getElementById('screen-selection');
+        const screenController = document.getElementById('screen-controller');
+
+        if (!this.myTeamName) {
+          if (screenSelection) screenSelection.classList.remove('hidden');
+          if (screenController) screenController.classList.add('hidden');
+          this.renderManagersSelection();
+        } else {
+          if (screenSelection) screenSelection.classList.add('hidden');
+          if (screenController) screenController.classList.remove('hidden');
+          this.updateMyTeamHeader();
+          this.updateControllerUI();
+        }
+      }
+
+      selectTeam(teamName) {
+        if (!teamName) return;
+        localStorage.setItem('mia_squadra', teamName);
+        this.myTeamName = teamName;
+        if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+        this.checkInitialScreen();
+      }
+
+      initFirebaseListeners() {
+        if (!window.fantaDb) {
+          console.warn('Firebase non inizializzato.');
+          return;
+        }
+
+        // 1. Monitoraggio Connessione Firebase
+        window.fantaDb.ref('.info/connected').on('value', (snap) => {
+          const connected = snap.val() === true;
+          const dot = document.getElementById('conn-dot');
+          const text = document.getElementById('conn-text');
+          if (dot) dot.className = `conn-dot ${connected ? '' : 'disconnected'}`;
+          if (text) text.textContent = connected ? 'Live RTDB' : 'Disconnesso';
+        });
+
+        // 2. Ascolto Lista Partecipanti /fanta_live/managers
+        window.fantaDb.ref('fanta_live/managers').on('value', (snap) => {
+          const data = snap.val();
+          if (data) {
+            this.managersList = Array.isArray(data) ? data : Object.values(data);
+          } else {
+            this.managersList = [];
+          }
+
+          this.updateMyManagerData();
+          if (!this.myTeamName) {
+            this.renderManagersSelection();
+          } else {
+            this.updateMyTeamHeader();
+            this.updateBiddingButtonsState();
+          }
+        });
+
+        // 3. Ascolto Calciatore Attuale /fanta_live/current
+        window.fantaDb.ref('fanta_live/current').on('value', (snap) => {
+          this.currentAuction = snap.val();
+          this.updateControllerUI();
+        });
+      }
+
+      updateMyManagerData() {
+        if (!this.myTeamName || !this.managersList || this.managersList.length === 0) return;
+
+        const found = this.managersList.find(m => m.name.trim().toLowerCase() === this.myTeamName.trim().toLowerCase());
+        if (found) {
+          this.myManagerData = found;
+          this.myRemainingCredits = found.remaining !== undefined ? found.remaining : 500;
+
+          const freeTotal = (found.freeSlots && found.freeSlots.total !== undefined)
+            ? found.freeSlots.total
+            : (25 - ((found.roster && found.roster.length) || 0));
+
+          this.myFreeSlotsTotal = Math.max(0, freeTotal);
+
+          // Calcolo Formula Crediti di Riserva:
+          // Offerta Max = Crediti Residui - (Slot Liberi Rimanenti - 1)
+          if (this.myFreeSlotsTotal <= 0) {
+            this.myMaxBid = 0;
+          } else if (this.myFreeSlotsTotal === 1) {
+            this.myMaxBid = Math.max(0, this.myRemainingCredits);
+          } else {
+            this.myMaxBid = Math.max(0, this.myRemainingCredits - (this.myFreeSlotsTotal - 1));
+          }
+        }
+      }
+
+      renderManagersSelection() {
+        const container = document.getElementById('managers-list-container');
+        if (!container) return;
+
+        if (!this.managersList || this.managersList.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; color: var(--text-secondary); padding: 40px 0;">
+              In attesa che la Regia inizializzi le squadre...<br>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Assicurati che la pagina principale sia aperta.</span>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '';
+        this.managersList.forEach((m) => {
+          const remaining = m.remaining !== undefined ? m.remaining : 500;
+          const rosterCount = (m.roster || []).length;
+          const totalSlots = m.totalSlots || 25;
+
+          html += `
+            <button type="button" class="btn-manager-select" data-mgr-name="${m.name}">
+              <div class="mgr-info-left">
+                <div class="mgr-avatar">⚽</div>
+                <div>
+                  <div class="mgr-name">${m.name}</div>
+                  <div class="mgr-sub">${rosterCount}/${totalSlots} Calciatori • Max: ${m.maxBid !== undefined ? m.maxBid : '-'} cr</div>
+                </div>
+              </div>
+              <div class="mgr-tag-credits">${remaining} cr</div>
+            </button>
+          `;
+        });
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('.btn-manager-select').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const team = btn.getAttribute('data-mgr-name');
+            this.selectTeam(team);
+          });
+        });
+      }
+
+      updateMyTeamHeader() {
+        const nameEl = document.getElementById('my-team-name');
+        const slotsEl = document.getElementById('my-team-slots');
+        const creditsEl = document.getElementById('my-team-credits');
+        const maxBidEl = document.getElementById('my-team-max-bid');
+
+        if (nameEl) nameEl.textContent = this.myTeamName || 'Mia Squadra';
+
+        if (this.myManagerData) {
+          const rosterCount = (this.myManagerData.roster || []).length;
+          const totalSlots = this.myManagerData.totalSlots || 25;
+          if (slotsEl) slotsEl.textContent = `${rosterCount}/${totalSlots} Acquistati (${this.myFreeSlotsTotal} liberi)`;
+          if (creditsEl) creditsEl.textContent = `${this.myRemainingCredits} cr`;
+          if (maxBidEl) maxBidEl.textContent = `${this.myMaxBid} cr`;
+        }
+      }
+
+      updateControllerUI() {
+        const stateInactive = document.getElementById('state-inactive');
+        const stateActive = document.getElementById('state-active');
+
+        const isLive = this.currentAuction && this.currentAuction.active === true;
+
+        if (!isLive) {
+          if (stateInactive) stateInactive.classList.remove('hidden');
+          if (stateActive) stateActive.classList.add('hidden');
+          return;
+        }
+
+        if (stateInactive) stateInactive.classList.add('hidden');
+        if (stateActive) stateActive.classList.remove('hidden');
+
+        // Popola dati calciatore
+        const cur = this.currentAuction;
+        const roleEl = document.getElementById('live-player-role');
+        const nameEl = document.getElementById('live-player-name');
+        const teamEl = document.getElementById('live-player-team');
+        const bidNumEl = document.getElementById('live-bid-number');
+
+        const role = cur.role || 'P';
+        if (roleEl) {
+          roleEl.textContent = role;
+          roleEl.className = `role-badge ${role}`;
+        }
+        if (nameEl) nameEl.textContent = cur.player || 'Calciatore';
+        if (teamEl) teamEl.textContent = cur.team || 'Serie A';
+
+        const currentBid = cur.currentBid || 0;
+        if (bidNumEl) bidNumEl.textContent = currentBid;
+
+        // Stato Offerta: SEI IN TESTA vs IN TESTA: ALTRO
+        const statusBox = document.getElementById('offer-status-box');
+        const statusIcon = document.getElementById('offer-status-icon');
+        const statusText = document.getElementById('offer-status-text');
+
+        const highest = cur.highestBidder || 'Nessuno';
+        const isMyBid = this.myTeamName && highest.trim().toLowerCase() === this.myTeamName.trim().toLowerCase();
+
+        if (isMyBid) {
+          if (statusBox) statusBox.className = 'offer-status-box winning';
+          if (statusIcon) statusIcon.textContent = '🟢';
+          if (statusText) statusText.textContent = `SEI IN TESTA! (Tua offerta: ${currentBid} cr)`;
+        } else if (highest !== 'Nessuno') {
+          if (statusBox) statusBox.className = 'offer-status-box losing';
+          if (statusIcon) statusIcon.textContent = '🔴';
+          if (statusText) statusText.textContent = `IN TESTA: ${highest} (${currentBid} cr)`;
+        } else {
+          if (statusBox) statusBox.className = 'offer-status-box neutral';
+          if (statusIcon) statusIcon.textContent = '⚪';
+          if (statusText) statusText.textContent = 'Base d\'Asta: 0 cr. Fai il primo rilancio!';
+        }
+
+        this.updateBiddingButtonsState();
+      }
+
+      updateBiddingButtonsState() {
+        if (!this.currentAuction || !this.currentAuction.active) return;
+
+        const curBid = this.currentAuction.currentBid || 0;
+        const role = this.currentAuction.role || 'P';
+        const warningEl = document.getElementById('bid-block-warning');
+
+        // 1. Controllo Saturazione Ruolo o Rosa Completa
+        let isRoleFull = false;
+        let isRosterFull = false;
+
+        if (this.myManagerData && this.myManagerData.freeSlots) {
+          if (this.myManagerData.freeSlots[role] !== undefined && this.myManagerData.freeSlots[role] <= 0) {
+            isRoleFull = true;
+          }
+          if (this.myManagerData.freeSlots.total !== undefined && this.myManagerData.freeSlots.total <= 0) {
+            isRosterFull = true;
+          }
+        }
+
+        let warningMessage = '';
+        if (isRosterFull) {
+          warningMessage = '⛔ Rosa al completo! Non puoi acquistare altri giocatori.';
+        } else if (isRoleFull) {
+          warningMessage = `⛔ Slot del ruolo ${role} già saturati per la tua squadra!`;
+        }
+
+        // 2. Controllo pulsanti +1, +5, +10, +20
+        const increments = [1, 5, 10, 20];
+        increments.forEach(inc => {
+          const btn = document.getElementById(`btn-bid-${inc}`);
+          if (!btn) return;
+
+          const targetPrice = curBid + inc;
+          const exceedsMaxBid = targetPrice > this.myMaxBid;
+
+          if (isRoleFull || isRosterFull || exceedsMaxBid) {
+            btn.disabled = true;
+          } else {
+            btn.disabled = false;
+          }
+        });
+
+        if (warningEl) {
+          if (warningMessage) {
+            warningEl.textContent = warningMessage;
+            warningEl.classList.remove('hidden');
+          } else if (curBid + 1 > this.myMaxBid) {
+            warningEl.textContent = `⚠️ Offerta Max consentita (${this.myMaxBid} cr) superata!`;
+            warningEl.classList.remove('hidden');
+          } else {
+            warningEl.classList.add('hidden');
+          }
+        }
+      }
+
+      /**
+       * Rilancio Rapido con Transazione Atomica su Firebase RTDB
+       */
+      faiRilancio(incremento) {
+        if (!window.fantaDb) {
+          alert('Errore: database non connesso.');
+          return;
+        }
+
+        if (!this.myTeamName) {
+          alert('Seleziona prima la tua squadra!');
+          return;
+        }
+
+        window.fantaDb.ref('fanta_live/current').transaction(current => {
+          if (current && current.active) {
+            current.currentBid = (current.currentBid || 0) + incremento;
+            current.highestBidder = localStorage.getItem('mia_squadra') || this.myTeamName;
+            current.timestamp = Date.now();
+            return current;
+          }
+          return current;
+        }, (error, committed, snapshot) => {
+          if (error) {
+            console.error('Errore durante il rilancio:', error);
+          } else if (committed) {
+            if (navigator.vibrate) navigator.vibrate(40);
+          }
+        });
+      }
+    }
+
+    // Avvio all'evento DOMContentLoaded
+    window.addEventListener('DOMContentLoaded', () => {
+      window.mobileApp = new MobileController();
+      window.mobileApp.init();
+    });
+  </script>
+</body>
+</html>

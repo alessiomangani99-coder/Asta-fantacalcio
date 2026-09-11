@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Schermo Pubblico TV | Asta Fantacalcio Live</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Firebase Realtime Database CDN compat & Config -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
   <style>
     :root {
       --bg-dark: #070b14;
@@ -222,6 +226,62 @@
       font-size: 0.95rem;
       color: var(--text-muted);
       margin-top: 0.2rem;
+    }
+
+    /* Banner QR Code Dinamico per Smartphone */
+    .tv-qr-card {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 18px;
+      padding: 0.75rem 1.25rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.15);
+      flex-shrink: 0;
+    }
+
+    .tv-qr-image-wrapper {
+      background: #ffffff;
+      padding: 5px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      flex-shrink: 0;
+    }
+
+    .tv-qr-img {
+      width: 90px;
+      height: 90px;
+      display: block;
+      border-radius: 6px;
+    }
+
+    .tv-qr-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .tv-qr-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #818cf8;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .tv-qr-instruction {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #f8fafc;
+      line-height: 1.35;
+      max-width: 220px;
     }
 
     .tv-teams-grid {
@@ -860,6 +920,17 @@
           </h1>
           <div class="standby-subtitle">In attesa della prossima chiamata all'asta da parte del battitore</div>
         </div>
+
+        <!-- Banner QR Code Dinamico per Smartphone -->
+        <div class="tv-qr-card">
+          <div class="tv-qr-image-wrapper">
+            <img id="tv-qr-img" class="tv-qr-img" src="" alt="QR Code Rilancio Smartphone" />
+          </div>
+          <div class="tv-qr-meta">
+            <div class="tv-qr-badge">📱 RILANCIA DA SMARTPHONE</div>
+            <div class="tv-qr-instruction">Inquadra per rilanciare dal tuo smartphone</div>
+          </div>
+        </div>
       </div>
 
       <div class="tv-teams-grid" id="tv-teams-grid">
@@ -962,9 +1033,22 @@
       init() {
         this.initClock();
         this.bindEvents();
+        this.initQRCode();
         this.initSync();
         this.loadFallbackState();
         this.requestSyncFromApp();
+      }
+
+      initQRCode() {
+        const img = document.getElementById('tv-qr-img');
+        if (!img) return;
+
+        let mobileUrl = window.location.origin + window.location.pathname.replace('tv.html', 'mobile.html');
+        if (!window.location.origin || window.location.origin === 'null' || window.location.protocol === 'file:') {
+          mobileUrl = window.location.href.replace('tv.html', 'mobile.html');
+        }
+
+        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(mobileUrl);
       }
 
       initClock() {
@@ -1102,6 +1186,52 @@
             } catch (err) {}
           }
         });
+
+        // 3. Firebase Realtime Database Sync
+        if (window.fantaDb) {
+          // Ascolto stato corrente battitore (/fanta_live/current)
+          window.fantaDb.ref('fanta_live/current').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.active) {
+              const prevPrice = this.currentAuction ? (this.currentAuction.currentBid || 0) : 0;
+              this.currentAuction = {
+                player: {
+                  id: 'live_p',
+                  nome: data.player,
+                  ruolo: data.role,
+                  squadra: data.team
+                },
+                currentBid: data.currentBid || 0,
+                manager: (data.highestBidder && data.highestBidder !== 'Nessuno') ? { name: data.highestBidder } : null
+              };
+
+              this.showBiddingView();
+              this.updateBidDisplay();
+
+              if ((data.currentBid || 0) > prevPrice && prevPrice > 0) {
+                this.playBeepTone(659.25, 0.12, 'sine');
+              }
+            } else {
+              if (this.currentAuction) {
+                this.currentAuction = null;
+                this.stopLocalTimer();
+                this.showStandbyView();
+              }
+            }
+          });
+
+          // Ascolto aggiornamento squadre e rose (/fanta_live/managers)
+          window.fantaDb.ref('fanta_live/managers').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+              const list = Array.isArray(data) ? data : Object.values(data);
+              if (list.length > 0) {
+                this.managers = list;
+                this.renderStandbyBoard();
+              }
+            }
+          });
+        }
       }
 
       requestSyncFromApp() {
@@ -1233,6 +1363,7 @@
         const status = document.getElementById('tv-status-text');
         if (status) status.textContent = 'In Attesa di Chiamata';
 
+        this.initQRCode();
         this.renderStandbyBoard();
       }
 

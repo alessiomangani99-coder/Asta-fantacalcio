@@ -378,6 +378,10 @@ class AppController {
     this.renderSettings();
     this.renderDeptBudgetWidget();
     this.renderBudgetPlanSettings();
+
+    // Sincronizzazione Firebase Realtime Database
+    this.initFirebaseSync();
+    this.syncManagersToFirebase();
   }
 
   bindEvents() {
@@ -485,6 +489,7 @@ class AppController {
         if (input) {
           input.value = 0;
           this.updateBidValidationMessage();
+          this.syncCurrentBidToFirebase();
         }
       });
     }
@@ -545,17 +550,24 @@ class AppController {
         if (val > 0) {
           this.onBidIncremented();
         }
+        this.syncCurrentBidToFirebase();
       });
     });
 
     const bidPriceInput = document.getElementById('bid-price-input');
     if (bidPriceInput) {
-      bidPriceInput.addEventListener('input', () => this.updateBidValidationMessage());
+      bidPriceInput.addEventListener('input', () => {
+        this.updateBidValidationMessage();
+        this.syncCurrentBidToFirebase();
+      });
     }
 
     const managerSelect = document.getElementById('bid-manager-select');
     if (managerSelect) {
-      managerSelect.addEventListener('change', () => this.updateBidValidationMessage());
+      managerSelect.addEventListener('change', () => {
+        this.updateBidValidationMessage();
+        this.syncCurrentBidToFirebase();
+      });
     }
 
     // Selettore Modulo Tattico Manuale
@@ -1517,6 +1529,19 @@ class AppController {
         isPaused: false
       }
     });
+
+    // Sincronizzazione Firebase Realtime Database (/fanta_live/current)
+    if (window.fantaDb) {
+      window.fantaDb.ref('fanta_live/current').set({
+        active: true,
+        player: player.nome,
+        role: player.ruolo,
+        team: player.squadra,
+        currentBid: 0,
+        highestBidder: "Nessuno",
+        timestamp: Date.now()
+      });
+    }
   }
 
   closeAuctionModal() {
@@ -1535,6 +1560,14 @@ class AppController {
       league: this.state.getLeagueConfig(),
       slotsConfig: this.state.getSlotsConfig()
     });
+
+    // Sincronizzazione Firebase Realtime Database
+    if (window.fantaDb) {
+      window.fantaDb.ref('fanta_live/current').set({
+        active: false,
+        timestamp: Date.now()
+      });
+    }
   }
 
   updateBidValidationMessage() {
@@ -1690,6 +1723,7 @@ class AppController {
           if (managerSelect) {
             managerSelect.value = managerId;
             this.updateBidValidationMessage();
+            this.syncCurrentBidToFirebase();
           }
         } else {
           // Feedback se il manager non è idoneo
@@ -2038,6 +2072,7 @@ class AppController {
       });
 
       this.closeAuctionModal();
+      this.syncManagersToFirebase();
       this.renderHeaderStats();
       this.renderAuctionList();
       this.renderTeamsBoard();
@@ -2100,6 +2135,7 @@ class AppController {
         league: this.state.getLeagueConfig(),
         slotsConfig: this.state.getSlotsConfig()
       });
+      this.syncManagersToFirebase();
       this.renderHeaderStats();
       this.renderAuctionList();
       this.renderTeamsBoard();
@@ -2130,6 +2166,7 @@ class AppController {
         league: this.state.getLeagueConfig(),
         slotsConfig: this.state.getSlotsConfig()
       });
+      this.syncManagersToFirebase();
       this.renderHeaderStats();
       this.renderAuctionList();
       this.renderTeamsBoard();
@@ -2854,6 +2891,84 @@ class AppController {
   }
 
   // =========================================================================
+  // METODI SINCRONIZZAZIONE FIREBASE REALTIME DATABASE (REGIA, TV E MOBILE)
+  // =========================================================================
+  syncManagersToFirebase() {
+    if (!window.fantaDb) return;
+    try {
+      const cleanManagers = this.getCleanManagersForTv();
+      window.fantaDb.ref('fanta_live/managers').set(cleanManagers);
+    } catch (e) {
+      console.warn('Firebase sync managers error:', e);
+    }
+  }
+
+  syncCurrentBidToFirebase() {
+    if (!window.fantaDb || !this.currentAuctionPlayer || this.isUpdatingFromFirebase) return;
+    try {
+      const priceInput = document.getElementById('bid-price-input');
+      const managerSelect = document.getElementById('bid-manager-select');
+      const price = priceInput ? (parseInt(priceInput.value, 10) || 0) : 0;
+      const selectedMgr = managerSelect && managerSelect.value ? this.state.getManager(managerSelect.value) : null;
+
+      window.fantaDb.ref('fanta_live/current').update({
+        currentBid: price,
+        highestBidder: selectedMgr ? selectedMgr.name : "Nessuno",
+        timestamp: Date.now()
+      });
+    } catch (e) {
+      console.warn('Errore aggiornamento Firebase current bid:', e);
+    }
+  }
+
+  initFirebaseSync() {
+    if (!window.fantaDb) return;
+
+    this.isUpdatingFromFirebase = false;
+
+    // Ascolta aggiornamenti dell'asta corrente (rilanci dai telefoni o altre istanze)
+    window.fantaDb.ref('fanta_live/current').on('value', (snapshot) => {
+      const cur = snapshot.val();
+      if (!cur) return;
+
+      // Se l'asta è attiva e abbiamo il modale aperto per quel calciatore
+      if (cur.active && this.currentAuctionPlayer) {
+        this.isUpdatingFromFirebase = true;
+        try {
+          const priceInput = document.getElementById('bid-price-input');
+          const managerSelect = document.getElementById('bid-manager-select');
+          let changed = false;
+
+          // 1. Aggiorna prezzo battuto in tempo reale
+          if (priceInput && parseInt(priceInput.value, 10) !== (cur.currentBid || 0)) {
+            priceInput.value = cur.currentBid || 0;
+            changed = true;
+          }
+
+          // 2. Seleziona in automatico highestBidder come Manager Acquirente nel menu e nel Radar
+          if (managerSelect && cur.highestBidder && cur.highestBidder !== 'Nessuno') {
+            const managers = this.state.getAllManagers();
+            const targetMgr = managers.find(m => m.name.trim().toLowerCase() === cur.highestBidder.trim().toLowerCase());
+            if (targetMgr && managerSelect.value !== targetMgr.id) {
+              managerSelect.value = targetMgr.id;
+              changed = true;
+            }
+          }
+
+          if (changed) {
+            this.updateBidValidationMessage();
+            if (window.soundEngine && cur.currentBid > 0) {
+              window.soundEngine.playCoin();
+            }
+          }
+        } finally {
+          this.isUpdatingFromFirebase = false;
+        }
+      }
+    });
+  }
+
+  // =========================================================================
   // GUIDA CHIAMATE RAPIDE PER FASCIA
   // =========================================================================
   openTierGuideModal(role = null) {
@@ -3111,6 +3226,7 @@ class AppController {
     });
 
     this.state.save();
+    this.syncManagersToFirebase();
     this.renderHeaderStats();
     this.renderTeamsBoard();
     this.showToast('Impostazioni salvate con successo!', 'success');
@@ -3129,6 +3245,7 @@ class AppController {
     });
 
     this.state.save();
+    this.syncManagersToFirebase();
     this.renderSettings();
     this.renderTeamsBoard();
     this.showToast(`Aggiunta squadra: ${newName}`, 'info');
@@ -3162,6 +3279,7 @@ class AppController {
 
     this.state.data.managers = this.state.data.managers.filter(m => m.id !== managerId);
     this.state.save();
+    this.syncManagersToFirebase();
     this.renderSettings();
     this.renderTeamsBoard();
     this.renderHeaderStats();
@@ -4160,6 +4278,7 @@ class AppController {
 
     this.currentAuctionPlayer = null;
     this.state.resetAuction();
+    this.syncManagersToFirebase();
     this.renderHeaderStats();
     this.renderAuctionList();
     this.renderTeamsBoard();
@@ -4194,6 +4313,7 @@ class AppController {
 
     this.currentAuctionPlayer = null;
     this.state.restoreDefaultListone(defaultPlayers);
+    this.syncManagersToFirebase();
 
     this.populateTeamFilter();
     this.renderHeaderStats();
