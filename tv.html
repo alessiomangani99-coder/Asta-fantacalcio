@@ -281,7 +281,21 @@
       font-weight: 700;
       color: #f8fafc;
       line-height: 1.35;
-      max-width: 220px;
+      max-width: 280px;
+    }
+
+    .tv-qr-url {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.2rem;
+      line-height: 1.35;
+      max-width: 280px;
+    }
+
+    .tv-qr-link-text {
+      color: #818cf8;
+      font-weight: 700;
+      word-break: break-all;
     }
 
     .tv-teams-grid {
@@ -929,6 +943,7 @@
           <div class="tv-qr-meta">
             <div class="tv-qr-badge">📱 RILANCIA DA SMARTPHONE</div>
             <div class="tv-qr-instruction">Inquadra per rilanciare dal tuo smartphone</div>
+            <div class="tv-qr-url">Oppure digita da browser: <span class="tv-qr-link-text">alessiomangani99-coder.github.io/Asta-fantacalcio/mobile.html</span></div>
           </div>
         </div>
       </div>
@@ -1040,15 +1055,11 @@
       }
 
       initQRCode() {
-        const img = document.getElementById('tv-qr-img');
-        if (!img) return;
+        const qrImg = document.getElementById('tv-qr-img');
+        if (!qrImg) return;
 
-        let mobileUrl = window.location.origin + window.location.pathname.replace('tv.html', 'mobile.html');
-        if (!window.location.origin || window.location.origin === 'null' || window.location.protocol === 'file:') {
-          mobileUrl = window.location.href.replace('tv.html', 'mobile.html');
-        }
-
-        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(mobileUrl);
+        const MOBILE_URL = "https://alessiomangani99-coder.github.io/Asta-fantacalcio/mobile.html";
+        qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=" + encodeURIComponent(MOBILE_URL);
       }
 
       initClock() {
