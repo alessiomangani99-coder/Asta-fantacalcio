@@ -327,6 +327,12 @@ class AppController {
     this.isRouletteSpinning = false;
     this.rouletteIntervalId = null;
 
+    // Stato Sezione Strategia & Fasce
+    this.strategyActiveRole = 'P';
+    this.strategySearch = '';
+    this.strategyStatus = 'ALL';
+    this.strategyTier = 'ALL';
+
     // Stato Timer Manuale Battitore
     this.auctionTimer = {
       presetSeconds: 8,
@@ -369,9 +375,11 @@ class AppController {
     }
 
     this.bindEvents();
+    this.bindStrategyEvents();
     this.populateTeamFilter();
     this.renderHeaderStats();
     this.renderAuctionList();
+    this.renderStrategySection();
     this.renderTeamsBoard();
     this.renderHistory();
     this.renderCalendarSection();
@@ -930,6 +938,9 @@ class AppController {
       this.renderAuctionList();
       this.renderDeptBudgetWidget();
     }
+    if (tabId === 'strategy') {
+      this.renderStrategySection();
+    }
     if (tabId === 'teams') {
       this.renderTeamsBoard();
       this.renderDeptBudgetWidget();
@@ -1028,19 +1039,17 @@ class AppController {
 
       // Filtro Ricerca Full-Text
       if (search) {
-        const text = `${p.nome} ${p.squadra} ${p.fascia}`.toLowerCase();
+        const tierInfo = this.getCanonicalTierInfo(p.fascia);
+        const text = `${p.nome} ${p.squadra} ${p.fascia} ${tierInfo.fullLabel}`.toLowerCase();
         if (!text.includes(search)) return false;
       }
 
       return true;
     }).sort((a, b) => {
-      if (sort === 'prezzo-desc') return (b.prezzo_massimo_imposto || 0) - (a.prezzo_massimo_imposto || 0);
-      if (sort === 'prezzo-asc') return (a.prezzo_massimo_imposto || 0) - (b.prezzo_massimo_imposto || 0);
-      if (sort === 'titolarita-desc') {
-        const tA = parseInt(a.titolarita) || 0;
-        const tB = parseInt(b.titolarita) || 0;
-        return tB - tA;
-      }
+      const qA = a.quotazione || a.prezzo_massimo_imposto || 0;
+      const qB = b.quotazione || b.prezzo_massimo_imposto || 0;
+      if (sort === 'prezzo-desc') return qB - qA;
+      if (sort === 'prezzo-asc') return qA - qB;
       if (sort === 'nome-asc') return a.nome.localeCompare(b.nome);
       if (sort === 'squadra-asc') return a.squadra.localeCompare(b.squadra);
       return 0;
@@ -1074,7 +1083,7 @@ class AppController {
     if (filtered.length === 0) {
       container.innerHTML = `
         <tr>
-          <td colspan="9" class="empty-state">
+          <td colspan="7" class="empty-state">
             Nessun calciatore trovato con i filtri selezionati.
           </td>
         </tr>
@@ -1087,13 +1096,8 @@ class AppController {
     filtered.forEach(player => {
       const isAcquistato = player.stato === 'acquistato';
       const owner = isAcquistato ? this.state.getManager(player.proprietario_id) : null;
-
-      // Badge Titolarità e Integrità
-      const titNum = parseInt(player.titolarita, 10) || 0;
-      const intNum = parseInt(player.integrita, 10) || 0;
-
-      const titClass = titNum >= 80 ? 'badge-stat-green' : titNum >= 50 ? 'badge-stat-orange' : 'badge-stat-red';
-      const intClass = intNum >= 80 ? 'badge-stat-green' : intNum >= 50 ? 'badge-stat-orange' : 'badge-stat-red';
+      const tierInfo = this.getCanonicalTierInfo(player.fascia);
+      const qta = player.quotazione || player.prezzo_massimo_imposto || 1;
 
       // Badge Tattici Riservati (Rigorista, Modificatore) con protezione Anti-Spionaggio
       const histStats = window.getHistoricalStats ? window.getHistoricalStats(player) : null;
@@ -1118,7 +1122,7 @@ class AppController {
           <td class="col-name">
             <div class="player-name-cell">
               <span class="player-name">${player.nome}</span>
-              <span class="player-fascia secret-mask" title="Fascia segreta">${player.fascia || ''}</span>
+              <span class="player-fascia-badge tier-badge-${tierInfo.key} secret-mask" title="Fascia strategica">${tierInfo.fullLabel}</span>
               ${badgeRigoristaHtml}
               ${badgeModificatoreHtml}
             </div>
@@ -1130,13 +1134,7 @@ class AppController {
             <span class="price-value" style="color: #60a5fa; font-size: 0.95rem;">0 <small>cr (base)</small></span>
           </td>
           <td class="col-secret-max">
-            <span class="secret-mask price-value" title="Il tuo Prezzo Massimo Imposto">${player.prezzo_massimo_imposto || 1} <small>cr</small></span>
-          </td>
-          <td class="col-stat">
-            <span class="secret-mask stat-badge ${intClass}" title="Integrità">${player.integrita || '-'}</span>
-          </td>
-          <td class="col-stat">
-            <span class="secret-mask stat-badge ${titClass}" title="Titolarità">${player.titolarita || '-'}</span>
+            <span class="secret-mask price-value" title="Quotazione Attuale (Qt.A)">${qta} <small>cr</small></span>
           </td>
           <td class="col-status">
             ${isAcquistato
@@ -1397,21 +1395,28 @@ class AppController {
     const teamElemCenter = document.getElementById('modal-player-team-center');
     if (teamElemCenter) teamElemCenter.textContent = player.squadra;
 
+    // Badge Fascia Strategica nel Battitore Live
+    const tierInfo = this.getCanonicalTierInfo(player.fascia);
+    const fasciaBadgeTop = document.getElementById('modal-player-fascia-badge');
+    if (fasciaBadgeTop) {
+      fasciaBadgeTop.textContent = tierInfo.fullLabel;
+      fasciaBadgeTop.className = `modal-fascia-badge tier-${tierInfo.key}`;
+    }
+    const fasciaBadgeCenter = document.getElementById('modal-player-fascia-center');
+    if (fasciaBadgeCenter) {
+      fasciaBadgeCenter.textContent = tierInfo.fullLabel;
+      fasciaBadgeCenter.className = `modal-fascia-badge tier-${tierInfo.key}`;
+    }
+
     // Popola dati segreti riservati nel popover discreto
     const secretMaxElem = document.getElementById('secret-max-price');
-    if (secretMaxElem) secretMaxElem.textContent = `${player.prezzo_massimo_imposto || 1} cr`;
-
-    const secretTitElem = document.getElementById('secret-titolarita');
-    if (secretTitElem) secretTitElem.textContent = player.titolarita || '-';
-
-    const secretIntElem = document.getElementById('secret-integrita');
-    if (secretIntElem) secretIntElem.textContent = player.integrita || '-';
+    if (secretMaxElem) secretMaxElem.textContent = `${player.quotazione || player.prezzo_massimo_imposto || 1} cr`;
 
     const secretBudgetElem = document.getElementById('secret-budget-pct');
     if (secretBudgetElem) secretBudgetElem.textContent = player.budget_consigliato_pct || '-';
 
     const secretFasciaElem = document.getElementById('secret-fascia');
-    if (secretFasciaElem) secretFasciaElem.textContent = player.fascia || 'Generale';
+    if (secretFasciaElem) secretFasciaElem.textContent = tierInfo.fullLabel;
 
     const secretWarnElem = document.getElementById('secret-overbid-warn');
     if (secretWarnElem) secretWarnElem.classList.add('hidden');
@@ -1525,7 +1530,8 @@ class AppController {
         id: player.id,
         nome: player.nome,
         ruolo: player.ruolo,
-        squadra: player.squadra
+        squadra: player.squadra,
+        fascia: player.fascia || ''
       },
       currentBid: 0,
       manager: selectedManager ? { id: selectedManager.id, name: selectedManager.name } : null,
@@ -1544,6 +1550,7 @@ class AppController {
         player: player.nome,
         role: player.ruolo,
         team: player.squadra,
+        fascia: player.fascia || '',
         currentBid: 0,
         highestBidder: "Nessuno",
         timestamp: Date.now()
@@ -2461,7 +2468,10 @@ class AppController {
 
       if (nameElem) nameElem.textContent = randomCandidate.nome;
       if (teamElem) teamElem.textContent = randomCandidate.squadra;
-      if (fasciaElem) fasciaElem.textContent = randomCandidate.fascia || 'Generale';
+      if (fasciaElem) {
+        const tInfo = this.getCanonicalTierInfo(randomCandidate.fascia);
+        fasciaElem.textContent = tInfo.fullLabel;
+      }
       if (roleElem) {
         roleElem.textContent = randomCandidate.ruolo;
         roleElem.className = `role-pill role-${randomCandidate.ruolo}`;
@@ -2523,12 +2533,17 @@ class AppController {
     if (teamElem) teamElem.textContent = player.squadra;
 
     const fasciaElem = document.getElementById('random-slot-fascia');
-    if (fasciaElem) fasciaElem.textContent = player.fascia || 'Generale';
+    if (fasciaElem) {
+      const tierInfo = this.getCanonicalTierInfo(player.fascia);
+      fasciaElem.textContent = tierInfo.fullLabel;
+      fasciaElem.className = `random-slot-fascia-pill tier-pill-${tierInfo.key}`;
+    }
 
     const extraElem = document.getElementById('random-slot-extra');
     if (extraElem) {
-      if (player.prezzo_massimo_imposto) {
-        extraElem.textContent = `Max: ${player.prezzo_massimo_imposto} cr`;
+      const qVal = player.quotazione || player.prezzo_massimo_imposto;
+      if (qVal) {
+        extraElem.textContent = `Qt.A: ${qVal} cr`;
         extraElem.classList.remove('hidden');
       } else {
         extraElem.classList.add('hidden');
@@ -3052,12 +3067,22 @@ class AppController {
 
   getCanonicalTierInfo(fasciaRaw) {
     const f = String(fasciaRaw || '').trim().toLowerCase();
-    if (f.includes('semi-top') || f.includes('semitop')) return { key: 'semi-top', order: 2, label: 'Semi-Top' };
-    if (f.includes('top')) return { key: 'top', order: 1, label: 'Top' };
-    if (f.includes('terza') || f === 'terza') return { key: 'terza', order: 3, label: 'Terza Fascia' };
-    if (f.includes('quarta') || f === 'quarta') return { key: 'quarta', order: 4, label: 'Quarta Fascia' };
-    if (f.includes('scomm')) return { key: 'scommesse', order: 5, label: 'Scommesse' };
-    return { key: 'altri', order: 6, label: 'Altri' };
+    if (f.includes('semi-top') || f.includes('semitop')) {
+      return { key: 'semi-top', order: 2, label: 'Semi-Top', fullLabel: '💎 Semi-Top', icon: '💎', colorClass: 'tier-semi-top' };
+    }
+    if (f.includes('top')) {
+      return { key: 'top', order: 1, label: 'Top', fullLabel: '⭐ Top', icon: '⭐', colorClass: 'tier-top' };
+    }
+    if (f.includes('terza') || f.includes('3') || f.includes('3ª')) {
+      return { key: 'terza', order: 3, label: '3ª Fascia', fullLabel: '🟢 3ª Fascia', icon: '🟢', colorClass: 'tier-terza' };
+    }
+    if (f.includes('quarta') || f.includes('4') || f.includes('4ª')) {
+      return { key: 'quarta', order: 4, label: '4ª Fascia', fullLabel: '⚪ 4ª Fascia', icon: '⚪', colorClass: 'tier-quarta' };
+    }
+    if (f.includes('scomm') || f.includes('bet')) {
+      return { key: 'scommesse', order: 5, label: 'Scommesse', fullLabel: '🔥 Scommessa', icon: '🔥', colorClass: 'tier-scommesse' };
+    }
+    return { key: 'altri', order: 6, label: 'Altri', fullLabel: '❌ Altri', icon: '❌', colorClass: 'tier-altri' };
   }
 
   renderTierGuideModal() {
@@ -3072,8 +3097,8 @@ class AppController {
     const defaultTierOrder = [
       { key: 'top', order: 1, label: 'Top' },
       { key: 'semi-top', order: 2, label: 'Semi-Top' },
-      { key: 'terza', order: 3, label: 'Terza Fascia' },
-      { key: 'quarta', order: 4, label: 'Quarta Fascia' },
+      { key: 'terza', order: 3, label: '3ª Fascia' },
+      { key: 'quarta', order: 4, label: '4ª Fascia' },
       { key: 'scommesse', order: 5, label: 'Scommesse' },
       { key: 'altri', order: 6, label: 'Altri' }
     ];
@@ -3096,12 +3121,12 @@ class AppController {
     tiersMap.forEach(tier => {
       if (tier.players.length === 0) return;
 
-      // Ordina i calciatori: prima i liberi, poi per titolarità / alfabetico
+      // Ordina i calciatori: prima i liberi, poi per Quotazione / alfabetico
       tier.players.sort((a, b) => {
         const aBought = (a.stato === 'acquistato' || Boolean(a.proprietario_id)) ? 1 : 0;
         const bBought = (b.stato === 'acquistato' || Boolean(b.proprietario_id)) ? 1 : 0;
         if (aBought !== bBought) return aBought - bBought;
-        return (b.titolarita || 0) - (a.titolarita || 0) || a.nome.localeCompare(b.nome);
+        return (b.quotazione || b.prezzo_massimo_imposto || 0) - (a.quotazione || a.prezzo_massimo_imposto || 0) || a.nome.localeCompare(b.nome);
       });
 
       const totalCount = tier.players.length;
@@ -3192,27 +3217,363 @@ class AppController {
     });
   }
 
-  processCSVFile(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target.result;
-        const players = ListoneParser.parse(text);
-        if (players && players.length > 0) {
-          this.state.setPlayers(players);
-          this.populateTeamFilter();
-          this.renderHeaderStats();
-          this.renderAuctionList();
-          this.showToast(`Importati con successo ${players.length} calciatori da ${file.name}!`, 'success');
-        } else {
-          this.showToast('Nessun calciatore trovato nel file CSV selezionato.', 'error');
-        }
-      } catch (err) {
-        console.error(err);
-        this.showToast(`Errore nel parsing del file: ${err.message}`, 'error');
+  async processCSVFile(file) {
+    try {
+      this.showToast(`Elaborazione del file ${file.name}...`, 'info');
+      const buffer = await file.arrayBuffer();
+      let players = ListoneParser.parseArrayBuffer(buffer);
+
+      // Fallback a decodifica testo se il parser arrayBuffer non ha trovato calciatori
+      if (!players || players.length === 0) {
+        const text = await file.text();
+        players = ListoneParser.parse(text);
       }
+
+      if (players && players.length > 0) {
+        this.state.setPlayers(players);
+        this.populateTeamFilter();
+        this.renderHeaderStats();
+        this.renderAuctionList();
+        if (typeof this.renderStrategySection === 'function') {
+          this.renderStrategySection();
+        }
+        this.showToast(`Importati con successo ${players.length} calciatori da ${file.name}!`, 'success');
+      } else {
+        this.showToast('Nessun calciatore trovato nel file selezionato. Assicurati che contenga le intestazioni di Fantacalcio.it (Nome, R/Ruolo, Squadra, Qt.A/Quotazione).', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      this.showToast(`Errore nel caricamento del file: ${err.message}`, 'error');
+    }
+  }
+
+  // ==========================================
+  // SEZIONE STRATEGIA & FASCE
+  // ==========================================
+
+  bindStrategyEvents() {
+    // Pulsanti Ruolo: Portieri, Difensori, Centrocampisti, Attaccanti
+    document.querySelectorAll('.strategy-role-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const role = btn.getAttribute('data-role');
+        this.setStrategyRole(role);
+      });
+    });
+
+    // Ricerca istantanea Nome Calciatore / Squadra
+    const searchInput = document.getElementById('strategy-search-input');
+    const clearBtn = document.getElementById('strategy-search-clear');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        this.strategySearch = e.target.value.trim().toLowerCase();
+        if (clearBtn) clearBtn.style.display = this.strategySearch ? 'block' : 'none';
+        this.renderStrategyTableOnly();
+      });
+    }
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        this.strategySearch = '';
+        clearBtn.style.display = 'none';
+        this.renderStrategyTableOnly();
+      });
+    }
+
+    // Filtro Stato (Tutti, Liberi, Acquistati)
+    const statusSelect = document.getElementById('strategy-status-filter');
+    if (statusSelect) {
+      statusSelect.addEventListener('change', (e) => {
+        this.strategyStatus = e.target.value;
+        this.renderStrategyTableOnly();
+      });
+    }
+
+    // Filtro Fascia Dropdown
+    const tierSelect = document.getElementById('strategy-tier-filter');
+    if (tierSelect) {
+      tierSelect.addEventListener('change', (e) => {
+        this.strategyTier = e.target.value;
+        this.syncStrategyTierSummaryFilterVisual();
+        this.renderStrategyTableOnly();
+      });
+    }
+
+    // Click sulle pillole riassuntive del conteggio fasce per filtrare all'istante
+    document.querySelectorAll('.strategy-tier-pills-summary .summary-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const filterKey = pill.getAttribute('data-filter-tier');
+        if (this.strategyTier === filterKey) {
+          this.strategyTier = 'ALL';
+        } else {
+          this.strategyTier = filterKey;
+        }
+        if (tierSelect) tierSelect.value = this.strategyTier;
+        this.syncStrategyTierSummaryFilterVisual();
+        this.renderStrategyTableOnly();
+      });
+    });
+
+    // Event delegation sulla tabella strategia
+    const tbody = document.getElementById('strategy-table-body');
+    if (tbody) {
+      tbody.addEventListener('click', (e) => {
+        // Assegnazione Fascia tramite Pillola
+        const pillBtn = e.target.closest('.btn-tier-pill');
+        if (pillBtn) {
+          const row = pillBtn.closest('tr');
+          const playerId = row ? row.getAttribute('data-player-id') : null;
+          const tierKey = pillBtn.getAttribute('data-tier');
+          if (playerId && tierKey) {
+            this.assignPlayerTier(playerId, tierKey, pillBtn);
+          }
+          return;
+        }
+
+        // Bottone Battitore Asta / Info
+        const auctionBtn = e.target.closest('.btn-strategy-auction');
+        if (auctionBtn) {
+          const playerId = auctionBtn.getAttribute('data-player-id');
+          if (playerId) {
+            this.openAuctionModal(playerId);
+          }
+          return;
+        }
+      });
+    }
+  }
+
+  syncStrategyTierSummaryFilterVisual() {
+    document.querySelectorAll('.strategy-tier-pills-summary .summary-pill').forEach(pill => {
+      const k = pill.getAttribute('data-filter-tier');
+      pill.classList.toggle('selected-filter', this.strategyTier === k);
+    });
+  }
+
+  setStrategyRole(role) {
+    this.strategyActiveRole = role;
+    document.querySelectorAll('.strategy-role-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-role') === role);
+    });
+    this.renderStrategySection();
+  }
+
+  updateStrategyTierSummary(role) {
+    const roleMap = {
+      P: 'Portieri',
+      D: 'Difensori',
+      C: 'Centrocampisti',
+      A: 'Attaccanti'
     };
-    reader.readAsText(file);
+    const roleLabel = roleMap[role] || role;
+    const labelElem = document.getElementById('strategy-current-role-label');
+    if (labelElem) labelElem.textContent = roleLabel;
+
+    const allPlayers = this.state.getAllPlayers() || [];
+    const rolePlayers = allPlayers.filter(p => String(p.ruolo || '').toUpperCase() === role.toUpperCase());
+
+    const counts = {
+      top: 0,
+      'semi-top': 0,
+      terza: 0,
+      quarta: 0,
+      scommesse: 0,
+      altri: 0
+    };
+
+    rolePlayers.forEach(p => {
+      const info = this.getCanonicalTierInfo(p.fascia);
+      if (counts[info.key] !== undefined) {
+        counts[info.key]++;
+      } else {
+        counts.altri++;
+      }
+    });
+
+    const totalElem = document.getElementById('strategy-total-role-count');
+    if (totalElem) {
+      totalElem.textContent = `${rolePlayers.length} calciatori`;
+    }
+
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+
+    setVal('strategy-count-top', counts.top);
+    setVal('strategy-count-semi-top', counts['semi-top']);
+    setVal('strategy-count-terza', counts.terza);
+    setVal('strategy-count-quarta', counts.quarta);
+    setVal('strategy-count-scommesse', counts.scommesse);
+    setVal('strategy-count-altri', counts.altri);
+  }
+
+  renderStrategySection() {
+    this.updateStrategyTierSummary(this.strategyActiveRole);
+    this.syncStrategyTierSummaryFilterVisual();
+    this.renderStrategyTableOnly();
+  }
+
+  renderStrategyTableOnly() {
+    const tbody = document.getElementById('strategy-table-body');
+    const countLabel = document.getElementById('strategy-table-count-label');
+    if (!tbody) return;
+
+    const allPlayers = this.state.getAllPlayers() || [];
+    const rolePlayers = allPlayers.filter(p => String(p.ruolo || '').toUpperCase() === this.strategyActiveRole.toUpperCase());
+
+    // Filtra
+    let filtered = rolePlayers.filter(p => {
+      // Ricerca Nome o Squadra
+      if (this.strategySearch) {
+        const nameMatch = (p.nome || '').toLowerCase().includes(this.strategySearch);
+        const teamMatch = (p.squadra || '').toLowerCase().includes(this.strategySearch);
+        if (!nameMatch && !teamMatch) return false;
+      }
+      // Stato
+      if (this.strategyStatus === 'FREE' && p.stato !== 'libero') return false;
+      if (this.strategyStatus === 'BOUGHT' && p.stato === 'libero') return false;
+
+      // Fascia
+      if (this.strategyTier !== 'ALL') {
+        const info = this.getCanonicalTierInfo(p.fascia);
+        if (info.key !== this.strategyTier) return false;
+      }
+
+      return true;
+    });
+
+    // Ordinamento predefinito: per Quotazione (Qt.A) decrescente
+    filtered.sort((a, b) => {
+      const qA = a.quotazione || a.prezzo_massimo_imposto || 0;
+      const qB = b.quotazione || b.prezzo_massimo_imposto || 0;
+      if (qB !== qA) return qB - qA;
+      return (a.nome || '').localeCompare(b.nome || '');
+    });
+
+    const roleMap = { P: 'Portieri', D: 'Difensori', C: 'Centrocampisti', A: 'Attaccanti' };
+    const rName = roleMap[this.strategyActiveRole] || this.strategyActiveRole;
+
+    if (countLabel) {
+      countLabel.textContent = `Visualizzati ${filtered.length} di ${rolePlayers.length} ${rName}`;
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="table-empty-state">
+            <div style="padding: 2.5rem; text-align: center; color: var(--text-muted);">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+              <strong style="color: var(--text-primary); font-size: 1rem;">Nessun calciatore trovato</strong>
+              <p style="margin-top: 0.25rem;">Nessun calciatore corrisponde ai filtri impostati per il reparto ${rName}.</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const rowsHtml = filtered.map(p => {
+      const activeTierInfo = this.getCanonicalTierInfo(p.fascia);
+      const activeKey = activeTierInfo.key;
+      const quotazione = p.quotazione || p.prezzo_massimo_imposto || 1;
+      const isBought = p.stato !== 'libero';
+      const owner = isBought ? (this.state.getManager(p.proprietario_id)?.name || 'Acquistato') : null;
+
+      let statusBadge = '';
+      if (isBought) {
+        statusBadge = `<span class="player-bought-tag" title="Acquistato a ${p.prezzo_acquisto || 0} crediti">✓ ${owner} (${p.prezzo_acquisto || 0}cr)</span>`;
+      }
+
+      return `
+        <tr class="player-row ${isBought ? 'row-bought' : ''}" data-player-id="${p.id}">
+          <td>
+            <span class="role-badge role-${p.ruolo}">${p.ruolo}</span>
+          </td>
+          <td>
+            <div class="player-name-cell">
+              <span class="player-name-text">${p.nome}</span>
+              ${statusBadge}
+            </div>
+          </td>
+          <td>
+            <span class="team-tag">${p.squadra || 'Svincolato'}</span>
+          </td>
+          <td style="text-align: center;">
+            <span class="quotazione-badge">
+              <span class="qta-value">${quotazione}</span>
+              <span class="qta-unit">cr</span>
+            </span>
+          </td>
+          <td style="text-align: center;">
+            <div class="strategy-pill-group">
+              <button type="button" class="btn-tier-pill tier-pill-top ${activeKey === 'top' ? 'active' : ''}" data-tier="top" title="Assegna ⭐ Top">
+                <span class="pill-dot">⭐</span> Top
+              </button>
+              <button type="button" class="btn-tier-pill tier-pill-semi-top ${activeKey === 'semi-top' ? 'active' : ''}" data-tier="semi-top" title="Assegna 💎 Semi-Top">
+                <span class="pill-dot">💎</span> Semi-Top
+              </button>
+              <button type="button" class="btn-tier-pill tier-pill-terza ${activeKey === 'terza' ? 'active' : ''}" data-tier="terza" title="Assegna 🟢 3ª Fascia">
+                <span class="pill-dot">🟢</span> 3ª Fascia
+              </button>
+              <button type="button" class="btn-tier-pill tier-pill-quarta ${activeKey === 'quarta' ? 'active' : ''}" data-tier="quarta" title="Assegna ⚪ 4ª Fascia">
+                <span class="pill-dot">⚪</span> 4ª Fascia
+              </button>
+              <button type="button" class="btn-tier-pill tier-pill-scommesse ${activeKey === 'scommesse' ? 'active' : ''}" data-tier="scommesse" title="Assegna 🔥 Scommessa">
+                <span class="pill-dot">🔥</span> Scommessa
+              </button>
+              <button type="button" class="btn-tier-pill tier-pill-altri ${activeKey === 'altri' ? 'active' : ''}" data-tier="altri" title="Assegna ❌ Altri">
+                <span class="pill-dot">❌</span> Altri
+              </button>
+            </div>
+          </td>
+          <td style="text-align: center;">
+            <button type="button" class="btn-strategy-auction ${isBought ? 'btn-view' : 'btn-auction'}" data-player-id="${p.id}" title="${isBought ? 'Dettagli Calciatore' : 'Avvia Asta'}">
+              ${isBought ? '👁️ Info' : '🔨 Asta'}
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = rowsHtml;
+  }
+
+  assignPlayerTier(playerId, newTierKey, clickedButton) {
+    const player = this.state.getPlayer(playerId);
+    if (!player) return;
+
+    const tierNameMap = {
+      'top': 'Top',
+      'semi-top': 'Semi-Top',
+      'terza': '3ª Fascia',
+      'quarta': '4ª Fascia',
+      'scommesse': 'Scommesse',
+      'altri': 'Altri'
+    };
+
+    const targetFascia = tierNameMap[newTierKey] || '3ª Fascia';
+    player.fascia = targetFascia;
+    this.state.save();
+
+    // Aggiornamento grafico istantaneo del gruppo di pillole nella riga
+    if (clickedButton) {
+      const row = clickedButton.closest('tr');
+      if (row) {
+        row.querySelectorAll('.btn-tier-pill').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-tier') === newTierKey);
+        });
+      }
+      clickedButton.classList.add('pill-just-clicked');
+      setTimeout(() => clickedButton.classList.remove('pill-just-clicked'), 350);
+    }
+
+    // Aggiorna il riepilogo conteggio fasce in tempo reale
+    this.updateStrategyTierSummary(this.strategyActiveRole);
+
+    // Se stiamo filtrando per fascia e il calciatore non appartiene più a questo filtro, ricarica la tabella
+    if (this.strategyTier !== 'ALL' && this.strategyTier !== newTierKey) {
+      this.renderStrategyTableOnly();
+    }
   }
 
   async handleJSONImport(event) {
@@ -3235,6 +3596,7 @@ class AppController {
       this.populateTeamFilter();
       this.renderHeaderStats();
       this.renderAuctionList();
+      this.renderStrategySection();
       this.renderTeamsBoard();
       this.renderHistory();
       this.renderSettings();
@@ -3472,7 +3834,7 @@ class AppController {
 
       const gks = this.calendarEngine.getTeamKeyPlayers(this.calPivotTeam, 'P');
       const gksTxt = gks.slice(0, 2).map(p =>
-        `<strong>${p.nome}</strong> (${p.titolarita || '?'}%) <span style="color: #fbbf24; font-weight: 700;">[${p.prezzo_massimo_imposto || 1} cr]</span>`
+        `<strong>${p.nome}</strong> <span style="color: #fbbf24; font-weight: 700;">[${p.prezzo_massimo_imposto || 1} cr]</span>`
       ).join(', ') || 'N.D.';
 
       summaryCard.innerHTML = `
@@ -3502,7 +3864,7 @@ class AppController {
 
     pairs.forEach((p, idx) => {
       const playersPartnerHtml = (p.playersPartner || []).map(x =>
-        `<span class="player-tag-price"><strong>${x.nome}</strong> (${x.titolarita || '?'}%)<span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
+        `<span class="player-tag-price"><strong>${x.nome}</strong><span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
       ).join('') || 'N.D.';
 
       const badgeClass = p.indiceMedio <= 5.15 ? 'score-badge-green' : p.indiceMedio <= 5.35 ? 'score-badge-blue' : p.indiceMedio <= 5.55 ? 'score-badge-orange' : 'score-badge-red';
@@ -3581,7 +3943,7 @@ class AppController {
       // Filtro TASSATIVO ruolo A
       const atts = this.calendarEngine.getTeamKeyPlayers(this.calPivotTeam, 'A');
       const attsTxt = atts.slice(0, 3).map(p =>
-        `<strong>${p.nome}</strong> (${p.titolarita || '?'}%) <span style="color: #fbbf24; font-weight: 700;">[${p.prezzo_massimo_imposto || 1} cr]</span>`
+        `<strong>${p.nome}</strong> <span style="color: #fbbf24; font-weight: 700;">[${p.prezzo_massimo_imposto || 1} cr]</span>`
       ).join(', ') || 'N.D.';
 
       summaryCard.innerHTML = `
@@ -3619,7 +3981,7 @@ class AppController {
       // FIX BUG ATTACCANTI: Filtro tassativo ruolo A (Attaccanti), nessun portiere permesso
       const validAtts = (p.playersPartner || []).filter(pl => String(pl.ruolo || '').toUpperCase() === 'A');
       const playersPartnerHtml = validAtts.slice(0, 3).map(x =>
-        `<span class="player-tag-price"><strong>${x.nome}</strong> (${x.titolarita || '?'}%)<span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
+        `<span class="player-tag-price"><strong>${x.nome}</strong><span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
       ).join('') || 'N.D.';
 
       const pct = Math.round((p.softMatchdaysCount / 38) * 100);
@@ -3658,11 +4020,11 @@ class AppController {
       const validC = (t.playersC || []).filter(pl => String(pl.ruolo || '').toUpperCase() === 'A');
 
       const playersBHtml = validB.slice(0, 3).map(x =>
-        `<span class="player-tag-price"><strong>${x.nome}</strong> (${x.titolarita || '?'}%)<span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
+        `<span class="player-tag-price"><strong>${x.nome}</strong><span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
       ).join('') || 'N.D.';
 
       const playersCHtml = validC.slice(0, 3).map(x =>
-        `<span class="player-tag-price"><strong>${x.nome}</strong> (${x.titolarita || '?'}%)<span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
+        `<span class="player-tag-price"><strong>${x.nome}</strong><span class="p-max">[${x.prezzo_massimo_imposto || 1} cr]</span></span>`
       ).join('') || 'N.D.';
 
       const badgeClass = t.softMatchdaysCount >= 36 ? 'score-badge-green' : t.softMatchdaysCount >= 33 ? 'score-badge-blue' : 'score-badge-orange';

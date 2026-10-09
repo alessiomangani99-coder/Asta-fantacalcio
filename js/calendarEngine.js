@@ -136,10 +136,9 @@ class CalendarEngine {
     const targetRole = String(role || '').trim().toUpperCase();
     return all.filter(p => p.squadra === team && String(p.ruolo || '').trim().toUpperCase() === targetRole)
       .sort((a, b) => {
-        const titA = parseInt(a.titolarita, 10) || 0;
-        const titB = parseInt(b.titolarita, 10) || 0;
-        if (titB !== titA) return titB - titA;
-        return (b.prezzo_massimo_imposto || 0) - (a.prezzo_massimo_imposto || 0);
+        const valB = (b.quotazione || b.prezzo_massimo_imposto || 0);
+        const valA = (a.quotazione || a.prezzo_massimo_imposto || 0);
+        return valB - valA;
       });
   }
 

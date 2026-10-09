@@ -570,10 +570,74 @@
       color: var(--text-muted);
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      margin-bottom: 2.5rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
+    }
+
+    .tv-player-sub-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tv-player-fascia-badge {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      padding: 0.35rem 1.1rem;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .tv-player-fascia-badge.tier-top {
+      background: rgba(251, 191, 36, 0.2);
+      border: 1.5px solid #fbbf24;
+      color: #fbbf24;
+      box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+    }
+
+    .tv-player-fascia-badge.tier-semi-top {
+      background: rgba(139, 92, 246, 0.2);
+      border: 1.5px solid #a78bfa;
+      color: #c4b5fd;
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+    }
+
+    .tv-player-fascia-badge.tier-terza {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1.5px solid #10b981;
+      color: #6ee7b7;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .tv-player-fascia-badge.tier-quarta {
+      background: rgba(148, 163, 184, 0.2);
+      border: 1.5px solid #94a3b8;
+      color: #e2e8f0;
+      box-shadow: 0 0 15px rgba(148, 163, 184, 0.3);
+    }
+
+    .tv-player-fascia-badge.tier-scommesse {
+      background: rgba(249, 115, 22, 0.2);
+      border: 1.5px solid #f97316;
+      color: #fdba74;
+      box-shadow: 0 0 20px rgba(249, 115, 22, 0.4);
+    }
+
+    .tv-player-fascia-badge.tier-altri {
+      background: rgba(71, 85, 105, 0.2);
+      border: 1.5px solid #64748b;
+      color: #94a3b8;
     }
 
     /* Box Prezzo & Manager Bidding */
@@ -963,7 +1027,10 @@
         </div>
 
         <h1 class="tv-player-name" id="tv-player-name">CALCIATORE</h1>
-        <div class="tv-player-team" id="tv-player-team">SQUADRA SERIE A</div>
+        <div class="tv-player-sub-row">
+          <div class="tv-player-team" id="tv-player-team">SQUADRA SERIE A</div>
+          <div class="tv-player-fascia-badge tier-top" id="tv-player-fascia">⭐ TOP</div>
+        </div>
 
         <div class="tv-bid-grid">
           <div class="tv-bid-box">
@@ -1215,7 +1282,8 @@
                   id: 'live_p',
                   nome: data.player,
                   ruolo: data.role,
-                  squadra: data.team
+                  squadra: data.team,
+                  fascia: data.fascia || ''
                 },
                 currentBid: newPrice,
                 manager: (data.highestBidder && data.highestBidder !== 'Nessuno') ? { name: data.highestBidder } : null
@@ -1391,6 +1459,16 @@
         this.renderStandbyBoard();
       }
 
+      getCanonicalTierInfo(fasciaRaw) {
+        const f = String(fasciaRaw || '').trim().toLowerCase();
+        if (f.includes('semi-top') || f.includes('semitop')) return { key: 'semi-top', fullLabel: '💎 SEMI-TOP' };
+        if (f.includes('top')) return { key: 'top', fullLabel: '⭐ TOP' };
+        if (f.includes('terza') || f.includes('3') || f.includes('3ª')) return { key: 'terza', fullLabel: '🟢 3ª FASCIA' };
+        if (f.includes('quarta') || f.includes('4') || f.includes('4ª')) return { key: 'quarta', fullLabel: '⚪ 4ª FASCIA' };
+        if (f.includes('scomm') || f.includes('bet')) return { key: 'scommesse', fullLabel: '🔥 SCOMMESSA' };
+        return { key: 'altri', fullLabel: '❌ ALTRI' };
+      }
+
       showBiddingView() {
         const standby = document.getElementById('tv-standby-view');
         const bidding = document.getElementById('tv-bidding-view');
@@ -1416,11 +1494,19 @@
         if (roleIcon) roleIcon.textContent = icons[p.ruolo] || '⚽';
         if (roleText) roleText.textContent = labels[p.ruolo] || p.ruolo;
 
-        // Nome & Squadra
+        // Nome & Squadra & Fascia
         const nameEl = document.getElementById('tv-player-name');
         const teamEl = document.getElementById('tv-player-team');
+        const fasciaEl = document.getElementById('tv-player-fascia');
+
         if (nameEl) nameEl.textContent = p.nome;
         if (teamEl) teamEl.textContent = p.squadra;
+
+        if (fasciaEl) {
+          const tier = this.getCanonicalTierInfo(p.fascia);
+          fasciaEl.textContent = tier.fullLabel;
+          fasciaEl.className = `tv-player-fascia-badge tier-${tier.key}`;
+        }
 
         this.updateBidDisplay();
 

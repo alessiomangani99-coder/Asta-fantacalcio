@@ -14,6 +14,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
+  <!-- SheetJS Libreria per Excel (.xlsx) e CSV -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <!-- Firebase Realtime Database CDN compat & Config -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -64,6 +67,9 @@
       <nav class="header-nav-tabs">
         <button class="nav-tab-btn active" data-tab="auction">
           🔨 Sala d'Asta / Listone
+        </button>
+        <button class="nav-tab-btn" data-tab="strategy">
+          🎯 Strategia & Fasce
         </button>
         <button class="nav-tab-btn" data-tab="teams">
           📋 Tabellone Squadre & Rose
@@ -152,9 +158,8 @@
               </select>
 
               <select id="sort-select" class="select-control">
-                <option value="prezzo-desc">Prezzo Max Imposto: Alto ➔ Basso</option>
-                <option value="prezzo-asc">Prezzo Max Imposto: Basso ➔ Alto</option>
-                <option value="titolarita-desc">Titolarità Decrescente</option>
+                <option value="prezzo-desc">Quotazione (Qt.A): Alta ➔ Bassa</option>
+                <option value="prezzo-asc">Quotazione (Qt.A): Bassa ➔ Alta</option>
                 <option value="nome-asc">Nome Alfabetico (A-Z)</option>
                 <option value="squadra-asc">Squadra Serie A (A-Z)</option>
               </select>
@@ -193,9 +198,7 @@
                 <th>Calciatore</th>
                 <th>Squadra Serie A</th>
                 <th>Prezzo Asta</th>
-                <th>Max Imposto 🔒</th>
-                <th>Integrità 🔒</th>
-                <th>Titolarità 🔒</th>
+                <th>Quotazione (Qt.A) 🔒</th>
                 <th>Stato / Acquirente</th>
                 <th style="width: 120px; text-align: center;">Azione</th>
               </tr>
@@ -208,7 +211,138 @@
       </section>
 
       <!-- ==================================================================
-           TAB 2: TABELLONE SQUADRE & ROSE
+           TAB 2: 🎯 STRATEGIA & FASCE (NUOVA SEZIONE CATALOGAZIONE RAPIDA)
+           ================================================================== -->
+      <section id="tab-strategy" class="tab-view hidden">
+        <div class="strategy-controls-bar">
+          <div class="strategy-header-row">
+            <div class="strategy-title-block">
+              <h2 class="strategy-title">
+                <span class="strategy-icon">🎯</span> Strategia & Fasce d'Asta
+              </h2>
+              <p class="strategy-subtitle">
+                Assegna le fasce ai tuoi calciatori con un singolo click. Sincronizzato istantaneamente con le estrazioni a sorte e il battitore live.
+              </p>
+            </div>
+            <div class="strategy-search-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="strategy-search-input" class="search-input" placeholder="Cerca calciatore o squadra...">
+            </div>
+          </div>
+
+          <!-- Pulsanti Ruolo e Filtri Aggiuntivi -->
+          <div class="strategy-controls-actions-row">
+            <div class="strategy-role-buttons" id="strategy-role-selector">
+              <button type="button" class="strategy-role-btn active" data-strategy-role="P">
+                <span class="role-icon">🧤</span> <span class="role-name">Portieri</span>
+              </button>
+              <button type="button" class="strategy-role-btn" data-strategy-role="D">
+                <span class="role-icon">🛡️</span> <span class="role-name">Difensori</span>
+              </button>
+              <button type="button" class="strategy-role-btn" data-strategy-role="C">
+                <span class="role-icon">⚙️</span> <span class="role-name">Centrocampisti</span>
+              </button>
+              <button type="button" class="strategy-role-btn" data-strategy-role="A">
+                <span class="role-icon">⚡</span> <span class="role-name">Attaccanti</span>
+              </button>
+            </div>
+
+            <div class="strategy-extra-filters">
+              <div class="strategy-filter-group">
+                <label class="strategy-filter-label" for="strategy-status-filter">Stato:</label>
+                <select id="strategy-status-filter" class="select-control strategy-select">
+                  <option value="ALL">Tutti</option>
+                  <option value="FREE" selected>Solo Liberi</option>
+                  <option value="BOUGHT">Solo Acquistati</option>
+                </select>
+              </div>
+
+              <div class="strategy-filter-group">
+                <label class="strategy-filter-label" for="strategy-tier-filter">Fascia:</label>
+                <select id="strategy-tier-filter" class="select-control strategy-select">
+                  <option value="ALL">Tutte le Fasce</option>
+                  <option value="top">⭐ Top</option>
+                  <option value="semi-top">💎 Semi-Top</option>
+                  <option value="terza">🟢 3ª Fascia</option>
+                  <option value="quarta">⚪ 4ª Fascia</option>
+                  <option value="scommesse">🔥 Scommesse</option>
+                  <option value="altri">❌ Altri</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Riepilogo Conteggio Fasce in Tempo Reale -->
+          <div class="strategy-tier-summary-card">
+            <div class="tier-summary-header">
+              <div class="tier-summary-title">
+                <span>📊 Riepilogo Fasce Reparto: <strong id="strategy-current-role-label">Portieri</strong></span>
+              </div>
+              <span id="strategy-total-role-count" class="tier-summary-total">0 calciatori</span>
+            </div>
+            <div class="strategy-tier-pills-summary" id="strategy-tier-pills-summary">
+              <div class="summary-pill pill-top" data-filter-tier="top" title="Filtra per ⭐ Top">
+                <span class="sum-icon">⭐</span>
+                <span class="sum-label">Top:</span>
+                <strong id="strategy-count-top" class="sum-count">0</strong>
+              </div>
+              <div class="summary-pill pill-semi-top" data-filter-tier="semi-top" title="Filtra per 💎 Semi-Top">
+                <span class="sum-icon">💎</span>
+                <span class="sum-label">Semi-Top:</span>
+                <strong id="strategy-count-semi-top" class="sum-count">0</strong>
+              </div>
+              <div class="summary-pill pill-terza" data-filter-tier="terza" title="Filtra per 🟢 3ª Fascia">
+                <span class="sum-icon">🟢</span>
+                <span class="sum-label">3ª Fascia:</span>
+                <strong id="strategy-count-terza" class="sum-count">0</strong>
+              </div>
+              <div class="summary-pill pill-quarta" data-filter-tier="quarta" title="Filtra per ⚪ 4ª Fascia">
+                <span class="sum-icon">⚪</span>
+                <span class="sum-label">4ª Fascia:</span>
+                <strong id="strategy-count-quarta" class="sum-count">0</strong>
+              </div>
+              <div class="summary-pill pill-scommesse" data-filter-tier="scommesse" title="Filtra per 🔥 Scommesse">
+                <span class="sum-icon">🔥</span>
+                <span class="sum-label">Scommesse:</span>
+                <strong id="strategy-count-scommesse" class="sum-count">0</strong>
+              </div>
+              <div class="summary-pill pill-altri" data-filter-tier="altri" title="Filtra per ❌ Altri">
+                <span class="sum-icon">❌</span>
+                <span class="sum-label">Altri:</span>
+                <strong id="strategy-count-altri" class="sum-count">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabella Calciatori Strategia -->
+        <div class="table-responsive-wrapper strategy-table-wrapper">
+          <div class="table-header-info">
+            <span id="strategy-table-count-label" class="table-count-label">Caricamento calciatori...</span>
+            <span style="font-size: 0.775rem; color: var(--text-muted);">
+              💡 Clicca su una pillola per assegnare la fascia con salvataggio istantaneo. Ordinamento predefinito: Quotazione (Qt.A) decrescente.
+            </span>
+          </div>
+          <table class="players-table strategy-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">R</th>
+                <th>Calciatore</th>
+                <th>Squadra Serie A</th>
+                <th style="width: 130px; text-align: center;">Quotazione (Qt.A)</th>
+                <th style="min-width: 480px; text-align: center;">Assegna Fascia (Click Rapido)</th>
+                <th style="width: 110px; text-align: center;">Azione</th>
+              </tr>
+            </thead>
+            <tbody id="strategy-table-body">
+              <!-- Righe generate dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           TAB 3: TABELLONE SQUADRE & ROSE
            ================================================================== -->
       <section id="tab-teams" class="tab-view hidden">
         <!-- Barra Filtro Rapido per Ruolo nel Tabellone Squadre -->
@@ -727,16 +861,17 @@
           <!-- Modulo Importazione Listone CSV & Zona Pericolo -->
           <div style="display: flex; flex-direction: column; gap: 1.5rem;">
             <div class="settings-card">
-              <h3 class="settings-card-title">Importa Nuovo Listone CSV</h3>
-              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                Puoi caricare un file <code>listone.csv</code> aggiornato tramite Drag & Drop o selezione manuale. Il parser riconosce le macro-sezioni <code>PORTIERI</code>, <code>DIFENSORI</code>, <code>CENTROCAMPISTI</code>, <code>ATTACCANTI</code>.
+              <h3 class="settings-card-title">Importa Nuovo Listone (Excel .xlsx / CSV)</h3>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; line-height: 1.45;">
+                Supporta direttamente i file ufficiali di Fantacalcio.it (es. <code>Quotazioni_Fantacalcio_Stagione_2026_27.xlsx</code>) e CSV.
+                Il parser legge automaticamente il foglio <code>Tutti</code>, individua la riga delle colonne e mappa Ruolo, Nome, Squadra e Quotazione (<code>Qt.A</code>).
               </p>
               <div id="csv-dropzone" class="csv-dropzone">
                 <div class="dropzone-icon">📥</div>
-                <div class="dropzone-text">Trascina qui il file listone.csv</div>
-                <div class="dropzone-subtext">oppure clicca per sfogliare dal tuo dispositivo</div>
+                <div class="dropzone-text">Trascina qui il file Excel (.xlsx) o CSV</div>
+                <div class="dropzone-subtext">oppure clicca per sfogliare dal tuo computer</div>
               </div>
-              <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+              <input type="file" id="csv-file-input" accept=".xlsx,.xls,.csv" style="display: none;">
             </div>
 
             <div class="settings-card" style="border-color: rgba(239, 68, 68, 0.3);">
@@ -785,6 +920,7 @@
               <span id="modal-player-role" class="role-pill role-P">P</span>
               <span id="modal-player-name" class="header-player-name">Svilar</span>
               <span id="modal-player-team" class="team-badge">Roma</span>
+              <span id="modal-player-fascia-badge" class="modal-fascia-badge tier-top">⭐ Top</span>
             </div>
           </div>
           <button id="btn-close-modal" class="btn-close-modal" title="Chiudi (Esc)">✕</button>
@@ -823,7 +959,10 @@
                   <div class="called-player-main">
                     <span id="modal-player-role-center" class="role-pill role-P">P</span>
                     <div>
-                      <h2 id="modal-player-name-center" class="called-player-name">Svilar</h2>
+                      <div class="called-player-name-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <h2 id="modal-player-name-center" class="called-player-name">Svilar</h2>
+                        <span id="modal-player-fascia-center" class="modal-fascia-badge tier-top">⭐ Top</span>
+                      </div>
                       <span id="modal-player-team-center" class="team-badge">Roma</span>
                     </div>
                   </div>
@@ -842,24 +981,16 @@
                       </div>
                       <div class="secret-popover-body">
                         <div class="secret-data-row highlight-target">
-                          <span class="s-label">Prezzo Max Imposto:</span>
+                          <span class="s-label">Prezzo Max Imposto / Qt.A:</span>
                           <span id="secret-max-price" class="s-val text-warning font-bold">55 cr</span>
                         </div>
                         <div class="secret-data-row">
-                          <span class="s-label">Titolarità:</span>
-                          <span id="secret-titolarita" class="s-val font-semibold">100%</span>
-                        </div>
-                        <div class="secret-data-row">
-                          <span class="s-label">Integrità Fisica:</span>
-                          <span id="secret-integrita" class="s-val font-semibold">100%</span>
+                          <span class="s-label">Fascia Strategica:</span>
+                          <span id="secret-fascia" class="s-val font-semibold">Portieri Top</span>
                         </div>
                         <div class="secret-data-row">
                           <span class="s-label">Budget % Consigliato:</span>
                           <span id="secret-budget-pct" class="s-val">12%</span>
-                        </div>
-                        <div class="secret-data-row">
-                          <span class="s-label">Fascia:</span>
-                          <span id="secret-fascia" class="s-val">Portieri Top</span>
                         </div>
                       </div>
                       <div id="secret-overbid-warn" class="secret-overbid-warn hidden">
@@ -1164,12 +1295,12 @@
               <button type="button" class="btn-random-tier active" data-tier-key="all">
                 ⭐ Tutte le fasce
               </button>
-              <button type="button" class="btn-random-tier" data-tier-key="top">Top</button>
-              <button type="button" class="btn-random-tier" data-tier-key="semi-top">Semi-Top</button>
-              <button type="button" class="btn-random-tier" data-tier-key="terza">3ª Fascia</button>
-              <button type="button" class="btn-random-tier" data-tier-key="quarta">4ª Fascia</button>
-              <button type="button" class="btn-random-tier" data-tier-key="scommesse">Scommesse</button>
-              <button type="button" class="btn-random-tier" data-tier-key="altri">Altri</button>
+              <button type="button" class="btn-random-tier" data-tier-key="top">⭐ Top</button>
+              <button type="button" class="btn-random-tier" data-tier-key="semi-top">💎 Semi-Top</button>
+              <button type="button" class="btn-random-tier" data-tier-key="terza">🟢 3ª Fascia</button>
+              <button type="button" class="btn-random-tier" data-tier-key="quarta">⚪ 4ª Fascia</button>
+              <button type="button" class="btn-random-tier" data-tier-key="scommesse">🔥 Scommesse</button>
+              <button type="button" class="btn-random-tier" data-tier-key="altri">❌ Altri</button>
             </div>
           </div>
 
